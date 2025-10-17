@@ -2,7 +2,9 @@
 import yfinance as yf
 import pandas as pd
 import streamlit as st
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Tuple
+from utils.sankey_theme import SankeyTheme, create_theme_selector, create_scale_selector
+import plotly.graph_objects as go
 
 
 class InstitutionalHoldingsAnalyzer:
@@ -152,6 +154,125 @@ class InstitutionalHoldingsAnalyzer:
             print(f"Error formatting holdings: {str(e)}")
             return holders_df
 
+    def create_holdings_sankey(
+        self,
+        institutional: pd.DataFrame,
+        mutual_funds: pd.DataFrame,
+        theme: SankeyTheme,
+        top_n: int = 10
+    ) -> Optional[go.Figure]:
+        """Create Sankey diagram showing stock ownership distribution
+
+        Args:
+            institutional: Institutional holders dataframe
+            mutual_funds: Mutual fund holders dataframe
+            theme: SankeyTheme instance
+            top_n: Number of top holders to display
+
+        Returns:
+            Plotly Figure or None
+        """
+        try:
+            nodes = [f"{self.symbol} Stock"]
+            sources = []
+            targets = []
+            values = []
+            node_colors = []
+
+            # Root node color
+            node_colors.append('#FFD166')  # Yellow for stock
+
+            # Add institutional holders
+            if institutional is not None and not institutional.empty:
+                inst_node_idx = len(nodes)
+                nodes.append('Institutional Investors')
+                node_colors.append(theme.get_color_palette('assets')['primary'])
+
+                sources.append(0)  # From stock
+                targets.append(inst_node_idx)
+
+                # Sum of top institutional holdings
+                inst_total_pct = institutional.head(top_n)['% Out'].str.rstrip('%').astype(float).sum()
+                values.append(inst_total_pct)
+
+                # Add top institutional holders
+                for idx, row in institutional.head(top_n).iterrows():
+                    holder_name = row['Holder']
+                    # Truncate long names
+                    if len(holder_name) > 30:
+                        holder_name = holder_name[:27] + '...'
+
+                    nodes.append(holder_name)
+                    node_colors.append(theme.get_color_palette('assets')['breakdown'][len(nodes) % 4])
+
+                    sources.append(inst_node_idx)
+                    targets.append(len(nodes) - 1)
+
+                    pct = float(row['% Out'].rstrip('%'))
+                    values.append(pct)
+
+            # Add mutual fund holders
+            if mutual_funds is not None and not mutual_funds.empty:
+                fund_node_idx = len(nodes)
+                nodes.append('Mutual Funds')
+                node_colors.append(theme.get_color_palette('liabilities')['current'])
+
+                sources.append(0)  # From stock
+                targets.append(fund_node_idx)
+
+                # Sum of top mutual fund holdings
+                fund_total_pct = mutual_funds.head(top_n)['% Out'].str.rstrip('%').astype(float).sum()
+                values.append(fund_total_pct)
+
+                # Add top mutual funds
+                for idx, row in mutual_funds.head(top_n).iterrows():
+                    holder_name = row['Holder']
+                    # Truncate long names
+                    if len(holder_name) > 30:
+                        holder_name = holder_name[:27] + '...'
+
+                    nodes.append(holder_name)
+                    node_colors.append(theme.get_color_palette('liabilities')['breakdown'][len(nodes) % 4])
+
+                    sources.append(fund_node_idx)
+                    targets.append(len(nodes) - 1)
+
+                    pct = float(row['% Out'].rstrip('%'))
+                    values.append(pct)
+
+            if not sources:
+                return None
+
+            # Create custom hover templates
+            hover_templates = []
+            for i, (src, tgt, val) in enumerate(zip(sources, targets, values)):
+                template = (
+                    f"<b>{nodes[src]} → {nodes[tgt]}</b><br>"
+                    f"Ownership: {val:.2f}%<br>"
+                    "<extra></extra>"
+                )
+                hover_templates.append(template)
+
+            # Create Sankey
+            fig = theme.create_sankey_figure(
+                nodes=nodes,
+                sources=sources,
+                targets=targets,
+                values=values,
+                node_colors=node_colors,
+                title=f"{self.symbol} Ownership Distribution (Top {top_n} Holders)",
+                height=800,
+                scale='',  # Percentage, no scale needed
+                show_percentage=False,
+                link_labels=hover_templates
+            )
+
+            return fig
+
+        except Exception as e:
+            print(f"Error creating holdings Sankey: {str(e)}")
+            return None
+
 
 def display_institutional_holdings(symbol: str):
     """Display institutional holdings analysis in Streamlit
@@ -181,6 +302,55 @@ def display_institutional_holdings(symbol: str):
         return
 
     st.subheader("🏦 Institutional & Fund Holdings")
+
+    # Add Sankey visualization controls
+    st.markdown("---")
+    st.markdown("### 📊 Ownership Distribution Visualization")
+
+    # Theme selector
+    theme = create_theme_selector()
+
+    # Top N selector
+    col1, col2 = st.columns([2, 1])
+    with col2:
+        top_n = st.slider(
+            "Top N Holders",
+            min_value=5,
+            max_value=20,
+            value=10,
+            help="Number of top holders to display in Sankey chart"
+        )
+
+    # Create and display Sankey chart
+    if analysis.get('institutional_holders') is not None or analysis.get('mutual_fund_holders') is not None:
+        sankey_fig = analyzer.create_holdings_sankey(
+            analysis.get('institutional_holders'),
+            analysis.get('mutual_fund_holders'),
+            theme,
+            top_n
+        )
+
+        if sankey_fig:
+            st.plotly_chart(sankey_fig, use_container_width=True)
+
+            with st.expander("ℹ️ How to Read Ownership Distribution"):
+                st.markdown("""
+                **Sankey Diagram** shows who owns shares of this stock:
+
+                - **Center (Yellow)**: The stock itself
+                - **Institutional Investors (Green)**: Banks, pension funds, hedge funds
+                - **Mutual Funds (Orange)**: Investment funds accessible to retail investors
+
+                **Features:**
+                - Hover over flows to see exact ownership percentages
+                - Width represents relative ownership size
+                - Shows top institutional and fund holders
+                - Adjust "Top N Holders" slider to see more/fewer holders
+                """)
+        else:
+            st.info("Sankey chart requires both institutional and mutual fund data.")
+
+    st.markdown("---")
 
     # Major holders summary
     if analysis['major_holders'] is not None:
@@ -219,7 +389,18 @@ def display_institutional_holdings(symbol: str):
             analysis['institutional_holders'],
             "Institutional"
         )
+
+        # Add note about holdings changes
+        st.info("💡 **Tracking Changes**: Compare 'Report Date' column across holders to identify recent position changes. Newer dates indicate more current holdings data.")
+
         st.dataframe(formatted_df, use_container_width=True, hide_index=True)
+
+        # Show which holders reported most recently
+        if 'Date Reported' in analysis['institutional_holders'].columns:
+            recent_holders = analysis['institutional_holders'].nlargest(3, 'Date Reported')
+            st.markdown("**📅 Most Recent Reports:**")
+            for idx, row in recent_holders.iterrows():
+                st.text(f"• {row['Holder']}: {row['Date Reported'].strftime('%Y-%m-%d')}")
 
     # Mutual fund holders
     if analysis['mutual_fund_holders'] is not None:
@@ -239,4 +420,47 @@ def display_institutional_holdings(symbol: str):
             analysis['mutual_fund_holders'],
             "Mutual Fund"
         )
+
+        st.info("💡 **ETF/Fund Tracking**: Monitor which funds are increasing/decreasing positions by comparing report dates and ownership percentages over time.")
+
         st.dataframe(formatted_df, use_container_width=True, hide_index=True)
+
+        # Show which funds reported most recently
+        if 'Date Reported' in analysis['mutual_fund_holders'].columns:
+            recent_funds = analysis['mutual_fund_holders'].nlargest(3, 'Date Reported')
+            st.markdown("**📅 Most Recent Fund Reports:**")
+            for idx, row in recent_funds.iterrows():
+                st.text(f"• {row['Holder']}: {row['Date Reported'].strftime('%Y-%m-%d')}")
+
+    # Summary analysis section
+    if analysis.get('institutional_holders') is not None or analysis.get('mutual_fund_holders') is not None:
+        st.markdown("---")
+        st.markdown("### 📈 Holdings Analysis Summary")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("**🏛️ Institutional Holdings Insights:**")
+            if analysis.get('institutional_holders') is not None:
+                inst_df = analysis['institutional_holders']
+                total_inst_pct = inst_df['% Out'].str.rstrip('%').astype(float).sum()
+                st.metric("Total Institutional Ownership", f"{total_inst_pct:.2f}%")
+
+                # Top 3 holders
+                top_3 = inst_df.head(3)
+                st.markdown("**Top 3 Institutions:**")
+                for idx, row in top_3.iterrows():
+                    st.markdown(f"• **{row['Holder']}**: {row['% Out']}")
+
+        with col2:
+            st.markdown("**🏢 Mutual Fund Holdings Insights:**")
+            if analysis.get('mutual_fund_holders') is not None:
+                fund_df = analysis['mutual_fund_holders']
+                total_fund_pct = fund_df['% Out'].str.rstrip('%').astype(float).sum()
+                st.metric("Total Fund Ownership", f"{total_fund_pct:.2f}%")
+
+                # Top 3 funds
+                top_3_funds = fund_df.head(3)
+                st.markdown("**Top 3 Funds/ETFs:**")
+                for idx, row in top_3_funds.iterrows():
+                    st.markdown(f"• **{row['Holder']}**: {row['% Out']}")
