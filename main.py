@@ -3383,10 +3383,26 @@ def create_settlement_analysis():
 
 def create_comprehensive_stock_research():
     """Comprehensive stock research with all analysis tools"""
-    from app.analytics.advanced_technical_analysis import AdvancedTechnicalAnalyzer
-    from app.analytics.dividend_analysis import DividendAnalyzer
-    from app.analytics.sector_analysis import SectorAnalyzer
-    from app.analytics.settlement_analysis import SettlementAnalyzer
+    # Optional imports with graceful fallback
+    try:
+        from app.analytics.advanced_technical_analysis import AdvancedTechnicalAnalyzer
+    except ImportError:
+        AdvancedTechnicalAnalyzer = None
+
+    try:
+        from app.analytics.dividend_analysis import DividendAnalyzer
+    except ImportError:
+        DividendAnalyzer = None
+
+    try:
+        from app.analytics.sector_analysis import SectorAnalyzer
+    except ImportError:
+        SectorAnalyzer = None
+
+    try:
+        from app.analytics.settlement_analysis import SettlementAnalyzer
+    except ImportError:
+        SettlementAnalyzer = None
 
     st.header("🔍 Comprehensive Stock Research")
 
@@ -3477,10 +3493,14 @@ def create_comprehensive_stock_research():
     with tab2:
         # Technical Analysis
         st.subheader("📈 Advanced Technical Analysis")
-        try:
-            with st.spinner("Analyzing technical indicators..."):
-                analyzer = AdvancedTechnicalAnalyzer(symbol, period=period)
-                analysis = analyzer.get_complete_technical_analysis()
+
+        if AdvancedTechnicalAnalyzer is None:
+            st.info("⚠️ Advanced technical analysis is unavailable in this environment. Install additional packages for full functionality.")
+        else:
+            try:
+                with st.spinner("Analyzing technical indicators..."):
+                    analyzer = AdvancedTechnicalAnalyzer(symbol, period=period)
+                    analysis = analyzer.get_complete_technical_analysis()
 
                 if 'error' not in analysis:
                     # Trading signals
@@ -3554,16 +3574,20 @@ def create_comprehensive_stock_research():
                 else:
                     st.error(analysis['error'])
 
-        except Exception as e:
-            st.error(f"Technical analysis error: {str(e)}")
+            except Exception as e:
+                st.error(f"Technical analysis error: {str(e)}")
 
     with tab3:
         # Dividend Analysis
         st.subheader("💰 Dividend Analysis")
-        try:
-            with st.spinner("Analyzing dividends..."):
-                div_analyzer = DividendAnalyzer(symbol)
-                div_analysis = div_analyzer.get_comprehensive_dividend_analysis()
+
+        if DividendAnalyzer is None:
+            st.info("⚠️ Dividend analysis is unavailable in this environment.")
+        else:
+            try:
+                with st.spinner("Analyzing dividends..."):
+                    div_analyzer = DividendAnalyzer(symbol)
+                    div_analysis = div_analyzer.get_comprehensive_dividend_analysis()
 
                 if 'error' not in div_analysis:
                     # Dividend score
@@ -3623,16 +3647,20 @@ def create_comprehensive_stock_research():
                 else:
                     st.info("No dividend data available for this stock")
 
-        except Exception as e:
-            st.error(f"Dividend analysis error: {str(e)}")
+            except Exception as e:
+                st.error(f"Dividend analysis error: {str(e)}")
 
     with tab4:
         # Sector Analysis
         st.subheader("🏭 Sector Analysis")
-        try:
-            with st.spinner("Analyzing sector position..."):
-                sector_analyzer = SectorAnalyzer(symbol)
-                sector_analysis = sector_analyzer.get_comprehensive_sector_analysis()
+
+        if SectorAnalyzer is None:
+            st.info("⚠️ Sector analysis is unavailable in this environment.")
+        else:
+            try:
+                with st.spinner("Analyzing sector position..."):
+                    sector_analyzer = SectorAnalyzer(symbol)
+                    sector_analysis = sector_analyzer.get_comprehensive_sector_analysis()
 
                 if 'error' not in sector_analysis:
                     # Sector recommendation
@@ -3691,16 +3719,20 @@ def create_comprehensive_stock_research():
                 else:
                     st.error(sector_analysis['error'])
 
-        except Exception as e:
-            st.error(f"Sector analysis error: {str(e)}")
+            except Exception as e:
+                st.error(f"Sector analysis error: {str(e)}")
 
     with tab5:
         # Settlement Analysis
         st.subheader("💱 Settlement & Volume Analysis")
-        try:
-            with st.spinner("Analyzing settlement data..."):
-                settlement_analyzer = SettlementAnalyzer(symbol)
-                settlement = settlement_analyzer.get_settlement_analysis(period=period)
+
+        if SettlementAnalyzer is None:
+            st.info("⚠️ Settlement analysis is unavailable in this environment.")
+        else:
+            try:
+                with st.spinner("Analyzing settlement data..."):
+                    settlement_analyzer = SettlementAnalyzer(symbol)
+                    settlement = settlement_analyzer.get_settlement_analysis(period=period)
 
                 if 'error' not in settlement:
                     # Summary metrics
@@ -3743,8 +3775,8 @@ def create_comprehensive_stock_research():
                 else:
                     st.error(settlement['error'])
 
-        except Exception as e:
-            st.error(f"Settlement analysis error: {str(e)}")
+            except Exception as e:
+                st.error(f"Settlement analysis error: {str(e)}")
 
     with tab6:
         # Fundamentals

@@ -2,9 +2,16 @@ import numpy as np
 import pandas as pd
 from typing import Dict, List, Optional, Tuple, Any
 from scipy import stats
-from arch import arch_model
 import warnings
 warnings.filterwarnings('ignore')
+
+# Optional dependency: arch (for GARCH models)
+try:
+    from arch import arch_model
+    HAS_ARCH = True
+except ImportError:
+    HAS_ARCH = False
+    arch_model = None
 
 class VolatilityAnalyzer:
     """Advanced volatility analysis and modeling"""
@@ -70,6 +77,10 @@ class VolatilityAnalyzer:
 
     def garch_volatility_forecast(self, returns: pd.Series, horizon: int = 30) -> Dict[str, Any]:
         """GARCH model volatility forecasting"""
+        # Fallback if arch is not available
+        if not HAS_ARCH:
+            return self._fallback_volatility_forecast(returns, horizon)
+
         try:
             # Prepare data
             returns_scaled = returns * 100  # Scale for numerical stability
@@ -114,6 +125,48 @@ class VolatilityAnalyzer:
         except Exception as e:
             return {
                 'error': f'GARCH modeling failed: {str(e)}',
+                'forecast': None,
+                'confidence_intervals': None
+            }
+
+    def _fallback_volatility_forecast(self, returns: pd.Series, horizon: int = 30) -> Dict[str, Any]:
+        """Simple rolling volatility forecast when arch is unavailable"""
+        try:
+            returns_clean = returns.dropna()
+
+            if len(returns_clean) < 30:
+                return {
+                    'error': 'Insufficient data for volatility forecasting',
+                    'forecast': None,
+                    'confidence_intervals': None
+                }
+
+            # Calculate rolling 30-day annualized volatility
+            rolling_vol = returns_clean.rolling(window=30).std() * np.sqrt(252)
+            current_vol = rolling_vol.iloc[-1]
+
+            # Simple forecast: assume volatility persists
+            vol_forecast = np.full(horizon, current_vol)
+
+            # Estimate confidence intervals based on historical volatility variation
+            vol_std = rolling_vol.std()
+            lower_ci = vol_forecast - 1.96 * vol_std
+            upper_ci = vol_forecast + 1.96 * vol_std
+
+            return {
+                'model_summary': 'Simple rolling volatility forecast (GARCH unavailable)',
+                'forecast_horizon': horizon,
+                'volatility_forecast': vol_forecast.tolist(),
+                'mean_forecast_vol': current_vol,
+                'confidence_intervals': {
+                    'lower_95': lower_ci.tolist(),
+                    'upper_95': upper_ci.tolist()
+                },
+                'note': 'Advanced GARCH models unavailable in this environment'
+            }
+        except Exception as e:
+            return {
+                'error': f'Volatility forecasting failed: {str(e)}',
                 'forecast': None,
                 'confidence_intervals': None
             }
