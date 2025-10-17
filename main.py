@@ -3420,10 +3420,11 @@ def create_comprehensive_stock_research():
         return
 
     # Analysis tabs
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
         "📊 Overview",
         "📈 Technical",
         "💰 Dividend",
+        "🏦 Holdings",
         "🏭 Sector",
         "💱 Settlement",
         "📄 Fundamentals"
@@ -3651,6 +3652,14 @@ def create_comprehensive_stock_research():
                 st.error(f"Dividend analysis error: {str(e)}")
 
     with tab4:
+        # Institutional Holdings
+        from utils.institutional_holdings import display_institutional_holdings
+        try:
+            display_institutional_holdings(symbol)
+        except Exception as e:
+            st.error(f"Holdings analysis error: {str(e)}")
+
+    with tab5:
         # Sector Analysis
         st.subheader("🏭 Sector Analysis")
 
@@ -3722,7 +3731,7 @@ def create_comprehensive_stock_research():
             except Exception as e:
                 st.error(f"Sector analysis error: {str(e)}")
 
-    with tab5:
+    with tab6:
         # Settlement Analysis
         st.subheader("💱 Settlement & Volume Analysis")
 
@@ -3778,7 +3787,7 @@ def create_comprehensive_stock_research():
             except Exception as e:
                 st.error(f"Settlement analysis error: {str(e)}")
 
-    with tab6:
+    with tab7:
         # Fundamentals
         st.subheader("📄 Fundamental Analysis")
         try:
@@ -3828,7 +3837,16 @@ def create_stock_screener_ui():
         st.subheader("🎯 Filters")
 
         # Market selection
-        market = st.selectbox("Market", ["🌍 S&P 500", "🇹🇷 BIST"])
+        market = st.selectbox("Market", [
+            "🌍 S&P 500",
+            "🇺🇸 NASDAQ 100",
+            "🇺🇸 Dow Jones 30",
+            "🇪🇺 FTSE 100",
+            "🇩🇪 DAX 40",
+            "🇯🇵 Nikkei 225",
+            "🇨🇳 Shanghai Composite",
+            "🇹🇷 BIST 100"
+        ])
 
         # Predefined screens
         screener = StockScreener()
@@ -3875,11 +3893,38 @@ def create_stock_screener_ui():
 
         if run_screen:
             with st.spinner("Screening stocks..."):
-                # Get symbols
+                # Get symbols based on market
+                symbols = []
                 if market == "🌍 S&P 500":
                     symbols = get_sp500_sample()
-                else:
+                elif market == "🇺🇸 NASDAQ 100":
+                    # Top NASDAQ stocks
+                    symbols = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AVGO", "COST", "ASML",
+                               "NFLX", "AMD", "PEP", "ADBE", "CSCO", "CMCSA", "INTC", "QCOM", "TXN", "INTU"]
+                elif market == "🇺🇸 Dow Jones 30":
+                    # Dow Jones 30 components
+                    symbols = ["AAPL", "MSFT", "UNH", "GS", "HD", "CAT", "MCD", "AMGN", "V", "AXP",
+                               "BA", "TRV", "JPM", "IBM", "JNJ", "WMT", "DIS", "MMM", "NKE", "KO",
+                               "PG", "CVX", "MRK", "CSCO", "VZ", "INTC", "WBA", "DOW", "HON", "CRM"]
+                elif market == "🇪🇺 FTSE 100":
+                    # Major FTSE 100 stocks
+                    symbols = ["SHEL.L", "AZN.L", "HSBA.L", "BP.L", "ULVR.L", "GSK.L", "DGE.L", "RIO.L",
+                               "BARC.L", "LLOY.L", "VOD.L", "BATS.L", "NG.L", "REL.L", "LSEG.L"]
+                elif market == "🇩🇪 DAX 40":
+                    # Major DAX stocks
+                    symbols = ["SAP.DE", "SIE.DE", "ALV.DE", "DTE.DE", "AIR.DE", "VOW3.DE", "BAS.DE",
+                               "MBG.DE", "BMW.DE", "MUV2.DE", "BAYN.DE", "ADS.DE", "HEN3.DE", "DB1.DE"]
+                elif market == "🇯🇵 Nikkei 225":
+                    # Major Japanese stocks
+                    symbols = ["7203.T", "6758.T", "9984.T", "6861.T", "9433.T", "8306.T", "8035.T",
+                               "6902.T", "4502.T", "4503.T", "6501.T", "7267.T", "9432.T", "7974.T"]
+                elif market == "🇨🇳 Shanghai Composite":
+                    # Major Chinese stocks (accessible symbols)
+                    symbols = ["BABA", "JD", "PDD", "BIDU", "NIO", "XPEV", "LI", "BILI", "TME", "IQ"]
+                elif market == "🇹🇷 BIST 100":
                     symbols = get_bist_stocks()
+                else:
+                    symbols = get_sp500_sample()
 
                 # Run screener
                 screener = StockScreener()
