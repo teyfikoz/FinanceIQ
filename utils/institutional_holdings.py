@@ -82,29 +82,73 @@ class InstitutionalHoldingsAnalyzer:
                 analysis['has_data'] = True
                 analysis['institutional_holders'] = institutional
 
-                # Calculate summary stats
-                total_shares = institutional['Shares'].sum()
-                avg_pct = institutional['% Out'].str.rstrip('%').astype(float).mean()
+                # Calculate summary stats - handle different column names
+                try:
+                    total_shares = institutional['Shares'].sum() if 'Shares' in institutional.columns else 0
 
-                analysis['summary']['institutional'] = {
-                    'total_holders': len(institutional),
-                    'total_shares': total_shares,
-                    'avg_ownership_pct': avg_pct
-                }
+                    # Try different percentage column names
+                    pct_col = None
+                    for col in ['% Out', 'pctHeld', 'Percent Held']:
+                        if col in institutional.columns:
+                            pct_col = col
+                            break
+
+                    if pct_col:
+                        if institutional[pct_col].dtype == 'object':
+                            avg_pct = institutional[pct_col].str.rstrip('%').astype(float).mean()
+                        else:
+                            avg_pct = institutional[pct_col].mean() * 100
+                    else:
+                        avg_pct = 0
+
+                    analysis['summary']['institutional'] = {
+                        'total_holders': len(institutional),
+                        'total_shares': total_shares,
+                        'avg_ownership_pct': avg_pct
+                    }
+                except Exception as e:
+                    print(f"Error calculating institutional summary: {str(e)}")
+                    analysis['summary']['institutional'] = {
+                        'total_holders': len(institutional),
+                        'total_shares': 0,
+                        'avg_ownership_pct': 0
+                    }
 
             if mutual_funds is not None and not mutual_funds.empty:
                 analysis['has_data'] = True
                 analysis['mutual_fund_holders'] = mutual_funds
 
-                # Calculate summary stats
-                total_shares = mutual_funds['Shares'].sum()
-                avg_pct = mutual_funds['% Out'].str.rstrip('%').astype(float).mean()
+                # Calculate summary stats - handle different column names
+                try:
+                    total_shares = mutual_funds['Shares'].sum() if 'Shares' in mutual_funds.columns else 0
 
-                analysis['summary']['mutual_funds'] = {
-                    'total_holders': len(mutual_funds),
-                    'total_shares': total_shares,
-                    'avg_ownership_pct': avg_pct
-                }
+                    # Try different percentage column names
+                    pct_col = None
+                    for col in ['% Out', 'pctHeld', 'Percent Held']:
+                        if col in mutual_funds.columns:
+                            pct_col = col
+                            break
+
+                    if pct_col:
+                        if mutual_funds[pct_col].dtype == 'object':
+                            avg_pct = mutual_funds[pct_col].str.rstrip('%').astype(float).mean()
+                        else:
+                            avg_pct = mutual_funds[pct_col].mean() * 100
+                    else:
+                        avg_pct = 0
+
+                    analysis['summary']['mutual_funds'] = {
+                        'total_holders': len(mutual_funds),
+                        'total_shares': total_shares,
+                        'avg_ownership_pct': avg_pct
+                    }
+                except Exception as e:
+                    print(f"Error calculating mutual funds summary: {str(e)}")
+                    analysis['summary']['mutual_funds'] = {
+                        'total_holders': len(mutual_funds),
+                        'total_shares': 0,
+                        'avg_ownership_pct': 0
+                    }
 
             if major is not None and not major.empty:
                 analysis['has_data'] = True
@@ -184,61 +228,89 @@ class InstitutionalHoldingsAnalyzer:
 
             # Add institutional holders
             if institutional is not None and not institutional.empty:
-                inst_node_idx = len(nodes)
-                nodes.append('Institutional Investors')
-                node_colors.append(theme.get_color_palette('assets')['primary'])
+                # Find percentage column
+                pct_col = None
+                for col in ['% Out', 'pctHeld', 'Percent Held']:
+                    if col in institutional.columns:
+                        pct_col = col
+                        break
 
-                sources.append(0)  # From stock
-                targets.append(inst_node_idx)
+                if pct_col:
+                    inst_node_idx = len(nodes)
+                    nodes.append('Institutional Investors')
+                    node_colors.append(theme.get_color_palette('assets')['primary'])
 
-                # Sum of top institutional holdings
-                inst_total_pct = institutional.head(top_n)['% Out'].str.rstrip('%').astype(float).sum()
-                values.append(inst_total_pct)
+                    sources.append(0)  # From stock
+                    targets.append(inst_node_idx)
 
-                # Add top institutional holders
-                for idx, row in institutional.head(top_n).iterrows():
-                    holder_name = row['Holder']
-                    # Truncate long names
-                    if len(holder_name) > 30:
-                        holder_name = holder_name[:27] + '...'
+                    # Sum of top institutional holdings
+                    if institutional[pct_col].dtype == 'object':
+                        inst_total_pct = institutional.head(top_n)[pct_col].str.rstrip('%').astype(float).sum()
+                    else:
+                        inst_total_pct = institutional.head(top_n)[pct_col].sum() * 100
+                    values.append(inst_total_pct)
 
-                    nodes.append(holder_name)
-                    node_colors.append(theme.get_color_palette('assets')['breakdown'][len(nodes) % 4])
+                    # Add top institutional holders
+                    for idx, row in institutional.head(top_n).iterrows():
+                        holder_name = row['Holder']
+                        # Truncate long names
+                        if len(holder_name) > 30:
+                            holder_name = holder_name[:27] + '...'
 
-                    sources.append(inst_node_idx)
-                    targets.append(len(nodes) - 1)
+                        nodes.append(holder_name)
+                        node_colors.append(theme.get_color_palette('assets')['breakdown'][len(nodes) % 4])
 
-                    pct = float(row['% Out'].rstrip('%'))
-                    values.append(pct)
+                        sources.append(inst_node_idx)
+                        targets.append(len(nodes) - 1)
+
+                        if institutional[pct_col].dtype == 'object':
+                            pct = float(row[pct_col].rstrip('%'))
+                        else:
+                            pct = float(row[pct_col]) * 100
+                        values.append(pct)
 
             # Add mutual fund holders
             if mutual_funds is not None and not mutual_funds.empty:
-                fund_node_idx = len(nodes)
-                nodes.append('Mutual Funds')
-                node_colors.append(theme.get_color_palette('liabilities')['current'])
+                # Find percentage column
+                pct_col = None
+                for col in ['% Out', 'pctHeld', 'Percent Held']:
+                    if col in mutual_funds.columns:
+                        pct_col = col
+                        break
 
-                sources.append(0)  # From stock
-                targets.append(fund_node_idx)
+                if pct_col:
+                    fund_node_idx = len(nodes)
+                    nodes.append('Mutual Funds')
+                    node_colors.append(theme.get_color_palette('liabilities')['current'])
 
-                # Sum of top mutual fund holdings
-                fund_total_pct = mutual_funds.head(top_n)['% Out'].str.rstrip('%').astype(float).sum()
-                values.append(fund_total_pct)
+                    sources.append(0)  # From stock
+                    targets.append(fund_node_idx)
 
-                # Add top mutual funds
-                for idx, row in mutual_funds.head(top_n).iterrows():
-                    holder_name = row['Holder']
-                    # Truncate long names
-                    if len(holder_name) > 30:
-                        holder_name = holder_name[:27] + '...'
+                    # Sum of top mutual fund holdings
+                    if mutual_funds[pct_col].dtype == 'object':
+                        fund_total_pct = mutual_funds.head(top_n)[pct_col].str.rstrip('%').astype(float).sum()
+                    else:
+                        fund_total_pct = mutual_funds.head(top_n)[pct_col].sum() * 100
+                    values.append(fund_total_pct)
 
-                    nodes.append(holder_name)
-                    node_colors.append(theme.get_color_palette('liabilities')['breakdown'][len(nodes) % 4])
+                    # Add top mutual funds
+                    for idx, row in mutual_funds.head(top_n).iterrows():
+                        holder_name = row['Holder']
+                        # Truncate long names
+                        if len(holder_name) > 30:
+                            holder_name = holder_name[:27] + '...'
 
-                    sources.append(fund_node_idx)
-                    targets.append(len(nodes) - 1)
+                        nodes.append(holder_name)
+                        node_colors.append(theme.get_color_palette('liabilities')['breakdown'][len(nodes) % 4])
 
-                    pct = float(row['% Out'].rstrip('%'))
-                    values.append(pct)
+                        sources.append(fund_node_idx)
+                        targets.append(len(nodes) - 1)
+
+                        if mutual_funds[pct_col].dtype == 'object':
+                            pct = float(row[pct_col].rstrip('%'))
+                        else:
+                            pct = float(row[pct_col]) * 100
+                        values.append(pct)
 
             if not sources:
                 return None
@@ -443,24 +515,50 @@ def display_institutional_holdings(symbol: str):
             st.markdown("**🏛️ Institutional Holdings Insights:**")
             if analysis.get('institutional_holders') is not None:
                 inst_df = analysis['institutional_holders']
-                total_inst_pct = inst_df['% Out'].str.rstrip('%').astype(float).sum()
-                st.metric("Total Institutional Ownership", f"{total_inst_pct:.2f}%")
 
-                # Top 3 holders
-                top_3 = inst_df.head(3)
-                st.markdown("**Top 3 Institutions:**")
-                for idx, row in top_3.iterrows():
-                    st.markdown(f"• **{row['Holder']}**: {row['% Out']}")
+                # Find percentage column
+                pct_col = None
+                for col in ['% Out', 'pctHeld', 'Percent Held']:
+                    if col in inst_df.columns:
+                        pct_col = col
+                        break
+
+                if pct_col:
+                    if inst_df[pct_col].dtype == 'object':
+                        total_inst_pct = inst_df[pct_col].str.rstrip('%').astype(float).sum()
+                    else:
+                        total_inst_pct = inst_df[pct_col].sum() * 100
+                    st.metric("Total Institutional Ownership", f"{total_inst_pct:.2f}%")
+
+                    # Top 3 holders
+                    top_3 = inst_df.head(3)
+                    st.markdown("**Top 3 Institutions:**")
+                    for idx, row in top_3.iterrows():
+                        pct_display = row[pct_col] if inst_df[pct_col].dtype == 'object' else f"{row[pct_col]*100:.2f}%"
+                        st.markdown(f"• **{row['Holder']}**: {pct_display}")
 
         with col2:
             st.markdown("**🏢 Mutual Fund Holdings Insights:**")
             if analysis.get('mutual_fund_holders') is not None:
                 fund_df = analysis['mutual_fund_holders']
-                total_fund_pct = fund_df['% Out'].str.rstrip('%').astype(float).sum()
-                st.metric("Total Fund Ownership", f"{total_fund_pct:.2f}%")
 
-                # Top 3 funds
-                top_3_funds = fund_df.head(3)
-                st.markdown("**Top 3 Funds/ETFs:**")
-                for idx, row in top_3_funds.iterrows():
-                    st.markdown(f"• **{row['Holder']}**: {row['% Out']}")
+                # Find percentage column
+                pct_col = None
+                for col in ['% Out', 'pctHeld', 'Percent Held']:
+                    if col in fund_df.columns:
+                        pct_col = col
+                        break
+
+                if pct_col:
+                    if fund_df[pct_col].dtype == 'object':
+                        total_fund_pct = fund_df[pct_col].str.rstrip('%').astype(float).sum()
+                    else:
+                        total_fund_pct = fund_df[pct_col].sum() * 100
+                    st.metric("Total Fund Ownership", f"{total_fund_pct:.2f}%")
+
+                    # Top 3 funds
+                    top_3_funds = fund_df.head(3)
+                    st.markdown("**Top 3 Funds/ETFs:**")
+                    for idx, row in top_3_funds.iterrows():
+                        pct_display = row[pct_col] if fund_df[pct_col].dtype == 'object' else f"{row[pct_col]*100:.2f}%"
+                        st.markdown(f"• **{row['Holder']}**: {pct_display}")

@@ -3827,6 +3827,11 @@ def create_comprehensive_stock_research():
             from utils.balance_sheet_sankey import display_balance_sheet_sankey
             display_balance_sheet_sankey(symbol)
 
+            # Add Income Statement Sankey Chart
+            st.markdown("---")
+            from utils.income_statement_sankey import display_income_statement_sankey
+            display_income_statement_sankey(symbol)
+
         except Exception as e:
             st.error(f"Fundamentals error: {str(e)}")
 

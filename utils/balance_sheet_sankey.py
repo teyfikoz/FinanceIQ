@@ -189,6 +189,16 @@ def display_balance_sheet_sankey(symbol: str):
         st.error("Unable to prepare balance sheet data.")
         return
 
+    # Check data freshness
+    from datetime import datetime, timedelta
+    data_date = datetime.strptime(sankey_data['date'], '%Y-%m-%d')
+    days_old = (datetime.now() - data_date).days
+
+    if days_old > 90:
+        st.warning(f"⚠️ Data is {days_old} days old (from {sankey_data['date']}). Balance sheet data is typically updated quarterly.")
+    elif days_old > 30:
+        st.info(f"ℹ️ Data from {sankey_data['date']} ({days_old} days ago). Balance sheet data updates quarterly.")
+
     # Display summary metrics
     col1, col2, col3 = st.columns(3)
     with col1:
