@@ -35,8 +35,8 @@ from utils.market_data_fetcher import get_market_fetcher
 
 # Configure Streamlit page
 st.set_page_config(
-    page_title="🌍 Global Liquidity Dashboard",
-    page_icon="📈",
+    page_title="FinanceIQ | AI-Powered Financial Analysis Platform",
+    page_icon="🧠",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -1030,8 +1030,8 @@ def create_header():
     col1, col2, col3 = st.columns([2, 1, 1])
 
     with col1:
-        st.markdown("# 🌍 Global Liquidity Dashboard")
-        st.markdown("*Professional Financial Platform - Single Port*")
+        st.markdown("# 🧠 FinanceIQ")
+        st.markdown("*AI-Powered Financial Analysis Platform*")
 
     with col2:
         status_html = '<span class="status-indicator status-live"></span>Live Data'
@@ -3420,9 +3420,10 @@ def create_comprehensive_stock_research():
         return
 
     # Analysis tabs
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
         "📊 Overview",
         "📈 Technical",
+        "🤖 AI Predictions",
         "💰 Dividend",
         "🏦 Holdings",
         "🏭 Sector",
@@ -3579,6 +3580,11 @@ def create_comprehensive_stock_research():
                 st.error(f"Technical analysis error: {str(e)}")
 
     with tab3:
+        # AI Predictions
+        from utils.ai_predictions_ui import display_ai_predictions
+        display_ai_predictions(symbol)
+
+    with tab4:
         # Dividend Analysis
         st.subheader("💰 Dividend Analysis")
 
@@ -3651,7 +3657,7 @@ def create_comprehensive_stock_research():
             except Exception as e:
                 st.error(f"Dividend analysis error: {str(e)}")
 
-    with tab4:
+    with tab5:
         # Institutional Holdings
         from utils.institutional_holdings import display_institutional_holdings
         try:
@@ -3659,7 +3665,7 @@ def create_comprehensive_stock_research():
         except Exception as e:
             st.error(f"Holdings analysis error: {str(e)}")
 
-    with tab5:
+    with tab6:
         # Sector Analysis
         st.subheader("🏭 Sector Analysis")
 
@@ -3731,7 +3737,7 @@ def create_comprehensive_stock_research():
             except Exception as e:
                 st.error(f"Sector analysis error: {str(e)}")
 
-    with tab6:
+    with tab7:
         # Settlement Analysis
         st.subheader("💱 Settlement & Volume Analysis")
 
@@ -3787,7 +3793,7 @@ def create_comprehensive_stock_research():
             except Exception as e:
                 st.error(f"Settlement analysis error: {str(e)}")
 
-    with tab7:
+    with tab8:
         # Fundamentals
         st.subheader("📄 Fundamental Analysis")
         try:
@@ -4241,8 +4247,8 @@ def main():
     st.markdown("---")
     st.markdown("""
     <div style='text-align: center; color: #666; padding: 20px;'>
-        🌍 Global Liquidity Dashboard | Single Port Professional Platform<br>
-        Real-time market data with institutional investor tracking
+        🧠 FinanceIQ | AI-Powered Financial Analysis Platform<br>
+        Real-time market data with AI predictions and institutional tracking
     </div>
     """, unsafe_allow_html=True)
 

@@ -12,6 +12,7 @@ scipy>=1.11.0
 # Statistics and ML (lightweight only)
 scikit-learn>=1.3.0
 statsmodels>=0.14.0
+prophet>=1.1.5
 
 # Data sources
 yfinance>=0.2.35
