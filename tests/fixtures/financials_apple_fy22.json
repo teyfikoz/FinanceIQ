@@ -1,0 +1,46 @@
+{
+  "ticker": "AAPL",
+  "company_name": "Apple Inc.",
+  "fiscal_year": 2022,
+  "income_statements": [
+    {
+      "period_end": "2022-09-30",
+      "revenue": 394328000000,
+      "cost_of_revenue": 223546000000,
+      "gross_profit": 170782000000,
+      "operating_income": 119437000000,
+      "rd_expense": 26251000000,
+      "sga_expense": 25094000000,
+      "other_operating_expense": 0,
+      "tax_expense": 19300000000,
+      "interest_expense": 2931000000,
+      "net_income": 99803000000
+    },
+    {
+      "period_end": "2021-09-30",
+      "revenue": 365817000000,
+      "cost_of_revenue": 212981000000,
+      "gross_profit": 152836000000,
+      "operating_income": 108949000000,
+      "rd_expense": 21914000000,
+      "sga_expense": 21973000000,
+      "other_operating_expense": 0,
+      "tax_expense": 14527000000,
+      "interest_expense": 2645000000,
+      "net_income": 94680000000
+    },
+    {
+      "period_end": "2020-09-30",
+      "revenue": 274515000000,
+      "cost_of_revenue": 169559000000,
+      "gross_profit": 104956000000,
+      "operating_income": 66288000000,
+      "rd_expense": 18752000000,
+      "sga_expense": 19916000000,
+      "other_operating_expense": 0,
+      "tax_expense": 9680000000,
+      "interest_expense": 2873000000,
+      "net_income": 57411000000
+    }
+  ]
+}

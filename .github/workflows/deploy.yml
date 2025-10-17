@@ -1,0 +1,108 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov pytest-asyncio httpx
+
+    - name: Lint with flake8
+      run: |
+        pip install flake8
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=venv,env,.venv,.env,archive
+        # Exit-zero treats all errors as warnings
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=venv,env,.venv,.env,archive
+
+    - name: Run tests
+      env:
+        FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        ENVIRONMENT: test
+      run: |
+        # Create tests directory if it doesn't exist
+        mkdir -p tests
+
+        # Run tests if they exist
+        if [ -d "tests" ] && [ "$(ls -A tests/*.py 2>/dev/null)" ]; then
+          pytest tests/ --cov=app --cov-report=xml --cov-report=html -v
+        else
+          echo "No tests found, skipping test execution"
+        fi
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      if: always()
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  deploy-render:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Trigger Render Deployment
+      run: |
+        if [ -n "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+          echo "✅ Render deployment triggered"
+        else
+          echo "⚠️  RENDER_DEPLOY_HOOK not configured"
+        fi
+
+  deploy-railway:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Trigger Railway Deployment
+      run: |
+        if [ -n "${{ secrets.RAILWAY_DEPLOY_HOOK }}" ]; then
+          curl -X POST ${{ secrets.RAILWAY_DEPLOY_HOOK }}
+          echo "✅ Railway deployment triggered"
+        else
+          echo "⚠️  RAILWAY_DEPLOY_HOOK not configured"
+        fi
+
+  notify:
+    needs: [test, deploy-render, deploy-railway]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+    - name: Deployment Status
+      run: |
+        echo "🚀 Deployment workflow completed"
+        echo "Test status: ${{ needs.test.result }}"
+        echo "Render deploy: ${{ needs.deploy-render.result }}"
+        echo "Railway deploy: ${{ needs.deploy-railway.result }}"

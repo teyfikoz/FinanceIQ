@@ -1,0 +1,103 @@
+services:
+  # FastAPI Backend Service
+  - type: web
+    name: liquidity-api
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python -m app.main"
+    healthCheckPath: /health
+    envVars:
+      # API Keys
+      - key: FRED_API_KEY
+        sync: false
+      - key: COINGECKO_API_KEY
+        sync: false
+      - key: ALPHA_VANTAGE_API_KEY
+        sync: false
+      - key: FMP_API_KEY
+        sync: false
+
+      # Database Configuration
+      - key: POSTGRES_SERVER
+        fromDatabase:
+          name: liquidity-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: liquidity-db
+          property: port
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: liquidity-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: liquidity-db
+          property: password
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: liquidity-db
+          property: database
+
+      # Application Settings
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: False
+      - key: LOG_LEVEL
+        value: INFO
+      - key: API_PORT
+        value: 8000
+
+      # Security
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 10080
+
+      # CORS Origins
+      - key: BACKEND_CORS_ORIGINS
+        value: https://liquidity-dashboard.onrender.com,http://localhost:8501
+
+  # Streamlit Dashboard Service
+  - type: web
+    name: liquidity-dashboard
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "streamlit run main.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true"
+    envVars:
+      # API Connection
+      - key: API_URL
+        fromService:
+          name: liquidity-api
+          type: web
+          property: host
+
+      # API Keys (same as backend)
+      - key: FRED_API_KEY
+        sync: false
+      - key: COINGECKO_API_KEY
+        sync: false
+
+      # Streamlit Settings
+      - key: STREAMLIT_SERVER_PORT
+        value: 8501
+      - key: STREAMLIT_SERVER_HEADLESS
+        value: true
+      - key: STREAMLIT_BROWSER_GATHER_USAGE_STATS
+        value: false
+
+# PostgreSQL Database
+databases:
+  - name: liquidity-db
+    databaseName: liquidity_dashboard
+    user: postgres
+    plan: free
+    region: oregon
+    ipAllowList: []  # Empty for public access from Render services
