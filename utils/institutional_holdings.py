@@ -159,11 +159,25 @@ def display_institutional_holdings(symbol: str):
     Args:
         symbol: Stock symbol
     """
-    analyzer = InstitutionalHoldingsAnalyzer(symbol)
-    analysis = analyzer.get_holdings_analysis()
+    try:
+        analyzer = InstitutionalHoldingsAnalyzer(symbol)
+        analysis = analyzer.get_holdings_analysis()
 
-    if not analysis['has_data']:
-        st.info("📊 Institutional holdings data not available for this stock.")
+        # Check for error
+        if 'error' in analysis:
+            st.warning(f"⚠️ Error fetching holdings data: {analysis['error']}")
+            return
+
+        if not analysis.get('has_data', False):
+            st.info("📊 Institutional holdings data not available for this stock. This may be due to:")
+            st.markdown("""
+            - Stock is not publicly traded or too small
+            - Data temporarily unavailable from provider
+            - International stocks may have limited data
+            """)
+            return
+    except Exception as e:
+        st.error(f"Error loading holdings: {str(e)}")
         return
 
     st.subheader("🏦 Institutional & Fund Holdings")
