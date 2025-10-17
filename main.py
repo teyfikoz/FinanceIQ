@@ -19,9 +19,9 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Import authentication and utilities
-from utils.authentication import require_authentication, get_current_user, logout_user, init_session_state
+from utils.authentication import require_authentication, get_current_user, logout_user, init_session_state, AuthenticationManager
 from utils.portfolio_manager import PortfolioManager
-from utils.database import get_db
+from utils.database import get_db, DatabaseManager
 from utils.export_utils import get_export_manager
 from utils.auto_refresh import add_auto_refresh
 from utils.stock_comparison import create_stock_comparison
@@ -40,6 +40,31 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Initialize database and demo user on first run
+@st.cache_resource
+def init_app_database():
+    """Initialize database and create demo user if needed"""
+    import os
+    db_path = "data/dashboard.db"
+
+    # Create data directory if it doesn't exist
+    os.makedirs("data", exist_ok=True)
+
+    # Initialize database schema
+    db = DatabaseManager(db_path)
+
+    # Create demo user if it doesn't exist
+    auth = AuthenticationManager(db_path)
+    try:
+        auth.create_user("demo", "demo@example.com", "demo123")
+    except:
+        pass  # User already exists
+
+    return db
+
+# Initialize app database
+init_app_database()
 
 # Initialize session state
 init_session_state()
