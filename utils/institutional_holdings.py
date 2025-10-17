@@ -12,15 +12,14 @@ class InstitutionalHoldingsAnalyzer:
         self.symbol = symbol
         self.ticker = yf.Ticker(symbol)
 
-    @st.cache_data(ttl=86400)  # Cache for 24 hours
-    def get_institutional_holders(_self) -> Optional[pd.DataFrame]:
+    def get_institutional_holders(self) -> Optional[pd.DataFrame]:
         """Get top institutional holders
 
         Returns:
             DataFrame with institutional holders or None
         """
         try:
-            holders = _self.ticker.institutional_holders
+            holders = self.ticker.institutional_holders
             if holders is not None and not holders.empty:
                 return holders
             return None
@@ -28,15 +27,14 @@ class InstitutionalHoldingsAnalyzer:
             print(f"Error fetching institutional holders: {str(e)}")
             return None
 
-    @st.cache_data(ttl=86400)
-    def get_mutual_fund_holders(_self) -> Optional[pd.DataFrame]:
+    def get_mutual_fund_holders(self) -> Optional[pd.DataFrame]:
         """Get top mutual fund holders
 
         Returns:
             DataFrame with mutual fund holders or None
         """
         try:
-            holders = _self.ticker.mutualfund_holders
+            holders = self.ticker.mutualfund_holders
             if holders is not None and not holders.empty:
                 return holders
             return None
@@ -44,15 +42,14 @@ class InstitutionalHoldingsAnalyzer:
             print(f"Error fetching mutual fund holders: {str(e)}")
             return None
 
-    @st.cache_data(ttl=86400)
-    def get_major_holders(_self) -> Optional[pd.DataFrame]:
+    def get_major_holders(self) -> Optional[pd.DataFrame]:
         """Get major holders summary
 
         Returns:
             DataFrame with major holders summary or None
         """
         try:
-            holders = _self.ticker.major_holders
+            holders = self.ticker.major_holders
             if holders is not None and not holders.empty:
                 return holders
             return None
@@ -60,16 +57,16 @@ class InstitutionalHoldingsAnalyzer:
             print(f"Error fetching major holders: {str(e)}")
             return None
 
-    def get_holdings_analysis(_self) -> Dict:
+    def get_holdings_analysis(self) -> Dict:
         """Get comprehensive holdings analysis
 
         Returns:
             Dictionary with holdings data
         """
         try:
-            institutional = _self.get_institutional_holders()
-            mutual_funds = _self.get_mutual_fund_holders()
-            major = _self.get_major_holders()
+            institutional = self.get_institutional_holders()
+            mutual_funds = self.get_mutual_fund_holders()
+            major = self.get_major_holders()
 
             analysis = {
                 'has_data': False,
@@ -119,7 +116,7 @@ class InstitutionalHoldingsAnalyzer:
                 'error': str(e)
             }
 
-    def format_holdings_for_display(_self, holders_df: pd.DataFrame, holder_type: str = "Institutional") -> pd.DataFrame:
+    def format_holdings_for_display(self, holders_df: pd.DataFrame, holder_type: str = "Institutional") -> pd.DataFrame:
         """Format holdings dataframe for display
 
         Args:

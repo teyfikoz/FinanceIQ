@@ -3822,6 +3822,11 @@ def create_comprehensive_stock_research():
             with col3:
                 st.metric("Quick Ratio", f"{info.get('quickRatio', 0):.2f}")
 
+            # Add Balance Sheet Sankey Chart
+            st.markdown("---")
+            from utils.balance_sheet_sankey import display_balance_sheet_sankey
+            display_balance_sheet_sankey(symbol)
+
         except Exception as e:
             st.error(f"Fundamentals error: {str(e)}")
 
@@ -4046,27 +4051,31 @@ def create_strategy_lab():
 
                     if 'error' not in result:
                         # Performance metrics
-                        perf = result['performance']
+                        perf = result.get('performance', {})
 
-                        col1, col2, col3, col4 = st.columns(4)
-                        with col1:
-                            st.metric("Total Return", f"{perf['total_return']:.2f}%")
-                        with col2:
-                            profit_color = "normal" if perf['total_profit'] >= 0 else "inverse"
-                            st.metric("Total Profit", f"${perf['total_profit']:,.2f}")
-                        with col3:
-                            st.metric("Win Rate", f"{perf['win_rate']:.1f}%")
-                        with col4:
-                            st.metric("Max Drawdown", f"{perf['max_drawdown']:.2f}%")
+                        if 'error' in perf:
+                            st.error(f"⚠️ {perf['error']}")
+                        else:
+                            col1, col2, col3, col4 = st.columns(4)
+                            with col1:
+                                st.metric("Total Return", f"{perf.get('total_return', 0):.2f}%")
+                            with col2:
+                                total_profit = perf.get('total_profit', 0)
+                                profit_color = "normal" if total_profit >= 0 else "inverse"
+                                st.metric("Total Profit", f"${total_profit:,.2f}")
+                            with col3:
+                                st.metric("Win Rate", f"{perf.get('win_rate', 0):.1f}%")
+                            with col4:
+                                st.metric("Max Drawdown", f"{perf.get('max_drawdown', 0):.2f}%")
 
-                        # Additional metrics
-                        col1, col2, col3 = st.columns(3)
-                        with col1:
-                            st.metric("Trades", perf['number_of_trades'])
-                        with col2:
-                            st.metric("Sharpe Ratio", f"{perf['sharpe_ratio']:.2f}")
-                        with col3:
-                            st.metric("Avg Profit/Trade", f"${perf['avg_profit_per_trade']:,.2f}")
+                            # Additional metrics
+                            col1, col2, col3 = st.columns(3)
+                            with col1:
+                                st.metric("Trades", perf.get('number_of_trades', 0))
+                            with col2:
+                                st.metric("Sharpe Ratio", f"{perf.get('sharpe_ratio', 0):.2f}")
+                            with col3:
+                                st.metric("Avg Profit/Trade", f"${perf.get('avg_profit_per_trade', 0):,.2f}")
 
                         # Equity curve
                         if result.get('equity_curve'):
