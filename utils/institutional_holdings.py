@@ -380,7 +380,7 @@ def display_institutional_holdings(symbol: str):
     st.markdown("### 📊 Ownership Distribution Visualization")
 
     # Theme selector
-    theme = create_theme_selector()
+    theme = create_theme_selector(key_prefix="holdings")
 
     # Top N selector
     col1, col2 = st.columns([2, 1])
@@ -429,19 +429,26 @@ def display_institutional_holdings(symbol: str):
         st.markdown("### 📈 Ownership Summary")
         major = analysis['major_holders']
 
-        col1, col2 = st.columns(2)
-        with col1:
-            for idx in range(0, len(major), 2):
-                st.metric(
-                    major.iloc[idx, 1],
-                    major.iloc[idx, 0]
-                )
-        with col2:
-            for idx in range(1, len(major), 2):
-                st.metric(
-                    major.iloc[idx, 1],
-                    major.iloc[idx, 0]
-                )
+        # Handle different dataframe structures safely
+        try:
+            if len(major) > 0:
+                col1, col2 = st.columns(2)
+                with col1:
+                    for idx in range(0, len(major), 2):
+                        if idx < len(major):
+                            st.metric(
+                                str(major.iloc[idx, 1]) if len(major.columns) > 1 else "Value",
+                                str(major.iloc[idx, 0])
+                            )
+                with col2:
+                    for idx in range(1, len(major), 2):
+                        if idx < len(major):
+                            st.metric(
+                                str(major.iloc[idx, 1]) if len(major.columns) > 1 else "Value",
+                                str(major.iloc[idx, 0])
+                            )
+        except Exception as e:
+            st.warning(f"Unable to display ownership summary: {str(e)}")
 
     # Institutional holders
     if analysis['institutional_holders'] is not None:

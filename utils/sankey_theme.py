@@ -286,8 +286,11 @@ class SankeyTheme:
         return f'rgba({r}, {g}, {b}, {alpha})'
 
 
-def create_theme_selector() -> SankeyTheme:
+def create_theme_selector(key_prefix: str = "") -> SankeyTheme:
     """Create theme selector widget and return SankeyTheme
+
+    Args:
+        key_prefix: Prefix for widget keys to ensure uniqueness
 
     Returns:
         SankeyTheme instance
@@ -299,7 +302,8 @@ def create_theme_selector() -> SankeyTheme:
             "Chart Theme",
             options=['Auto', 'Light', 'Dark'],
             index=0,
-            help="Select color theme for Sankey charts"
+            help="Select color theme for Sankey charts",
+            key=f"{key_prefix}_theme_selector" if key_prefix else None
         )
 
     if theme_option == 'Auto':
@@ -310,8 +314,11 @@ def create_theme_selector() -> SankeyTheme:
     return SankeyTheme(theme)
 
 
-def create_scale_selector() -> Tuple[str, bool]:
+def create_scale_selector(key_prefix: str = "") -> Tuple[str, bool]:
     """Create value scale and percentage selector widgets
+
+    Args:
+        key_prefix: Prefix for widget keys to ensure uniqueness
 
     Returns:
         Tuple of (scale, show_percentage)
@@ -323,7 +330,8 @@ def create_scale_selector() -> Tuple[str, bool]:
             "Value Scale",
             options=['Billions ($B)', 'Millions ($M)', 'Actual ($)'],
             index=0,
-            help="Select value display scale"
+            help="Select value display scale",
+            key=f"{key_prefix}_scale_selector" if key_prefix else None
         )
         scale_map = {
             'Billions ($B)': 'B',
@@ -336,7 +344,8 @@ def create_scale_selector() -> Tuple[str, bool]:
         show_pct = st.checkbox(
             "Show Percentages",
             value=True,
-            help="Display percentages in hover information"
+            help="Display percentages in hover information",
+            key=f"{key_prefix}_show_pct" if key_prefix else None
         )
 
     return scale_key, show_pct

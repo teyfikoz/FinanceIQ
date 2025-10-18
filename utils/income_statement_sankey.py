@@ -187,8 +187,8 @@ def display_income_statement_sankey(symbol: str):
         st.markdown("**Interactive Income Statement Visualization**")
 
     # Theme and scale selectors
-    theme = create_theme_selector()
-    scale, show_pct = create_scale_selector()
+    theme = create_theme_selector(key_prefix="income_statement")
+    scale, show_pct = create_scale_selector(key_prefix="income_statement")
 
     # Get data
     analyzer = IncomeStatementSankey(symbol)

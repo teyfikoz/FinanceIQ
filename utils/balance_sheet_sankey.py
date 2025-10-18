@@ -172,8 +172,8 @@ def display_balance_sheet_sankey(symbol: str):
         st.markdown("**Interactive Balance Sheet Visualization**")
 
     # Theme and scale selectors
-    theme = create_theme_selector()
-    scale, show_pct = create_scale_selector()
+    theme = create_theme_selector(key_prefix="balance_sheet")
+    scale, show_pct = create_scale_selector(key_prefix="balance_sheet")
 
     # Get data
     analyzer = BalanceSheetSankey(symbol)
