@@ -147,8 +147,8 @@ def init_session_state():
 
 def show_login_page():
     """Display login/signup page"""
-    st.title("🔐 Global Liquidity Dashboard")
-    st.markdown("### Professional Financial Analytics Platform")
+    st.title("🧠 FinanceIQ")
+    st.markdown("### AI-Powered Financial Analysis Platform")
 
     tab1, tab2 = st.tabs(["Login", "Sign Up"])
 
@@ -204,6 +204,20 @@ def require_authentication():
         user = auth.validate_session(st.session_state.session_token)
         if user:
             st.session_state.user = user
+
+            # Check GDPR/KVKK consent
+            from utils.privacy_ui import check_user_consents, show_consent_dialog, init_consent_versions
+
+            # Initialize consent versions if needed
+            init_consent_versions()
+
+            # Check if user has granted required consents
+            if not check_user_consents(user['id']):
+                st.warning("⚠️ Devam etmek için gizlilik politikası ve kullanım koşullarını onaylamanız gerekmektedir.")
+                if show_consent_dialog(user['id'], 'all'):
+                    st.rerun()
+                return False
+
             return True
         else:
             # Session expired

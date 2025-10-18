@@ -4197,7 +4197,7 @@ def main():
             add_auto_refresh(30)
 
     # Main navigation tabs - Professional workflow organization
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
         "🎯 Dashboard",
         "🔍 Stock Research",
         "📡 Screener",
@@ -4207,7 +4207,8 @@ def main():
         "🇹🇷 Turkish Markets",
         "💼 Portfolio",
         "👁️ Watchlist",
-        "🔔 Alerts"
+        "🔔 Alerts",
+        "🔒 Privacy"
     ])
 
     with tab1:
@@ -4242,6 +4243,14 @@ def main():
             create_price_alerts_ui(user['id'])
         else:
             st.warning("⚠️ Please login to use price alerts.")
+
+    with tab11:
+        # Privacy and Data Management
+        if user:
+            from utils.privacy_ui import display_privacy_settings
+            display_privacy_settings(user['id'])
+        else:
+            st.warning("⚠️ Please login to manage privacy settings.")
 
     # Footer
     st.markdown("---")
