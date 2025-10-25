@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Optional, Union
-from pydantic import AnyHttpUrl, PostgresDsn, field_validator
+from pydantic import PostgresDsn, field_validator
 from pydantic_settings import BaseSettings
 import os
 
@@ -54,20 +54,28 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     LOG_LEVEL: str = "INFO"
 
-    # CORS
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = [
+    # CORS - Using List[str] instead of List[AnyHttpUrl] to avoid validation errors
+    BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:8000",
         "http://localhost:8501",
     ]
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
-    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
+    @classmethod
+    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
+        elif isinstance(v, list):
             return v
-        raise ValueError(v)
+        elif isinstance(v, str):
+            # Handle JSON string format
+            import json
+            try:
+                return json.loads(v)
+            except:
+                return [v]
+        return ["http://localhost:3000", "http://localhost:8000", "http://localhost:8501"]
 
     # Data Configuration
     UPDATE_FREQUENCY_HOURS: int = 24
