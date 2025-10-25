@@ -101,16 +101,23 @@ st.markdown("""
 <style>
     .main { padding: 0rem 1rem; }
     .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
+        gap: 4px;
         background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
         border-radius: 10px;
         padding: 0.5rem;
+        flex-wrap: wrap !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
     .stTabs [data-baseweb="tab"] {
         background: rgba(255,255,255,0.1);
         border-radius: 6px;
         color: white;
         font-weight: 600;
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.85rem !important;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
     .stTabs [aria-selected="true"] {
         background: rgba(255,255,255,0.3) !important;
@@ -4602,6 +4609,8 @@ def get_supply_chain_disruption_data(symbol):
 
         Premium institutional tracking and analysis modules for professional investors.
         """)
+
+        st.info(f"**Module Status:** Phase 3-4 modules are {'✅ LOADED' if PHASE_3_4_AVAILABLE else '❌ NOT AVAILABLE'}")
 
         if PHASE_3_4_AVAILABLE:
             # Sub-tabs for Phase 3-4 modules
