@@ -39,7 +39,7 @@ class PortfolioHealthUI:
             )
 
         with col2:
-            use_sample = st.button("📋 Örnek Portföy Kullan", use_container_width=True)
+            use_sample = st.button("📋 Örnek Portföy Kullan", use_container_width=True, key="portfolio_health____rnek_portf_y_kullan")
 
         # Load portfolio
         if uploaded_file or use_sample:
@@ -55,7 +55,7 @@ class PortfolioHealthUI:
                 st.dataframe(portfolio_df, use_container_width=True)
 
             # Calculate health score
-            if st.button("🚀 Sağlık Skoru Hesapla", type="primary", use_container_width=True):
+            if st.button("🚀 Sağlık Skoru Hesapla", type="primary", use_container_width=True, key="portfolio_health___sa_l_k_skoru_hesapla"):
                 with st.spinner("Portföy analiz ediliyor... (Bu 30-60 saniye sürebilir)"):
                     self._calculate_and_display(portfolio_df)
 

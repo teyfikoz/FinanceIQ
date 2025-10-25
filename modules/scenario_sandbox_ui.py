@@ -120,7 +120,7 @@ class ScenarioSandboxUI:
             params = self._render_scenario_parameters(scenario_type)
 
             # Run simulation button
-            run_button = st.button("▶️ Simülasyonu Çalıştır", type="primary", use_container_width=True)
+            run_button = st.button("▶️ Simülasyonu Çalıştır", type="primary", use_container_width=True, key="scenario_sandbox____sim_lasyonu__al__t_r")
 
         with col2:
             if run_button:
@@ -387,7 +387,7 @@ class ScenarioSandboxUI:
 
             st.info(f"**Parametreler:** {preset_info[scenario_preset]}")
 
-            run_stress = st.button("▶️ Stress Test Çalıştır", type="primary", use_container_width=True)
+            run_stress = st.button("▶️ Stress Test Çalıştır", type="primary", use_container_width=True, key="scenario_sandbox____stress_test__al__t_r")
 
         with col2:
             if run_stress:
@@ -468,7 +468,7 @@ class ScenarioSandboxUI:
                 help="VaR hesaplaması için zaman periyodu"
             )
 
-            run_var = st.button("▶️ VaR Hesapla", type="primary", use_container_width=True)
+            run_var = st.button("▶️ VaR Hesapla", type="primary", use_container_width=True, key="scenario_sandbox____var_hesapla")
 
         with col2:
             if run_var:

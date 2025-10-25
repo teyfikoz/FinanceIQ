@@ -71,7 +71,7 @@ class WhaleMomentumTrackerUI:
             )
 
         # Analysis button
-        if st.button("📈 Momentum Analizi Yap", type="primary", use_container_width=True):
+        if st.button("📈 Momentum Analizi Yap", type="primary", use_container_width=True, key="whale_momentum_tracker___momentum_analizi_yap"):
             if len(selected_investors) < 3:
                 st.error("❌ En az 3 yatırımcı seçmelisiniz.")
                 return

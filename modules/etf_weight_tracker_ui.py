@@ -73,7 +73,7 @@ class ETFWeightTrackerUI:
                 help="Sadece bu ağırlığın üzerindeki fonları göster"
             )
 
-        if st.button("🔍 Analiz Et", type="primary", use_container_width=True):
+        if st.button("🔍 Analiz Et", type="primary", use_container_width=True, key="etf_weight_tracker___analiz_et"):
             with st.spinner(f"{stock_symbol} için fon taraması yapılıyor..."):
                 self._display_stock_analysis(stock_symbol, min_weight)
 
@@ -258,7 +258,7 @@ class ETFWeightTrackerUI:
                 st.warning("Bu hisse için veri bulunamadı")
                 fund_code = None
 
-        if fund_code and st.button("📊 Geçmişi Göster", type="primary", use_container_width=True):
+        if fund_code and st.button("📊 Geçmişi Göster", type="primary", use_container_width=True, key="etf_weight_tracker___ge_mi_i_g_ster"):
             with st.spinner("Tarihsel veriler yükleniyor..."):
                 self._display_weight_history(stock_symbol, fund_code)
 
@@ -412,7 +412,7 @@ class ETFWeightTrackerUI:
         Kurumsal yatırımcıların hangi hisseleri biriktirdiğini/sattığını keşfedin.
         """)
 
-        if st.button("🔍 En Aktif Hisseleri Bul", type="primary", use_container_width=True):
+        if st.button("🔍 En Aktif Hisseleri Bul", type="primary", use_container_width=True, key="etf_weight_tracker___en_aktif_hisseleri_bul"):
             with st.spinner("Fon hareketleri analiz ediliyor..."):
                 self._display_top_changes()
 
@@ -547,7 +547,7 @@ class ETFWeightTrackerUI:
                 help="Cache'i atla ve API'den tekrar çek"
             )
 
-        if st.button("🚀 Verileri Güncelle", type="primary", use_container_width=True):
+        if st.button("🚀 Verileri Güncelle", type="primary", use_container_width=True, key="etf_weight_tracker___verileri_g_ncelle"):
             if 'TÜMÜ' in selected_etfs:
                 etf_list = None  # Will fetch all
                 st.info(f"Tüm ETF'ler güncelleniyor... Bu 5-10 dakika sürebilir.")

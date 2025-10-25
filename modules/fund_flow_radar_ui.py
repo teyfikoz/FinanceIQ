@@ -73,7 +73,7 @@ class FundFlowRadarUI:
             """)
 
         # Fetch and analyze data
-        if st.button("🔍 Analiz Et", type="primary", use_container_width=True):
+        if st.button("🔍 Analiz Et", type="primary", use_container_width=True, key="fund_flow_radar___analiz_et"):
             with st.spinner("Para akışları analiz ediliyor..."):
                 # Sample data for demonstration
                 analysis_results = self._run_flow_analysis(period, fund_category)

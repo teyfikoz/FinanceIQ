@@ -95,7 +95,7 @@ class InstitutionalEventReactionLabUI:
         )
 
         # Analyze button
-        if st.button("📅 Analyze Event Reactions", type="primary", use_container_width=True):
+        if st.button("📅 Analyze Event Reactions", type="primary", use_container_width=True, key="institutional_event_reaction_lab___analyze_event_reactions"):
             if len(selected_investors) < 2:
                 st.error("❌ En az 2 whale seçin")
                 return

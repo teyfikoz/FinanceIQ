@@ -100,7 +100,7 @@ class WhaleInvestorAnalyticsUI:
                 """)
 
         # Analyze and display
-        if st.button("🔍 Portföyü Analiz Et", type="primary", use_container_width=True):
+        if st.button("🔍 Portföyü Analiz Et", type="primary", use_container_width=True, key="whale_investor_analytics___portf_y__analiz_et"):
             with st.spinner("Whale portföyü analiz ediliyor..."):
                 self._analyze_and_display(investor_key, current_quarter, quarters)
 

@@ -84,7 +84,7 @@ class WhaleCorrelationUI:
                 user_df = None
 
         # Analysis button
-        if st.button("🔍 Korelasyon Analizi Yap", type="primary", use_container_width=True):
+        if st.button("🔍 Korelasyon Analizi Yap", type="primary", use_container_width=True, key="whale_correlation___korelasyon_analizi_yap"):
             if len(selected_investors) < 2:
                 st.error("❌ En az 2 yatırımcı seçmelisiniz.")
                 return

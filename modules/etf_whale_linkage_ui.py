@@ -75,7 +75,7 @@ class ETFWhaleLinkageUI:
                 st.error("❌ Dosya okunamadı")
 
         # Analyze button
-        if st.button("🔍 ETF-Whale Linkage Analizi", type="primary", use_container_width=True):
+        if st.button("🔍 ETF-Whale Linkage Analizi", type="primary", use_container_width=True, key="etf_whale_linkage___etf_whale_linkage_analizi"):
             if len(selected_investors) < 2:
                 st.error("❌ En az 2 yatırımcı seçin")
                 return

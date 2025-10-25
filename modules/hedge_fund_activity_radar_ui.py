@@ -79,7 +79,7 @@ class HedgeFundActivityRadarUI:
         )
 
         # Analyze button
-        if st.button("🔍 Hedge Fund Activity Analizi", type="primary", use_container_width=True):
+        if st.button("🔍 Hedge Fund Activity Analizi", type="primary", use_container_width=True, key="hedge_fund_activity_radar___hedge_fund_activity_analizi"):
             if len(tickers) < 3:
                 st.error("❌ En az 3 ticker girin")
                 return
