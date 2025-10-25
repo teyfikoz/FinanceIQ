@@ -1,10 +1,10 @@
 # Streamlit
 streamlit>=1.31.0
 
-# Data processing (Python 3.13 compatible)
-numpy>=1.26.0,<1.27
-pandas>=2.2.0
-matplotlib>=3.8.0
+# Data processing (Streamlit Cloud compatible - Python 3.9-3.11)
+numpy>=1.24.0,<1.27
+pandas>=2.0.0
+matplotlib>=3.7.0
 plotly>=5.18.0
 seaborn>=0.13.0
 scipy>=1.11.0
@@ -12,7 +12,7 @@ scipy>=1.11.0
 # Statistics and ML (lightweight only)
 scikit-learn>=1.3.0
 statsmodels>=0.14.0
-prophet>=1.1.5
+# prophet>=1.1.5  # Commented out - heavy dependency, causes issues on Streamlit Cloud
 
 # Data sources
 yfinance>=0.2.35
@@ -23,12 +23,24 @@ fredapi>=0.5.1
 httpx>=0.25.0
 requests>=2.31.0
 beautifulsoup4>=4.12.0
+lxml>=4.9.0
 
 # Additional dependencies
 python-dotenv>=1.0.0
 structlog>=23.0.0
 pydantic>=2.5.0
 pydantic-settings>=2.1.0
+networkx>=3.0
+
+# Image processing and QR codes (Game Changer features)
+Pillow>=10.0.0
+qrcode[pil]>=7.4.0
+
+# Excel export (Game Changer features)
+openpyxl>=3.1.0
+
+# Note: TA-Lib requires system-level installation and is excluded
+# Technical analysis is implemented using pandas/numpy instead
 
 # Note: Heavy ML packages (tensorflow, torch, xgboost, catboost, arch, prophet)
-# are excluded for Streamlit Cloud Python 3.13 compatibility
+# are excluded for Streamlit Cloud compatibility and faster deployment
