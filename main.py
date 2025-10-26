@@ -57,21 +57,12 @@ st.markdown("""
 
 # Header
 st.markdown("""
-# 🧠 FinanceIQ Pro
-### Bloomberg Terminal Seviyesinde Portföy Analizi
+# 🐋 FinanceIQ Pro - Whale Intelligence
+### Bloomberg Terminal Seviyesinde Kurumsal Yatırımcı Takibi
 
-**Profesyonel yatırımcılar için gelişmiş analitik araçlar:**
-- 📊 Portfolio Health Score (8 metrik analizi)
-- 📈 ETF Holdings Weight Tracker (Kurumsal yatırımcı takibi)
-- 🎯 Fund Manager Signals (Alım-satım sinyalleri)
-- 🧪 Scenario Sandbox (Makro senaryo simülasyonları)
-- 📡 Fund Flow Radar (Para akışı analizi)
-- 🐋 Whale Investor Analytics (Efsanevi yatırımcı takibi)
-- 🔗 Whale Correlation Engine (Yatırımcı ilişki analizi)
-- 📈 Whale Momentum Tracker (Kurumsal konsensus takibi)
-- 🔗 ETF-Whale Linkage (Passive vs Active analizi)
-- 📡 Hedge Fund Activity Radar (Multi-source institutional tracking)
-- 📅 Institutional Event Reaction Lab (FOMC/CPI reaction analysis)
+**10 Advanced Institutional Analytics Modules:**
+
+Track legendary investors (Buffett, Gates, Dalio, Cathie Wood) and institutional money flows in real-time.
 """)
 
 st.markdown("---")
