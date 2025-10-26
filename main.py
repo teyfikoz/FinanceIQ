@@ -4616,12 +4616,23 @@ def get_supply_chain_disruption_data(symbol):
         </div>
         """, unsafe_allow_html=True)
 
-        if PHASE_3_4_AVAILABLE:
-            st.success("✅ **Module Status:** All Phase 3-4 PRO modules loaded successfully!")
-        else:
-            st.error(f"❌ **Module Status:** Phase 3-4 modules failed to load")
-            if PHASE_3_4_ERROR:
-                st.code(f"Error: {PHASE_3_4_ERROR}")
+        # Debug: Always show module status
+        st.markdown("### 🔍 Module Status")
+
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            if PHASE_3_4_AVAILABLE:
+                st.success("✅ Loaded")
+            else:
+                st.error("❌ Failed")
+
+        with col2:
+            if not PHASE_3_4_AVAILABLE and PHASE_3_4_ERROR:
+                with st.expander("🐛 Show Error Details", expanded=True):
+                    st.code(PHASE_3_4_ERROR)
+                    st.info("💡 This usually means missing dependencies. Check requirements.txt")
+
+        st.markdown("---")
 
         if PHASE_3_4_AVAILABLE:
             # Sub-tabs for Phase 3-4 modules
@@ -4682,17 +4693,31 @@ def get_supply_chain_disruption_data(symbol):
                 event_lab_ui = InstitutionalEventReactionLabUI()
                 event_lab_ui.render()
         else:
-            st.error("""
-            ❌ **Phase 3-4 PRO modules are not available.**
+            # Modules not available - show what's included
+            st.warning("⚠️ **Whale Intelligence modules are loading...**")
 
-            These advanced institutional intelligence features require additional modules.
-            Contact support@financeiq.com for access.
+            st.markdown("""
+            ### 🐋 Advanced Institutional Intelligence Features
 
-            **Phase 3-4 Features:**
-            - 📈 Whale Momentum Tracker: Institutional consensus tracking
-            - 🔗 ETF-Whale Linkage: Passive/Active portfolio analysis
-            - 📡 Hedge Fund Activity Radar: Multi-source activity scoring
-            - 📅 Event Reaction Lab: FOMC/CPI reaction analysis
+            **10 Bloomberg Terminal-Level Analytics Modules:**
+
+            1. 📊 **Portfolio Health Score** - 8 multi-dimensional health metrics
+            2. 📈 **ETF Weight Tracker** - Track your holdings inside major ETFs
+            3. 🧪 **Scenario Sandbox** - Stress-test portfolios with macro scenarios
+            4. 📡 **Fund Flow Radar** - Real-time institutional money flow analysis
+            5. 🐋 **Whale Investors** - Track Buffett, Gates, Dalio, Cathie Wood
+            6. 🔗 **Whale Correlation** - Network analysis of institutional moves
+            7. 📈 **Whale Momentum Tracker** ⭐ NEW - Institutional consensus in real-time
+            8. 🔗 **ETF-Whale Linkage** ⭐ NEW - Passive vs Active exposure analysis
+            9. 📡 **Hedge Fund Radar** ⭐ NEW - Multi-source activity tracking
+            10. 📅 **Event Reaction Lab** ⭐ NEW - FOMC/CPI whale reaction analysis
+
+            ---
+
+            **If you see this message:**
+            - Modules are still loading on Streamlit Cloud
+            - Check error details above to see what's missing
+            - Contact support@financeiq.com if issue persists
             """)
 
 if __name__ == "__main__":
