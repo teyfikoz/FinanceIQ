@@ -13,7 +13,9 @@
       "Bash(curl:*)",
       "Bash(python test_financeiq_pro.py)",
       "Bash(python:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(python3:*)",
+      "Bash(timeout 3 python3 main.py)"
     ],
     "deny": [],
     "ask": []
