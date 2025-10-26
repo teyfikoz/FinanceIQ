@@ -4682,12 +4682,16 @@ def get_supply_chain_disruption_data(symbol):
     })
 
     with tab13:
+        # TEST: Make sure this tab renders
+        st.title("🐋 Whale Intelligence - Institutional Analytics")
+        st.success("✅ Tab13 is loading! If you see this, the tab is working.")
+
         # Whale Intelligence: Advanced Institutional Analytics
         st.markdown("""
-        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%); padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem; text-align: center; color: white;">
-            <h1>🐋 Whale Intelligence - Institutional Analytics</h1>
-            <p style="font-size: 1.1rem; margin-top: 0.5rem;">
-                Bloomberg Terminal-Level Analytics | Track institutional investors in real-time
+        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%); padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem; text-align: center; color: white;">
+            <h2>Bloomberg Terminal-Level Analytics</h2>
+            <p style="font-size: 1rem; margin-top: 0.5rem;">
+                Track institutional investors in real-time
             </p>
         </div>
         """, unsafe_allow_html=True)
