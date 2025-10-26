@@ -40,6 +40,8 @@ from app.analytics.ai_lite_tools import AILiteTools
 from app.ui.export_tools import ExportTools
 
 # Import Phase 3-4 Advanced Institutional Analytics (NEW!)
+PHASE_3_4_AVAILABLE = False
+PHASE_3_4_ERROR = None
 try:
     from modules.portfolio_health_ui import PortfolioHealthUI
     from modules.etf_weight_tracker_ui import ETFWeightTrackerUI
@@ -53,8 +55,11 @@ try:
     from modules.institutional_event_reaction_lab_ui import InstitutionalEventReactionLabUI
     PHASE_3_4_AVAILABLE = True
 except ImportError as e:
-    PHASE_3_4_AVAILABLE = False
-    print(f"Phase 3-4 modules not available: {e}")
+    PHASE_3_4_ERROR = str(e)
+    print(f"❌ Phase 3-4 modules not available: {e}")
+except Exception as e:
+    PHASE_3_4_ERROR = str(e)
+    print(f"❌ Phase 3-4 modules error: {e}")
 
 # Configure Streamlit page
 st.set_page_config(
@@ -4200,10 +4205,10 @@ def create_turkish_markets():
         )
 
 def create_game_changer_tab():
-    """🚀 Game Changer Features - Phase 1"""
+    """🤖 AI Tools - Advanced Analytics with Artificial Intelligence"""
     st.markdown("""
     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem; text-align: center; color: white;">
-        <h1>🚀 Game Changer Features - Phase 1</h1>
+        <h1>🤖 AI Tools - Advanced Analytics</h1>
         <p style="font-size: 1.1rem; margin-top: 0.5rem;">
             Social, Visualization & AI-Lite Tools | Cost: $0 | Offline-Friendly
         </p>
@@ -4402,8 +4407,8 @@ def main():
         "👁️ Watchlist",
         "🔔 Alerts",
         "🔒 Privacy",
-        "🚀 Game Changer",
-        "⭐ Phase 3-4 PRO"
+        "🤖 AI Tools",
+        "🐋 Whale Intelligence"
     ])
 
     with tab1:
@@ -4601,16 +4606,22 @@ def get_supply_chain_disruption_data(symbol):
     })
 
     with tab13:
-        # Phase 3-4 PRO: Advanced Institutional Intelligence
+        # Whale Intelligence: Advanced Institutional Analytics
         st.markdown("""
-        ## ⭐ Phase 3-4 PRO - Advanced Institutional Intelligence
+        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%); padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem; text-align: center; color: white;">
+            <h1>🐋 Whale Intelligence - Institutional Analytics</h1>
+            <p style="font-size: 1.1rem; margin-top: 0.5rem;">
+                Bloomberg Terminal-Level Analytics | Track institutional investors in real-time
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
-        **Bloomberg Terminal-Level Analytics** (NEW in v1.7!)
-
-        Premium institutional tracking and analysis modules for professional investors.
-        """)
-
-        st.info(f"**Module Status:** Phase 3-4 modules are {'✅ LOADED' if PHASE_3_4_AVAILABLE else '❌ NOT AVAILABLE'}")
+        if PHASE_3_4_AVAILABLE:
+            st.success("✅ **Module Status:** All Phase 3-4 PRO modules loaded successfully!")
+        else:
+            st.error(f"❌ **Module Status:** Phase 3-4 modules failed to load")
+            if PHASE_3_4_ERROR:
+                st.code(f"Error: {PHASE_3_4_ERROR}")
 
         if PHASE_3_4_AVAILABLE:
             # Sub-tabs for Phase 3-4 modules
