@@ -4532,6 +4532,133 @@ def main():
         # Game Changer Features - Phase 1
         create_game_changer_tab()
 
+    with tab13:
+        # TEST: Make sure this tab renders
+        st.title("🐋 Whale Intelligence - Institutional Analytics")
+        st.success("✅ Tab13 is loading! If you see this, the tab is working.")
+
+        # Whale Intelligence: Advanced Institutional Analytics
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%); padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem; text-align: center; color: white;">
+            <h2>Bloomberg Terminal-Level Analytics</h2>
+            <p style="font-size: 1rem; margin-top: 0.5rem;">
+                Track institutional investors in real-time
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Debug: Always show module status
+        st.markdown("### 🔍 Module Status")
+
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            if PHASE_3_4_AVAILABLE:
+                st.success("✅ All Loaded")
+            else:
+                st.error("❌ Load Failed")
+
+        with col2:
+            if not PHASE_3_4_AVAILABLE and PHASE_3_4_ERROR:
+                with st.expander("🐛 Show Error Details", expanded=True):
+                    st.code(PHASE_3_4_ERROR)
+                    st.info("💡 This usually means missing dependencies. Check Streamlit Cloud logs.")
+
+        # Show per-module status
+        with st.expander("📦 Module-by-Module Status"):
+            for module_name, status in PHASE_3_4_MODULES.items():
+                if status is True:
+                    st.success(f"✅ {module_name}")
+                else:
+                    st.error(f"❌ {module_name}: {status}")
+
+        st.markdown("---")
+
+        if PHASE_3_4_AVAILABLE:
+            # Sub-tabs for Phase 3-4 modules
+            pro_tab1, pro_tab2, pro_tab3, pro_tab4, pro_tab5, pro_tab6, pro_tab7, pro_tab8, pro_tab9, pro_tab10 = st.tabs([
+                "📊 Portfolio Health",
+                "📈 ETF Weight Tracker",
+                "🧪 Scenario Sandbox",
+                "📡 Fund Flow Radar",
+                "🐋 Whale Investors",
+                "🔗 Whale Correlation",
+                "📈 Whale Momentum ⭐",
+                "🔗 ETF-Whale Linkage ⭐",
+                "📡 Hedge Fund Radar ⭐",
+                "📅 Event Reaction Lab ⭐"
+            ])
+
+            with pro_tab1:
+                health_ui = PortfolioHealthUI()
+                health_ui.render()
+
+            with pro_tab2:
+                tracker_ui = ETFWeightTrackerUI()
+                tracker_ui.render()
+
+            with pro_tab3:
+                scenario_ui = ScenarioSandboxUI()
+                scenario_ui.render()
+
+            with pro_tab4:
+                flow_ui = FundFlowRadarUI()
+                flow_ui.render()
+
+            with pro_tab5:
+                whale_ui = WhaleInvestorAnalyticsUI()
+                whale_ui.render()
+
+            with pro_tab6:
+                correlation_ui = WhaleCorrelationUI()
+                correlation_ui.render()
+
+            with pro_tab7:
+                st.info("**NEW in v1.7!** Track institutional consensus in real-time.")
+                momentum_ui = WhaleMomentumTrackerUI()
+                momentum_ui.render()
+
+            with pro_tab8:
+                st.info("**NEW in v1.7!** Understand your passive vs active exposure.")
+                etf_whale_ui = ETFWhaleLinkageUI()
+                etf_whale_ui.render()
+
+            with pro_tab9:
+                st.info("**NEW in v1.7!** Multi-source institutional activity tracking.")
+                hedge_fund_ui = HedgeFundActivityRadarUI()
+                hedge_fund_ui.render()
+
+            with pro_tab10:
+                st.info("**NEW in v1.7!** Track how whales react to FOMC, CPI, Jobs Reports.")
+                event_lab_ui = InstitutionalEventReactionLabUI()
+                event_lab_ui.render()
+        else:
+            # Modules not available - show what's included
+            st.warning("⚠️ **Whale Intelligence modules are loading...**")
+
+            st.markdown("""
+            ### 🐋 Advanced Institutional Intelligence Features
+
+            **10 Bloomberg Terminal-Level Analytics Modules:**
+
+            1. 📊 **Portfolio Health Score** - 8 multi-dimensional health metrics
+            2. 📈 **ETF Weight Tracker** - Track your holdings inside major ETFs
+            3. 🧪 **Scenario Sandbox** - Stress-test portfolios with macro scenarios
+            4. 📡 **Fund Flow Radar** - Real-time institutional money flow analysis
+            5. 🐋 **Whale Investors** - Track Buffett, Gates, Dalio, Cathie Wood
+            6. 🔗 **Whale Correlation** - Network analysis of institutional moves
+            7. 📈 **Whale Momentum Tracker** ⭐ NEW - Institutional consensus in real-time
+            8. 🔗 **ETF-Whale Linkage** ⭐ NEW - Passive vs Active exposure analysis
+            9. 📡 **Hedge Fund Radar** ⭐ NEW - Multi-source activity tracking
+            10. 📅 **Event Reaction Lab** ⭐ NEW - FOMC/CPI whale reaction analysis
+
+            ---
+
+            **If you see this message:**
+            - Modules are still loading on Streamlit Cloud
+            - Check error details above to see what's missing
+            - Contact support@financeiq.com if issue persists
+            """)
+
     # Footer
     st.markdown("---")
     st.markdown("""
@@ -4680,133 +4807,6 @@ def get_supply_chain_disruption_data(symbol):
         'supplier_risk': {},
         'early_warnings': []
     })
-
-    with tab13:
-        # TEST: Make sure this tab renders
-        st.title("🐋 Whale Intelligence - Institutional Analytics")
-        st.success("✅ Tab13 is loading! If you see this, the tab is working.")
-
-        # Whale Intelligence: Advanced Institutional Analytics
-        st.markdown("""
-        <div style="background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%); padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem; text-align: center; color: white;">
-            <h2>Bloomberg Terminal-Level Analytics</h2>
-            <p style="font-size: 1rem; margin-top: 0.5rem;">
-                Track institutional investors in real-time
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # Debug: Always show module status
-        st.markdown("### 🔍 Module Status")
-
-        col1, col2 = st.columns([1, 3])
-        with col1:
-            if PHASE_3_4_AVAILABLE:
-                st.success("✅ All Loaded")
-            else:
-                st.error("❌ Load Failed")
-
-        with col2:
-            if not PHASE_3_4_AVAILABLE and PHASE_3_4_ERROR:
-                with st.expander("🐛 Show Error Details", expanded=True):
-                    st.code(PHASE_3_4_ERROR)
-                    st.info("💡 This usually means missing dependencies. Check Streamlit Cloud logs.")
-
-        # Show per-module status
-        with st.expander("📦 Module-by-Module Status"):
-            for module_name, status in PHASE_3_4_MODULES.items():
-                if status is True:
-                    st.success(f"✅ {module_name}")
-                else:
-                    st.error(f"❌ {module_name}: {status}")
-
-        st.markdown("---")
-
-        if PHASE_3_4_AVAILABLE:
-            # Sub-tabs for Phase 3-4 modules
-            pro_tab1, pro_tab2, pro_tab3, pro_tab4, pro_tab5, pro_tab6, pro_tab7, pro_tab8, pro_tab9, pro_tab10 = st.tabs([
-                "📊 Portfolio Health",
-                "📈 ETF Weight Tracker",
-                "🧪 Scenario Sandbox",
-                "📡 Fund Flow Radar",
-                "🐋 Whale Investors",
-                "🔗 Whale Correlation",
-                "📈 Whale Momentum ⭐",
-                "🔗 ETF-Whale Linkage ⭐",
-                "📡 Hedge Fund Radar ⭐",
-                "📅 Event Reaction Lab ⭐"
-            ])
-
-            with pro_tab1:
-                health_ui = PortfolioHealthUI()
-                health_ui.render()
-
-            with pro_tab2:
-                tracker_ui = ETFWeightTrackerUI()
-                tracker_ui.render()
-
-            with pro_tab3:
-                scenario_ui = ScenarioSandboxUI()
-                scenario_ui.render()
-
-            with pro_tab4:
-                flow_ui = FundFlowRadarUI()
-                flow_ui.render()
-
-            with pro_tab5:
-                whale_ui = WhaleInvestorAnalyticsUI()
-                whale_ui.render()
-
-            with pro_tab6:
-                correlation_ui = WhaleCorrelationUI()
-                correlation_ui.render()
-
-            with pro_tab7:
-                st.info("**NEW in v1.7!** Track institutional consensus in real-time.")
-                momentum_ui = WhaleMomentumTrackerUI()
-                momentum_ui.render()
-
-            with pro_tab8:
-                st.info("**NEW in v1.7!** Understand your passive vs active exposure.")
-                etf_whale_ui = ETFWhaleLinkageUI()
-                etf_whale_ui.render()
-
-            with pro_tab9:
-                st.info("**NEW in v1.7!** Multi-source institutional activity tracking.")
-                hedge_fund_ui = HedgeFundActivityRadarUI()
-                hedge_fund_ui.render()
-
-            with pro_tab10:
-                st.info("**NEW in v1.7!** Track how whales react to FOMC, CPI, Jobs Reports.")
-                event_lab_ui = InstitutionalEventReactionLabUI()
-                event_lab_ui.render()
-        else:
-            # Modules not available - show what's included
-            st.warning("⚠️ **Whale Intelligence modules are loading...**")
-
-            st.markdown("""
-            ### 🐋 Advanced Institutional Intelligence Features
-
-            **10 Bloomberg Terminal-Level Analytics Modules:**
-
-            1. 📊 **Portfolio Health Score** - 8 multi-dimensional health metrics
-            2. 📈 **ETF Weight Tracker** - Track your holdings inside major ETFs
-            3. 🧪 **Scenario Sandbox** - Stress-test portfolios with macro scenarios
-            4. 📡 **Fund Flow Radar** - Real-time institutional money flow analysis
-            5. 🐋 **Whale Investors** - Track Buffett, Gates, Dalio, Cathie Wood
-            6. 🔗 **Whale Correlation** - Network analysis of institutional moves
-            7. 📈 **Whale Momentum Tracker** ⭐ NEW - Institutional consensus in real-time
-            8. 🔗 **ETF-Whale Linkage** ⭐ NEW - Passive vs Active exposure analysis
-            9. 📡 **Hedge Fund Radar** ⭐ NEW - Multi-source activity tracking
-            10. 📅 **Event Reaction Lab** ⭐ NEW - FOMC/CPI whale reaction analysis
-
-            ---
-
-            **If you see this message:**
-            - Modules are still loading on Streamlit Cloud
-            - Check error details above to see what's missing
-            - Contact support@financeiq.com if issue persists
-            """)
 
 # Call main() automatically after authentication
 main()
