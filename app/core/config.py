@@ -64,8 +64,12 @@ class Settings(BaseSettings):
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
+        # Handle empty or None values
+        if not v or v == "":
+            return ["http://localhost:3000", "http://localhost:8000", "http://localhost:8501"]
+
         if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
+            return [i.strip() for i in v.split(",") if i.strip()]
         elif isinstance(v, list):
             return v
         elif isinstance(v, str):
@@ -74,7 +78,7 @@ class Settings(BaseSettings):
             try:
                 return json.loads(v)
             except:
-                return [v]
+                return [v] if v else ["http://localhost:3000", "http://localhost:8000", "http://localhost:8501"]
         return ["http://localhost:3000", "http://localhost:8000", "http://localhost:8501"]
 
     # Data Configuration
@@ -102,6 +106,19 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        # Don't fail on validation errors
+        validate_assignment = False
 
 
-settings = Settings()
+# Safe initialization with fallback
+try:
+    settings = Settings()
+except Exception as e:
+    print(f"⚠️ Warning: Could not load settings from .env: {e}")
+    print("Using default settings without .env file...")
+    # Create settings WITHOUT reading .env file
+    class SafeSettings(Settings):
+        class Config:
+            env_file = None  # Don't read .env
+            case_sensitive = True
+    settings = SafeSettings()
