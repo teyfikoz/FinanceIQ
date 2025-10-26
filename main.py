@@ -178,6 +178,10 @@ init_session_state()
 if not require_authentication():
     st.stop()
 
+# Authentication passed - now run main app
+# We need to call main() here, not at the end
+print("🚀 Authentication passed, starting main app...")
+
 # Professional CSS styling
 st.markdown("""
 <style>
@@ -4805,5 +4809,5 @@ def get_supply_chain_disruption_data(symbol):
             - Contact support@financeiq.com if issue persists
             """)
 
-if __name__ == "__main__":
-    main()
+# Call main() automatically after authentication
+main()
