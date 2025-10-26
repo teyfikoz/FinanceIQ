@@ -42,24 +42,101 @@ from app.ui.export_tools import ExportTools
 # Import Phase 3-4 Advanced Institutional Analytics (NEW!)
 PHASE_3_4_AVAILABLE = False
 PHASE_3_4_ERROR = None
+PHASE_3_4_MODULES = {}
+
+print("🔍 Starting Phase 3-4 module imports...")
+
 try:
     from modules.portfolio_health_ui import PortfolioHealthUI
-    from modules.etf_weight_tracker_ui import ETFWeightTrackerUI
-    from modules.scenario_sandbox_ui import ScenarioSandboxUI
-    from modules.fund_flow_radar_ui import FundFlowRadarUI
-    from modules.whale_investor_analytics_ui import WhaleInvestorAnalyticsUI
-    from modules.whale_correlation_ui import WhaleCorrelationUI
-    from modules.whale_momentum_tracker_ui import WhaleMomentumTrackerUI
-    from modules.etf_whale_linkage_ui import ETFWhaleLinkageUI
-    from modules.hedge_fund_activity_radar_ui import HedgeFundActivityRadarUI
-    from modules.institutional_event_reaction_lab_ui import InstitutionalEventReactionLabUI
-    PHASE_3_4_AVAILABLE = True
-except ImportError as e:
-    PHASE_3_4_ERROR = str(e)
-    print(f"❌ Phase 3-4 modules not available: {e}")
+    PHASE_3_4_MODULES['portfolio_health_ui'] = True
+    print("✅ portfolio_health_ui loaded")
 except Exception as e:
-    PHASE_3_4_ERROR = str(e)
-    print(f"❌ Phase 3-4 modules error: {e}")
+    PHASE_3_4_MODULES['portfolio_health_ui'] = str(e)
+    print(f"❌ portfolio_health_ui: {e}")
+
+try:
+    from modules.etf_weight_tracker_ui import ETFWeightTrackerUI
+    PHASE_3_4_MODULES['etf_weight_tracker_ui'] = True
+    print("✅ etf_weight_tracker_ui loaded")
+except Exception as e:
+    PHASE_3_4_MODULES['etf_weight_tracker_ui'] = str(e)
+    print(f"❌ etf_weight_tracker_ui: {e}")
+
+try:
+    from modules.scenario_sandbox_ui import ScenarioSandboxUI
+    PHASE_3_4_MODULES['scenario_sandbox_ui'] = True
+    print("✅ scenario_sandbox_ui loaded")
+except Exception as e:
+    PHASE_3_4_MODULES['scenario_sandbox_ui'] = str(e)
+    print(f"❌ scenario_sandbox_ui: {e}")
+
+try:
+    from modules.fund_flow_radar_ui import FundFlowRadarUI
+    PHASE_3_4_MODULES['fund_flow_radar_ui'] = True
+    print("✅ fund_flow_radar_ui loaded")
+except Exception as e:
+    PHASE_3_4_MODULES['fund_flow_radar_ui'] = str(e)
+    print(f"❌ fund_flow_radar_ui: {e}")
+
+try:
+    from modules.whale_investor_analytics_ui import WhaleInvestorAnalyticsUI
+    PHASE_3_4_MODULES['whale_investor_analytics_ui'] = True
+    print("✅ whale_investor_analytics_ui loaded")
+except Exception as e:
+    PHASE_3_4_MODULES['whale_investor_analytics_ui'] = str(e)
+    print(f"❌ whale_investor_analytics_ui: {e}")
+
+try:
+    from modules.whale_correlation_ui import WhaleCorrelationUI
+    PHASE_3_4_MODULES['whale_correlation_ui'] = True
+    print("✅ whale_correlation_ui loaded")
+except Exception as e:
+    PHASE_3_4_MODULES['whale_correlation_ui'] = str(e)
+    print(f"❌ whale_correlation_ui: {e}")
+
+try:
+    from modules.whale_momentum_tracker_ui import WhaleMomentumTrackerUI
+    PHASE_3_4_MODULES['whale_momentum_tracker_ui'] = True
+    print("✅ whale_momentum_tracker_ui loaded")
+except Exception as e:
+    PHASE_3_4_MODULES['whale_momentum_tracker_ui'] = str(e)
+    print(f"❌ whale_momentum_tracker_ui: {e}")
+
+try:
+    from modules.etf_whale_linkage_ui import ETFWhaleLinkageUI
+    PHASE_3_4_MODULES['etf_whale_linkage_ui'] = True
+    print("✅ etf_whale_linkage_ui loaded")
+except Exception as e:
+    PHASE_3_4_MODULES['etf_whale_linkage_ui'] = str(e)
+    print(f"❌ etf_whale_linkage_ui: {e}")
+
+try:
+    from modules.hedge_fund_activity_radar_ui import HedgeFundActivityRadarUI
+    PHASE_3_4_MODULES['hedge_fund_activity_radar_ui'] = True
+    print("✅ hedge_fund_activity_radar_ui loaded")
+except Exception as e:
+    PHASE_3_4_MODULES['hedge_fund_activity_radar_ui'] = str(e)
+    print(f"❌ hedge_fund_activity_radar_ui: {e}")
+
+try:
+    from modules.institutional_event_reaction_lab_ui import InstitutionalEventReactionLabUI
+    PHASE_3_4_MODULES['institutional_event_reaction_lab_ui'] = True
+    print("✅ institutional_event_reaction_lab_ui loaded")
+except Exception as e:
+    PHASE_3_4_MODULES['institutional_event_reaction_lab_ui'] = str(e)
+    print(f"❌ institutional_event_reaction_lab_ui: {e}")
+
+# Check if all modules loaded
+success_count = sum(1 for v in PHASE_3_4_MODULES.values() if v is True)
+total_count = len(PHASE_3_4_MODULES)
+
+if success_count == total_count:
+    PHASE_3_4_AVAILABLE = True
+    print(f"✅ All {total_count} Phase 3-4 modules loaded successfully!")
+else:
+    failed = [k for k, v in PHASE_3_4_MODULES.items() if v is not True]
+    PHASE_3_4_ERROR = f"{success_count}/{total_count} modules loaded. Failed: {', '.join(failed)}"
+    print(f"❌ {PHASE_3_4_ERROR}")
 
 # Configure Streamlit page
 st.set_page_config(
@@ -4622,15 +4699,23 @@ def get_supply_chain_disruption_data(symbol):
         col1, col2 = st.columns([1, 3])
         with col1:
             if PHASE_3_4_AVAILABLE:
-                st.success("✅ Loaded")
+                st.success("✅ All Loaded")
             else:
-                st.error("❌ Failed")
+                st.error("❌ Load Failed")
 
         with col2:
             if not PHASE_3_4_AVAILABLE and PHASE_3_4_ERROR:
                 with st.expander("🐛 Show Error Details", expanded=True):
                     st.code(PHASE_3_4_ERROR)
-                    st.info("💡 This usually means missing dependencies. Check requirements.txt")
+                    st.info("💡 This usually means missing dependencies. Check Streamlit Cloud logs.")
+
+        # Show per-module status
+        with st.expander("📦 Module-by-Module Status"):
+            for module_name, status in PHASE_3_4_MODULES.items():
+                if status is True:
+                    st.success(f"✅ {module_name}")
+                else:
+                    st.error(f"❌ {module_name}: {status}")
 
         st.markdown("---")
 
