@@ -4662,6 +4662,25 @@ def main():
             """)
 
     # Footer
+    # NEW TABS - Entropy Analysis & Crypto Dominance
+    with tab14:
+        st.title("🎲 Entropy Analysis - Market Intelligence")
+        try:
+            from dashboard.pages.entropy_analysis import render_entropy_dashboard
+            render_entropy_dashboard()
+        except Exception as e:
+            st.error(f"Failed to load Entropy Analysis: {e}")
+            st.info("This feature requires additional dependencies. Please check the logs.")
+
+    with tab15:
+        st.title("📊 Crypto Market Dominance & Forecasting")
+        try:
+            from dashboard.pages.crypto_market_dominance import render_crypto_dominance_dashboard
+            render_crypto_dominance_dashboard()
+        except Exception as e:
+            st.error(f"Failed to load Crypto Dominance Analysis: {e}")
+            st.info("This feature requires CoinGecko API access. Please check the logs.")
+
     st.markdown("---")
     st.markdown("""
     <div style='text-align: center; color: #666; padding: 20px;'>
@@ -4809,25 +4828,6 @@ def get_supply_chain_disruption_data(symbol):
         'supplier_risk': {},
         'early_warnings': []
     })
-
-    # NEW TABS - Entropy Analysis & Crypto Dominance
-    with tab14:
-        st.title("🎲 Entropy Analysis - Market Intelligence")
-        try:
-            from dashboard.pages.entropy_analysis import render_entropy_dashboard
-            render_entropy_dashboard()
-        except Exception as e:
-            st.error(f"Failed to load Entropy Analysis: {e}")
-            st.info("This feature requires additional dependencies. Please check the logs.")
-
-    with tab15:
-        st.title("📊 Crypto Market Dominance & Forecasting")
-        try:
-            from dashboard.pages.crypto_market_dominance import render_crypto_dominance_dashboard
-            render_crypto_dominance_dashboard()
-        except Exception as e:
-            st.error(f"Failed to load Crypto Dominance Analysis: {e}")
-            st.info("This feature requires CoinGecko API access. Please check the logs.")
 
 # Call main() automatically after authentication
 main()
