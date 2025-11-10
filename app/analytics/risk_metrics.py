@@ -7,6 +7,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 from app.utils.logger import get_logger
+from app.analytics.entropy_metrics import EntropyCalculator
 
 
 class RiskCalculator:
@@ -14,6 +15,7 @@ class RiskCalculator:
 
     def __init__(self):
         self.logger = get_logger("analytics.risk_metrics")
+        self.entropy_calc = EntropyCalculator()
 
     def calculate_volatility(
         self,
@@ -472,6 +474,45 @@ class RiskCalculator:
                 "risk_level": risk_level,
                 "volatility_percentile": self._classify_volatility_percentile(vol)
             }
+
+            # Add entropy-based metrics
+            try:
+                entropy_metrics = {
+                    "shannon_entropy": self.entropy_calc.shannon_entropy(returns),
+                    "sample_entropy": self.entropy_calc.sample_entropy(returns),
+                    "approximate_entropy": self.entropy_calc.approximate_entropy(returns),
+                    "permutation_entropy": self.entropy_calc.permutation_entropy(returns),
+                    "spectral_entropy": self.entropy_calc.spectral_entropy(returns),
+                    "complexity_score": None,
+                    "predictability_score": None,
+                    "market_regime": None
+                }
+
+                # Calculate derived entropy scores
+                shannon = entropy_metrics["shannon_entropy"]
+                apen = entropy_metrics["approximate_entropy"]
+
+                if shannon is not None and not np.isnan(shannon):
+                    entropy_metrics["complexity_score"] = shannon * 100
+                    entropy_metrics["predictability_score"] = (1 - shannon) * 100
+
+                    # Market regime identification
+                    if shannon < 0.3 and apen < 0.5:
+                        entropy_metrics["market_regime"] = "Strong Trend"
+                    elif shannon < 0.5:
+                        entropy_metrics["market_regime"] = "Trending"
+                    elif shannon < 0.7:
+                        entropy_metrics["market_regime"] = "Mixed/Transitional"
+                    elif shannon < 0.85:
+                        entropy_metrics["market_regime"] = "Choppy/Volatile"
+                    else:
+                        entropy_metrics["market_regime"] = "Highly Chaotic"
+
+                report["entropy_metrics"] = entropy_metrics
+
+            except Exception as e:
+                self.logger.warning(f"Could not calculate entropy metrics: {e}")
+                report["entropy_metrics"] = None
 
             self.logger.info(f"Generated comprehensive risk report for {report['asset_name']}")
             return report
