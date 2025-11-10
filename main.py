@@ -4471,7 +4471,7 @@ def main():
             add_auto_refresh(30)
 
     # Main navigation tabs - Professional workflow organization
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15 = st.tabs([
         "🎯 Dashboard",
         "🔍 Stock Research",
         "📡 Screener",
@@ -4484,7 +4484,9 @@ def main():
         "🔔 Alerts",
         "🔒 Privacy",
         "🤖 AI Tools",
-        "🐋 Whale Intelligence"
+        "🐋 Whale Intelligence",
+        "🎲 Entropy Analysis",
+        "📊 Crypto Dominance"
     ])
 
     with tab1:
@@ -4807,6 +4809,25 @@ def get_supply_chain_disruption_data(symbol):
         'supplier_risk': {},
         'early_warnings': []
     })
+
+    # NEW TABS - Entropy Analysis & Crypto Dominance
+    with tab14:
+        st.title("🎲 Entropy Analysis - Market Intelligence")
+        try:
+            from dashboard.pages.entropy_analysis import render_entropy_dashboard
+            render_entropy_dashboard()
+        except Exception as e:
+            st.error(f"Failed to load Entropy Analysis: {e}")
+            st.info("This feature requires additional dependencies. Please check the logs.")
+
+    with tab15:
+        st.title("📊 Crypto Market Dominance & Forecasting")
+        try:
+            from dashboard.pages.crypto_market_dominance import render_crypto_dominance_dashboard
+            render_crypto_dominance_dashboard()
+        except Exception as e:
+            st.error(f"Failed to load Crypto Dominance Analysis: {e}")
+            st.info("This feature requires CoinGecko API access. Please check the logs.")
 
 # Call main() automatically after authentication
 main()
