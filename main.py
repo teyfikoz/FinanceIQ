@@ -1303,7 +1303,29 @@ def create_executive_dashboard():
 
     # Sector performance
     st.markdown("---")
-    st.subheader("🏭 Sector Performance (1 Month)")
+
+    # Timeframe selector
+    col_title, col_timeframe = st.columns([3, 1])
+    with col_title:
+        st.subheader("🏭 Sector Performance")
+    with col_timeframe:
+        timeframe = st.selectbox(
+            "Timeframe",
+            ["1 Month", "3 Months", "6 Months", "YTD", "1 Year", "2 Years"],
+            index=0,
+            key="sector_perf_timeframe"
+        )
+
+    # Map timeframe to yfinance period
+    period_map = {
+        "1 Month": "1mo",
+        "3 Months": "3mo",
+        "6 Months": "6mo",
+        "YTD": "ytd",
+        "1 Year": "1y",
+        "2 Years": "2y"
+    }
+    selected_period = period_map.get(timeframe, "1mo")
 
     sectors = {
         'Technology': 'XLK',
@@ -1318,7 +1340,7 @@ def create_executive_dashboard():
     for name, symbol in sectors.items():
         try:
             ticker = yf.Ticker(symbol)
-            hist = ticker.history(period='1mo')
+            hist = ticker.history(period=selected_period)
             if not hist.empty and len(hist) > 1:
                 perf = ((hist['Close'].iloc[-1] - hist['Close'].iloc[0]) /
                        hist['Close'].iloc[0] * 100)
@@ -4487,15 +4509,15 @@ def main():
         "📊 ETFs & Funds",
         "🏛️ Institutional",
         "🇹🇷 Turkish Markets",
-        "💼 Portfolio",
-        "👁️ Watchlist",
-        "🔔 Alerts",
-        "🔒 Privacy",
         "🤖 AI Tools",
         "🐋 Whale Intelligence",
         "🎲 Entropy Analysis",
         "📊 Crypto Dominance",
-        "🌀 Cycle Intelligence"
+        "🌀 Cycle Intelligence",
+        "💼 Portfolio",
+        "👁️ Watchlist",
+        "🔔 Alerts",
+        "🔒 Privacy"
     ])
 
     with tab1:
@@ -4520,37 +4542,10 @@ def main():
         create_turkish_markets()
 
     with tab8:
-        create_portfolio_management()
-
-    with tab9:
-        create_watchlist_management()
-
-    with tab10:
-        if user:
-            create_price_alerts_ui(user['id'])
-        else:
-            st.info("🔔 Price alerts available - no login required")
-
-    with tab11:
-        # Privacy and Data Management + API Configuration
-        privacy_tabs = st.tabs(["🔒 Privacy Settings", "🔑 API Configuration"])
-
-        with privacy_tabs[0]:
-            if user:
-                from utils.privacy_ui import display_privacy_settings
-                display_privacy_settings(user['id'])
-            else:
-                st.info("🔒 Privacy settings available - no login required")
-
-        with privacy_tabs[1]:
-            from utils.api_config_ui import create_api_config_ui
-            create_api_config_ui()
-
-    with tab12:
         # Game Changer Features - Phase 1
         create_game_changer_tab()
 
-    with tab13:
+    with tab9:
         # TEST: Make sure this tab renders
         st.title("🐋 Whale Intelligence - Institutional Analytics")
         st.success("✅ Tab13 is loading! If you see this, the tab is working.")
@@ -4558,7 +4553,7 @@ def main():
         # Whale Intelligence: Advanced Institutional Analytics
         st.markdown("""
         <div style="background: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%); padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem; text-align: center; color: white;">
-            <h2>Bloomberg Terminal-Level Analytics</h2>
+            <h2>Whale Terminal-Level Analytics</h2>
             <p style="font-size: 1rem; margin-top: 0.5rem;">
                 Track institutional investors in real-time
             </p>
@@ -4656,7 +4651,7 @@ def main():
             st.markdown("""
             ### 🐋 Advanced Institutional Intelligence Features
 
-            **10 Bloomberg Terminal-Level Analytics Modules:**
+            **10 Whale Terminal-Level Analytics Modules:**
 
             1. 📊 **Portfolio Health Score** - 8 multi-dimensional health metrics
             2. 📈 **ETF Weight Tracker** - Track your holdings inside major ETFs
@@ -4677,9 +4672,7 @@ def main():
             - Contact support@financeiq.com if issue persists
             """)
 
-    # Footer
-    # NEW TABS - Entropy Analysis & Crypto Dominance
-    with tab14:
+    with tab10:
         st.title("🎲 Entropy Analysis - Market Intelligence")
         try:
             from dashboard.pages.entropy_analysis import render_entropy_dashboard
@@ -4688,7 +4681,7 @@ def main():
             st.error(f"Failed to load Entropy Analysis: {e}")
             st.info("This feature requires additional dependencies. Please check the logs.")
 
-    with tab15:
+    with tab11:
         st.title("📊 Crypto Market Dominance & Forecasting")
         try:
             from dashboard.pages.crypto_market_dominance import render_crypto_dominance_dashboard
@@ -4697,7 +4690,7 @@ def main():
             st.error(f"Failed to load Crypto Dominance Analysis: {e}")
             st.info("This feature requires CoinGecko API access. Please check the logs.")
 
-    with tab16:
+    with tab12:
         # Cycle Intelligence Engine
         try:
             if PHASE_3_4_MODULES.get('cycle_analysis_ui') is True:
@@ -4719,6 +4712,33 @@ def main():
             st.error(f"Error loading Cycle Intelligence: {e}")
             import traceback
             st.code(traceback.format_exc())
+
+    with tab13:
+        create_portfolio_management()
+
+    with tab14:
+        create_watchlist_management()
+
+    with tab15:
+        if user:
+            create_price_alerts_ui(user['id'])
+        else:
+            st.info("🔔 Price alerts available - no login required")
+
+    with tab16:
+        # Privacy and Data Management + API Configuration
+        privacy_tabs = st.tabs(["🔒 Privacy Settings", "🔑 API Configuration"])
+
+        with privacy_tabs[0]:
+            if user:
+                from utils.privacy_ui import display_privacy_settings
+                display_privacy_settings(user['id'])
+            else:
+                st.info("🔒 Privacy settings available - no login required")
+
+        with privacy_tabs[1]:
+            from utils.api_config_ui import create_api_config_ui
+            create_api_config_ui()
 
     st.markdown("---")
     st.markdown("""

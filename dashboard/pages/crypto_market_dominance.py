@@ -67,8 +67,18 @@ def render_crypto_dominance_dashboard():
         cached_data = cache.get('comprehensive_metrics')
 
         if cached_data is None:
-            metrics = collector.get_comprehensive_market_metrics()
-            cache.set('comprehensive_metrics', metrics)
+            try:
+                metrics = collector.get_comprehensive_market_metrics()
+                if metrics and metrics.get('market_cap_segments'):
+                    cache.set('comprehensive_metrics', metrics)
+                else:
+                    st.error("⚠️ Unable to fetch crypto market data from CoinGecko API")
+                    st.info("💡 **Possible reasons:**\n- CoinGecko API rate limit reached\n- API key required (upgrade to Pro)\n- Network connectivity issues\n\n**Solution:** Try refreshing in a few minutes or configure CoinGecko API key in Settings → API Configuration")
+                    return
+            except Exception as e:
+                st.error(f"❌ Error loading crypto data: {str(e)}")
+                st.info("Please check your internet connection and CoinGecko API status")
+                return
         else:
             metrics = cached_data
 
