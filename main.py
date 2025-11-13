@@ -126,6 +126,14 @@ except Exception as e:
     PHASE_3_4_MODULES['institutional_event_reaction_lab_ui'] = str(e)
     print(f"❌ institutional_event_reaction_lab_ui: {e}")
 
+try:
+    from modules.cycle_analysis_ui import create_cycle_intelligence_ui
+    PHASE_3_4_MODULES['cycle_analysis_ui'] = True
+    print("✅ cycle_analysis_ui loaded")
+except Exception as e:
+    PHASE_3_4_MODULES['cycle_analysis_ui'] = str(e)
+    print(f"❌ cycle_analysis_ui: {e}")
+
 # Check if all modules loaded
 success_count = sum(1 for v in PHASE_3_4_MODULES.values() if v is True)
 total_count = len(PHASE_3_4_MODULES)
@@ -4471,7 +4479,7 @@ def main():
             add_auto_refresh(30)
 
     # Main navigation tabs - Professional workflow organization
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16 = st.tabs([
         "🎯 Dashboard",
         "🔍 Stock Research",
         "📡 Screener",
@@ -4486,7 +4494,8 @@ def main():
         "🤖 AI Tools",
         "🐋 Whale Intelligence",
         "🎲 Entropy Analysis",
-        "📊 Crypto Dominance"
+        "📊 Crypto Dominance",
+        "🌀 Cycle Intelligence"
     ])
 
     with tab1:
@@ -4523,12 +4532,19 @@ def main():
             st.info("🔔 Price alerts available - no login required")
 
     with tab11:
-        # Privacy and Data Management
-        if user:
-            from utils.privacy_ui import display_privacy_settings
-            display_privacy_settings(user['id'])
-        else:
-            st.info("🔒 Privacy settings available - no login required")
+        # Privacy and Data Management + API Configuration
+        privacy_tabs = st.tabs(["🔒 Privacy Settings", "🔑 API Configuration"])
+
+        with privacy_tabs[0]:
+            if user:
+                from utils.privacy_ui import display_privacy_settings
+                display_privacy_settings(user['id'])
+            else:
+                st.info("🔒 Privacy settings available - no login required")
+
+        with privacy_tabs[1]:
+            from utils.api_config_ui import create_api_config_ui
+            create_api_config_ui()
 
     with tab12:
         # Game Changer Features - Phase 1
@@ -4680,6 +4696,29 @@ def main():
         except Exception as e:
             st.error(f"Failed to load Crypto Dominance Analysis: {e}")
             st.info("This feature requires CoinGecko API access. Please check the logs.")
+
+    with tab16:
+        # Cycle Intelligence Engine
+        try:
+            if PHASE_3_4_MODULES.get('cycle_analysis_ui') is True:
+                fred_api_instance = None
+                alpha_vantage_api_instance = None
+
+                # Try to get existing API instances
+                try:
+                    fred_api_instance = st.session_state.get('fred_api', None)
+                    alpha_vantage_api_instance = st.session_state.get('alpha_vantage_api', None)
+                except:
+                    pass
+
+                create_cycle_intelligence_ui(fred_api_instance, alpha_vantage_api_instance)
+            else:
+                st.error(f"🌀 Cycle Intelligence module failed to load: {PHASE_3_4_MODULES.get('cycle_analysis_ui', 'Unknown error')}")
+                st.info("Please check the module imports and try restarting the application.")
+        except Exception as e:
+            st.error(f"Error loading Cycle Intelligence: {e}")
+            import traceback
+            st.code(traceback.format_exc())
 
     st.markdown("---")
     st.markdown("""

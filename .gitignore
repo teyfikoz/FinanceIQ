@@ -32,6 +32,11 @@ ENV/
 .env.local
 .env.production
 
+# API Keys Configuration (NEVER commit!)
+config/api_keys.json
+config/*.json
+!config/.gitkeep
+
 # Database
 *.db
 *.sqlite3
