@@ -72,8 +72,43 @@ def render_crypto_dominance_dashboard():
                 if metrics and metrics.get('market_cap_segments'):
                     cache.set('comprehensive_metrics', metrics)
                 else:
-                    st.error("⚠️ Unable to fetch crypto market data from CoinGecko API")
-                    st.info("💡 **Possible reasons:**\n- CoinGecko API rate limit reached\n- API key required (upgrade to Pro)\n- Network connectivity issues\n\n**Solution:** Try refreshing in a few minutes or configure CoinGecko API key in Settings → API Configuration")
+                    st.error("⚠️ Unable to fetch crypto market data")
+
+                    with st.expander("🔍 Troubleshooting Guide", expanded=True):
+                        st.markdown("""
+                        ### Possible Reasons:
+                        1. **CoinGecko API Rate Limit** - Free tier allows ~50 calls/minute
+                        2. **Temporary API Downtime** - Check [CoinGecko Status](https://status.coingecko.com/)
+                        3. **Network Issues** - Verify your internet connection
+                        4. **Firewall/VPN Blocking** - Some networks block crypto APIs
+
+                        ### Solutions:
+                        #### Option 1: Wait and Retry (Recommended)
+                        - Click the "🔄 Refresh Data" button in the sidebar
+                        - Wait 1-2 minutes for rate limits to reset
+                        - The system will automatically retry with exponential backoff
+
+                        #### Option 2: Configure CoinGecko Pro API Key
+                        - Get a free demo API key from [CoinGecko](https://www.coingecko.com/en/api/pricing)
+                        - Pro tier: 500 calls/minute vs 50 for free
+                        - Add key in config/api_keys.json: `"coingecko": "your-key-here"`
+
+                        #### Option 3: Use Alternative Data Source
+                        - System will fallback to Yahoo Finance for basic crypto data
+                        - Limited to top 10 cryptocurrencies
+                        - Some features may be unavailable
+
+                        ### Debug Information:
+                        """)
+
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.metric("Metrics Retrieved", "❌ Failed")
+                            st.metric("Cache Status", "Empty" if cached_data is None else "Data Available")
+                        with col2:
+                            st.metric("Market Cap Segments", "Not Available")
+                            st.metric("API Source", "CoinGecko Free API")
+
                     return
             except Exception as e:
                 st.error(f"❌ Error loading crypto data: {str(e)}")

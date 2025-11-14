@@ -35,6 +35,40 @@ class CryptoMarketDominanceCollector:
         else:
             self.headers = {}
 
+    def _make_request_with_retry(self, endpoint: str, params: Optional[Dict] = None, max_retries: int = 3) -> Optional[Dict]:
+        """Make HTTP request with exponential backoff retry logic."""
+        for attempt in range(max_retries):
+            try:
+                response = requests.get(endpoint, headers=self.headers, params=params, timeout=30)
+
+                # Handle rate limiting
+                if response.status_code == 429:
+                    wait_time = (2 ** attempt) * 2  # Exponential backoff: 2, 4, 8 seconds
+                    self.logger.warning(f"Rate limited. Waiting {wait_time}s before retry {attempt + 1}/{max_retries}")
+                    time.sleep(wait_time)
+                    continue
+
+                response.raise_for_status()
+                return response.json()
+
+            except requests.exceptions.Timeout:
+                self.logger.warning(f"Request timeout (attempt {attempt + 1}/{max_retries})")
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)
+                    continue
+
+            except requests.exceptions.RequestException as e:
+                self.logger.error(f"Request failed (attempt {attempt + 1}/{max_retries}): {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)
+                    continue
+
+            except Exception as e:
+                self.logger.error(f"Unexpected error: {e}")
+                break
+
+        return None
+
     def get_global_market_data(self) -> Dict[str, Any]:
         """
         Get global cryptocurrency market data.
@@ -44,10 +78,13 @@ class CryptoMarketDominanceCollector:
         """
         try:
             endpoint = f"{self.base_url}/global"
-            response = requests.get(endpoint, headers=self.headers, timeout=30)
-            response.raise_for_status()
+            response_data = self._make_request_with_retry(endpoint)
 
-            data = response.json()['data']
+            if not response_data or 'data' not in response_data:
+                self.logger.error("Failed to get global market data: Invalid response")
+                return {}
+
+            data = response_data['data']
 
             result = {
                 'timestamp': datetime.now(),
@@ -66,6 +103,39 @@ class CryptoMarketDominanceCollector:
         except Exception as e:
             self.logger.error(f"Failed to get global market data: {e}")
             return {}
+
+    def _get_crypto_from_yfinance(self, symbols: List[str]) -> pd.DataFrame:
+        """Fallback: Get crypto data from Yahoo Finance."""
+        try:
+            import yfinance as yf
+            data_list = []
+
+            for symbol in symbols:
+                ticker_symbol = f"{symbol}-USD"
+                try:
+                    ticker = yf.Ticker(ticker_symbol)
+                    info = ticker.info
+                    hist = ticker.history(period="1d")
+
+                    if not hist.empty and info:
+                        data_list.append({
+                            'id': symbol.lower(),
+                            'symbol': symbol.upper(),
+                            'name': info.get('shortName', symbol),
+                            'current_price': hist['Close'].iloc[-1],
+                            'market_cap': info.get('marketCap', 0),
+                            'total_volume': info.get('volume24Hr', 0),
+                            'price_change_percentage_24h': info.get('regularMarketChangePercent', 0)
+                        })
+                except Exception as e:
+                    self.logger.warning(f"Failed to get {symbol} from Yahoo Finance: {e}")
+                    continue
+
+            return pd.DataFrame(data_list) if data_list else pd.DataFrame()
+
+        except Exception as e:
+            self.logger.error(f"Yahoo Finance fallback failed: {e}")
+            return pd.DataFrame()
 
     def get_top_cryptos(self, limit: int = 100) -> pd.DataFrame:
         """
@@ -88,15 +158,25 @@ class CryptoMarketDominanceCollector:
                 'price_change_percentage': '1h,24h,7d,30d,1y'
             }
 
-            response = requests.get(endpoint, headers=self.headers, params=params, timeout=30)
-            response.raise_for_status()
+            data = self._make_request_with_retry(endpoint, params)
 
-            data = response.json()
+            if not data:
+                self.logger.warning("CoinGecko failed, trying Yahoo Finance fallback for top 10 cryptos...")
+                # Fallback to Yahoo Finance for top cryptos
+                top_symbols = ['BTC', 'ETH', 'BNB', 'XRP', 'ADA', 'SOL', 'DOGE', 'DOT', 'MATIC', 'AVAX']
+                df = self._get_crypto_from_yfinance(top_symbols[:min(10, limit)])
+
+                if not df.empty:
+                    self.logger.info(f"Retrieved {len(df)} cryptocurrencies from Yahoo Finance fallback")
+                    return df
+
+                self.logger.error("Failed to get top cryptos from all sources")
+                return pd.DataFrame()
 
             df = pd.DataFrame(data)
             df['timestamp'] = datetime.now()
 
-            self.logger.info(f"Retrieved top {len(df)} cryptocurrencies")
+            self.logger.info(f"Retrieved top {len(df)} cryptocurrencies from CoinGecko")
             return df
 
         except Exception as e:
@@ -167,9 +247,11 @@ class CryptoMarketDominanceCollector:
                 'interval': 'daily'
             }
 
-            response = requests.get(btc_endpoint, headers=self.headers, params=btc_params, timeout=30)
-            response.raise_for_status()
-            btc_data = response.json()
+            btc_data = self._make_request_with_retry(btc_endpoint, btc_params)
+
+            if not btc_data or 'market_caps' not in btc_data:
+                self.logger.error("Failed to get Bitcoin historical data: Invalid response")
+                return pd.DataFrame()
 
             # Convert to DataFrame
             btc_df = pd.DataFrame(btc_data['market_caps'], columns=['timestamp', 'btc_market_cap'])
