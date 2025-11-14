@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Tuple, Any
 import time
 from datetime import datetime, timedelta
 import warnings
+import numpy as np
 warnings.filterwarnings('ignore')
 
 try:

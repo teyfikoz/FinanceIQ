@@ -88,7 +88,7 @@ def render_crypto_dominance_dashboard():
 
     # Render selected section
     if analysis_section == "Market Cap Overview":
-        render_market_cap_overview(metrics, forecaster, trend_analyzer, entropy_analyzer)
+        render_market_cap_overview(metrics, forecaster, trend_analyzer, entropy_analyzer, collector)
 
     elif analysis_section == "Bitcoin Dominance Analysis":
         render_bitcoin_dominance(metrics, collector, forecaster, entropy_analyzer)
@@ -103,7 +103,7 @@ def render_crypto_dominance_dashboard():
         render_altcoin_season(metrics, collector, entropy_analyzer)
 
 
-def render_market_cap_overview(metrics, forecaster, trend_analyzer, entropy_analyzer):
+def render_market_cap_overview(metrics, forecaster, trend_analyzer, entropy_analyzer, collector):
     """Render market cap overview section."""
 
     st.header("💰 Market Cap Segments & Forecasting")
