@@ -4737,8 +4737,12 @@ def main():
                 st.info("🔒 Privacy settings available - no login required")
 
         with privacy_tabs[1]:
-            from utils.api_config_ui import create_api_config_ui
-            create_api_config_ui()
+            try:
+                from utils.api_config_ui import create_api_config_ui
+                create_api_config_ui()
+            except Exception as e:
+                st.error(f"⚠️ API Configuration UI failed to load: {e}")
+                st.info("Please check the logs or restart the application.")
 
     st.markdown("---")
     st.markdown("""
