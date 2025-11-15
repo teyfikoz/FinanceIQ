@@ -134,6 +134,14 @@ except Exception as e:
     PHASE_3_4_MODULES['cycle_analysis_ui'] = str(e)
     print(f"❌ cycle_analysis_ui: {e}")
 
+try:
+    from modules.tefas_portfolio_analysis_ui import create_tefas_portfolio_analysis_ui
+    PHASE_3_4_MODULES['tefas_portfolio_analysis_ui'] = True
+    print("✅ tefas_portfolio_analysis_ui loaded")
+except Exception as e:
+    PHASE_3_4_MODULES['tefas_portfolio_analysis_ui'] = str(e)
+    print(f"❌ tefas_portfolio_analysis_ui: {e}")
+
 # Check if all modules loaded
 success_count = sum(1 for v in PHASE_3_4_MODULES.values() if v is True)
 total_count = len(PHASE_3_4_MODULES)
@@ -4313,6 +4321,18 @@ def create_turkish_markets():
             bist_df[['name', 'price', 'change', 'volume']].round(2),
             use_container_width=True
         )
+
+    # TEFAS Portfolio Analysis
+    st.markdown("---")
+    st.subheader("📊 TEFAS Fon Portföy Analizi")
+
+    if PHASE_3_4_MODULES.get('tefas_portfolio_analysis_ui') is True:
+        try:
+            create_tefas_portfolio_analysis_ui()
+        except Exception as e:
+            st.error(f"⚠️ TEFAS portföy analizi yüklenirken hata oluştu: {e}")
+    else:
+        st.info("⚠️ TEFAS portföy analizi modülü yüklenemedi.")
 
 def create_game_changer_tab():
     """🤖 AI Tools - Advanced Analytics with Artificial Intelligence"""

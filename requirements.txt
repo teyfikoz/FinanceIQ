@@ -28,6 +28,7 @@ lxml>=4.9.0
 # Additional dependencies
 python-dotenv>=1.0.0
 structlog>=23.0.0
+python-dateutil>=2.8.2
 pydantic>=2.5.0
 pydantic-settings>=2.1.0
 networkx>=3.0
