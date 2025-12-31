@@ -121,6 +121,7 @@ class UnifiedAPIManager:
             'alpha_vantage': (25, 86400),  # 25 calls per day
             'finnhub': (60, 60),  # 60 calls per minute
             'binance': (1200, 60),  # 1200 calls per minute
+            'okx': (1200, 60),  # 1200 calls per minute (public)
             'coingecko': (50, 60),  # 50 calls per minute
             'newsapi': (100, 86400),  # 100 calls per day
             'polygon': (5, 60),  # 5 calls per minute
@@ -333,6 +334,38 @@ class UnifiedAPIManager:
         }
 
         return self._make_request('binance', url, params, data_type='historical')
+
+    # ========== OKX (PUBLIC) ==========
+
+    def get_okx_ticker(self, inst_id: str = 'BTC-USDT') -> Optional[Dict]:
+        """Get crypto ticker from OKX (public)"""
+        url = "https://www.okx.com/api/v5/market/ticker"
+        params = {'instId': inst_id}
+
+        data = self._make_request('okx', url, params, data_type='crypto_price')
+        if not data or data.get('code') != '0':
+            return None
+
+        entries = data.get('data', [])
+        if not entries:
+            return None
+
+        return entries[0]
+
+    def get_okx_candles(self, inst_id: str = 'BTC-USDT', bar: str = '1H', limit: int = 100) -> Optional[List]:
+        """Get historical candles from OKX (public)"""
+        url = "https://www.okx.com/api/v5/market/candles"
+        params = {
+            'instId': inst_id,
+            'bar': bar,
+            'limit': limit
+        }
+
+        data = self._make_request('okx', url, params, data_type='historical')
+        if not data or data.get('code') != '0':
+            return None
+
+        return data.get('data')
 
     # ========== TEFAS ==========
 
@@ -568,6 +601,47 @@ class UnifiedAPIManager:
         return self._make_request('tradingeconomics', url, headers=headers,
                                  data_type='economic_calendar')
 
+    def _get_stooq_quote(self, symbol: str) -> Optional[Dict[str, float]]:
+        """Fetch last price from Stooq (public)"""
+        try:
+            from pandas_datareader import data as pdr
+        except Exception:
+            return None
+
+        symbol_upper = symbol.upper()
+        if symbol_upper.startswith('^'):
+            candidates = [symbol_upper]
+        else:
+            base = symbol_upper.replace('-', '.')
+            candidates = []
+            if '.' not in base:
+                candidates.append(f"{base}.US")
+            candidates.append(base)
+
+        start = datetime.utcnow() - timedelta(days=10)
+        end = datetime.utcnow()
+
+        for candidate in candidates:
+            try:
+                df = pdr.DataReader(candidate, 'stooq', start, end)
+            except Exception:
+                continue
+
+            if df is None or df.empty:
+                continue
+
+            df = df.sort_index()
+            last_close = float(df['Close'].iloc[-1])
+            if len(df) > 1:
+                prev_close = float(df['Close'].iloc[-2])
+                change_pct = ((last_close / prev_close) - 1) * 100 if prev_close else 0.0
+            else:
+                change_pct = 0.0
+
+            return {'price': last_close, 'change': change_pct}
+
+        return None
+
     # ========== UTILITY METHODS ==========
 
     def get_stock_price_with_fallback(self, symbol: str) -> Dict[str, Any]:
@@ -597,6 +671,14 @@ class UnifiedAPIManager:
                 return result
         except:
             pass
+
+        # Try Stooq public data (no key required)
+        stooq_data = self._get_stooq_quote(symbol)
+        if stooq_data:
+            result['price'] = stooq_data['price']
+            result['change'] = stooq_data['change']
+            result['source'] = 'stooq'
+            return result
 
         # Try Alpha Vantage
         av_data = self.get_alpha_vantage_quote(symbol)
@@ -647,6 +729,21 @@ class UnifiedAPIManager:
             result['change_24h'] = float(binance_data.get('priceChangePercent', 0))
             result['source'] = 'binance'
             return result
+
+        # Try OKX public ticker
+        symbol_upper = symbol.upper()
+        base_symbol = symbol_upper[:-4] if symbol_upper.endswith('USDT') else symbol_upper
+        if base_symbol.isalpha():
+            okx_inst = f"{base_symbol}-USDT"
+            okx_data = self.get_okx_ticker(okx_inst)
+            if okx_data:
+                last_price = float(okx_data.get('last', 0))
+                open_24h = float(okx_data.get('open24h', 0))
+                change_pct = ((last_price - open_24h) / open_24h * 100) if open_24h else 0.0
+                result['price'] = last_price
+                result['change_24h'] = change_pct
+                result['source'] = 'okx'
+                return result
 
         return result
 

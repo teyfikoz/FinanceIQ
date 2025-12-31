@@ -67,6 +67,21 @@ class MarketDataEngine:
                     'source': 'binance'
                 }
 
+        # Try OKX public ticker
+        okx_inst = symbol.upper() + '-USDT'
+        okx_data = self.api.get_okx_ticker(okx_inst)
+        if okx_data:
+            last_price = float(okx_data.get('last', 0))
+            open_24h = float(okx_data.get('open24h', 0))
+            change_pct = ((last_price - open_24h) / open_24h * 100) if open_24h else 0.0
+            return {
+                'symbol': symbol,
+                'price': last_price,
+                'change_24h': change_pct,
+                'volume': float(okx_data.get('vol24h', 0)),
+                'source': 'okx'
+            }
+
         # Fallback to FMP
         fmp_symbol = symbol.upper() + 'USD'
         fmp_data = self.api.get_fmp_crypto_quote(fmp_symbol)
@@ -84,8 +99,37 @@ class MarketDataEngine:
 
     def get_crypto_historical(self, symbol: str = 'BTCUSDT',
                              interval: str = '1h', limit: int = 100) -> Optional[List]:
-        """Get crypto historical klines from Binance"""
-        return self.api.get_binance_klines(symbol, interval, limit)
+        """Get crypto historical klines from Binance with OKX fallback"""
+        data = self.api.get_binance_klines(symbol, interval, limit)
+        if data:
+            return data
+
+        interval_map = {
+            '1m': '1m',
+            '3m': '3m',
+            '5m': '5m',
+            '15m': '15m',
+            '30m': '30m',
+            '1h': '1H',
+            '2h': '2H',
+            '4h': '4H',
+            '6h': '6H',
+            '12h': '12H',
+            '1d': '1D',
+            '1w': '1W',
+            '1M': '1M'
+        }
+        okx_bar = interval_map.get(interval, '1H')
+
+        symbol_upper = symbol.upper()
+        if '-' in symbol_upper:
+            okx_inst = symbol_upper
+        elif symbol_upper.endswith('USDT'):
+            okx_inst = f"{symbol_upper[:-4]}-USDT"
+        else:
+            okx_inst = f"{symbol_upper}-USDT"
+
+        return self.api.get_okx_candles(okx_inst, bar=okx_bar, limit=limit)
 
     # ========== TURKISH FUNDS (TEFAS) ==========
 

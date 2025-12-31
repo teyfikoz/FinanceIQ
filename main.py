@@ -4746,23 +4746,11 @@ def main():
             st.info("🔔 Price alerts available - no login required")
 
     with tab16:
-        # Privacy and Data Management + API Configuration
-        privacy_tabs = st.tabs(["🔒 Privacy Settings", "🔑 API Configuration"])
-
-        with privacy_tabs[0]:
-            if user:
-                from utils.privacy_ui import display_privacy_settings
-                display_privacy_settings(user['id'])
-            else:
-                st.info("🔒 Privacy settings available - no login required")
-
-        with privacy_tabs[1]:
-            try:
-                from utils.api_config_ui import create_api_config_ui
-                create_api_config_ui()
-            except Exception as e:
-                st.error(f"⚠️ API Configuration UI failed to load: {e}")
-                st.info("Please check the logs or restart the application.")
+        if user:
+            from utils.privacy_ui import display_privacy_settings
+            display_privacy_settings(user['id'])
+        else:
+            st.info("🔒 Privacy settings available - no login required")
 
     st.markdown("---")
     st.markdown("""
