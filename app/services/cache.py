@@ -49,7 +49,7 @@ class InMemoryCache:
 
         # Add jitter (+/-10%) to TTL to avoid thundering herd
         jitter = random.uniform(0.9, 1.1)
-        actual_ttl = int(ttl * jitter)
+        actual_ttl = max(1, int(ttl * jitter))
 
         self._cache[key] = value
         self._expiry[key] = datetime.now() + timedelta(seconds=actual_ttl)
@@ -117,7 +117,7 @@ class RedisCache:
         try:
             # Add jitter (+/-10%) to TTL to avoid thundering herd
             jitter = random.uniform(0.9, 1.1)
-            actual_ttl = int(ttl * jitter)
+            actual_ttl = max(1, int(ttl * jitter))
 
             # Serialize with pickle
             serialized = pickle.dumps(value)

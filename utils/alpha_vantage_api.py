@@ -1,7 +1,7 @@
 """Alpha Vantage API integration for news sentiment and market data"""
-import os
 import requests
 import streamlit as st
+from .secret_utils import get_secret
 from typing import Dict, List, Optional
 
 
@@ -9,7 +9,7 @@ class AlphaVantageAPI:
     """Alpha Vantage API wrapper"""
 
     def __init__(self):
-        self.api_key = os.getenv('ALPHA_VANTAGE_API_KEY', 'demo')
+        self.api_key = get_secret('ALPHA_VANTAGE_API_KEY', 'ALPHA_VANTAGE_KEY', 'alpha_vantage', default='demo')
         self.base_url = 'https://www.alphavantage.co/query'
 
     @st.cache_data(ttl=3600)  # Cache for 1 hour

@@ -1,7 +1,7 @@
 """Financial Modeling Prep API integration"""
-import os
 import requests
 import streamlit as st
+from .secret_utils import get_secret
 from typing import Dict, Optional
 
 
@@ -9,7 +9,7 @@ class FMPAPI:
     """Financial Modeling Prep API wrapper"""
 
     def __init__(self):
-        self.api_key = os.getenv('FMP_API_KEY', None)
+        self.api_key = get_secret('FMP_API_KEY', 'fmp', default=None)
         self.base_url = 'https://financialmodelingprep.com/api/v3'
 
     @st.cache_data(ttl=3600)  # Cache for 1 hour

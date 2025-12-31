@@ -1,6 +1,6 @@
 """FRED API integration for macroeconomic indicators"""
-import os
 import streamlit as st
+from .secret_utils import get_secret
 import pandas as pd
 from datetime import datetime, timedelta
 from typing import Dict, Optional
@@ -10,7 +10,7 @@ class FREDAPI:
     """FRED API wrapper for macroeconomic data"""
 
     def __init__(self):
-        self.api_key = os.getenv('FRED_API_KEY', None)
+        self.api_key = get_secret('FRED_API_KEY', 'fred', default=None)
         self.fred = None
 
         # Try to import fredapi

@@ -13,6 +13,7 @@ from typing import Dict, Any, Optional, List
 import hashlib
 from collections import defaultdict
 import threading
+from .secret_utils import get_secret
 
 
 class RateLimiter:
@@ -147,15 +148,15 @@ class UnifiedAPIManager:
     def _load_api_keys(self) -> Dict[str, str]:
         """Load API keys from environment or config"""
         keys = {
-            'alpha_vantage': os.getenv('ALPHA_VANTAGE_KEY', ''),
-            'fred': os.getenv('FRED_API_KEY', ''),
-            'finnhub': os.getenv('FINNHUB_API_KEY', ''),
-            'binance_key': os.getenv('BINANCE_API_KEY', ''),
-            'binance_secret': os.getenv('BINANCE_SECRET_KEY', ''),
-            'tradingeconomics': os.getenv('TRADINGECONOMICS_KEY', ''),
-            'newsapi': os.getenv('NEWSAPI_KEY', ''),
-            'polygon': os.getenv('POLYGON_API_KEY', ''),
-            'fmp': os.getenv('FMP_API_KEY', ''),
+            'alpha_vantage': get_secret('ALPHA_VANTAGE_KEY', 'ALPHA_VANTAGE_API_KEY', 'alpha_vantage', default=''),
+            'fred': get_secret('FRED_API_KEY', 'fred', default=''),
+            'finnhub': get_secret('FINNHUB_API_KEY', 'finnhub', default=''),
+            'binance_key': get_secret('BINANCE_API_KEY', 'binance_key', default=''),
+            'binance_secret': get_secret('BINANCE_SECRET_KEY', 'binance_secret', default=''),
+            'tradingeconomics': get_secret('TRADINGECONOMICS_KEY', 'tradingeconomics', default=''),
+            'newsapi': get_secret('NEWSAPI_KEY', 'newsapi', default=''),
+            'polygon': get_secret('POLYGON_API_KEY', 'polygon', default=''),
+            'fmp': get_secret('FMP_API_KEY', 'fmp', default=''),
         }
 
         # Try loading from config file if env vars not set
