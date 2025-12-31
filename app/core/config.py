@@ -1,7 +1,15 @@
 from typing import Any, Dict, List, Optional, Union
-from pydantic import PostgresDsn, field_validator
-from pydantic_settings import BaseSettings
 import os
+
+from pydantic import PostgresDsn, field_validator
+
+try:
+    from pydantic_settings import BaseSettings
+except Exception:
+    class BaseSettings:
+        def __init__(self, **kwargs):
+            for key, value in kwargs.items():
+                setattr(self, key, value)
 
 
 class Settings(BaseSettings):
@@ -44,6 +52,7 @@ class Settings(BaseSettings):
     FRED_API_KEY: Optional[str] = None
     COINGECKO_API_KEY: Optional[str] = None
     ALTERNATIVE_ME_API_KEY: Optional[str] = None
+    ENABLE_STOOQ_FALLBACK: bool = True
 
     # Rate Limiting
     API_RATE_LIMIT: int = 100

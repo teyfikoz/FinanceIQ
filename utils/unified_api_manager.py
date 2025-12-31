@@ -105,6 +105,16 @@ class UnifiedAPIManager:
         self.cache = APICache()
         self.api_keys = self._load_api_keys()
 
+        self.tefas_session = requests.Session()
+        self.tefas_session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Referer': 'https://www.tefas.gov.tr/FonKarsilastirma.aspx',
+            'Origin': 'https://www.tefas.gov.tr',
+            'X-Requested-With': 'XMLHttpRequest'
+        })
+
         # API rate limits (calls, time_window_seconds)
         self.rate_limits = {
             'alpha_vantage': (25, 86400),  # 25 calls per day
@@ -355,9 +365,15 @@ class UnifiedAPIManager:
                 "fundCodes": [fund_code]
             }
 
-            response = requests.post(url, json=payload, timeout=10)
+            response = self.tefas_session.post(url, json=payload, timeout=15)
             response.raise_for_status()
-            data = response.json()
+            try:
+                data = response.json()
+            except ValueError:
+                body = response.text.strip()
+                preview = body[:200] if body else "<empty response>"
+                print(f"Error getting TEFAS data for {fund_code}: Invalid JSON response: {preview}")
+                return None
 
             # Parse response
             if 'data' in data and 'comparisonReturnList' in data['data']:

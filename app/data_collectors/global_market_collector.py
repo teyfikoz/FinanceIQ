@@ -14,6 +14,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 import json
 import warnings
+from app.utils.yfinance_fallback import safe_yf_download
 warnings.filterwarnings('ignore')
 
 class GlobalMarketCollector:
@@ -134,18 +135,41 @@ class GlobalMarketCollector:
                 # Process each symbol's data
                 for symbol in batch:
                     try:
-                        if symbol in data.columns.levels[0]:
-                            symbol_data = data[symbol].dropna()
-                            if not symbol_data.empty:
-                                all_data[symbol] = {
-                                    'price': float(symbol_data['Close'].iloc[-1]),
-                                    'change': float(symbol_data['Close'].iloc[-1] - symbol_data['Close'].iloc[-2]),
-                                    'change_percent': float((symbol_data['Close'].iloc[-1] / symbol_data['Close'].iloc[-2] - 1) * 100),
-                                    'volume': int(symbol_data['Volume'].iloc[-1]),
-                                    'high_52w': float(symbol_data['High'].max()),
-                                    'low_52w': float(symbol_data['Low'].min()),
-                                    'market_cap': self._get_market_cap(symbol)
-                                }
+                        symbol_data = None
+                        if isinstance(data.columns, pd.MultiIndex):
+                            if symbol in data.columns.levels[0]:
+                                symbol_data = data[symbol].dropna()
+                        elif len(batch) == 1 and not data.empty:
+                            symbol_data = data.dropna()
+
+                        if symbol_data is None or symbol_data.empty:
+                            fallback_df, _ = safe_yf_download(symbol, period="5d", interval="1d")
+                            if not fallback_df.empty:
+                                symbol_data = fallback_df.dropna()
+
+                        if symbol_data is None or symbol_data.empty:
+                            continue
+
+                        close_series = symbol_data["Close"]
+                        latest_close = float(close_series.iloc[-1])
+                        prev_close = float(close_series.iloc[-2]) if len(close_series) > 1 else latest_close
+                        volume = 0
+                        if "Volume" in symbol_data.columns:
+                            volume_value = symbol_data["Volume"].iloc[-1]
+                            volume = int(volume_value) if not pd.isna(volume_value) else 0
+
+                        high_52w = float(symbol_data["High"].max()) if "High" in symbol_data.columns else 0.0
+                        low_52w = float(symbol_data["Low"].min()) if "Low" in symbol_data.columns else 0.0
+
+                        all_data[symbol] = {
+                            'price': latest_close,
+                            'change': float(latest_close - prev_close),
+                            'change_percent': float((latest_close / prev_close - 1) * 100) if prev_close else 0.0,
+                            'volume': volume,
+                            'high_52w': high_52w,
+                            'low_52w': low_52w,
+                            'market_cap': self._get_market_cap(symbol)
+                        }
                     except Exception as e:
                         print(f"Error processing {symbol}: {e}")
                         continue
