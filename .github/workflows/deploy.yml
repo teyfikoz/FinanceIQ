@@ -65,38 +65,8 @@ jobs:
         flags: unittests
         name: codecov-umbrella
 
-  deploy-render:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
-    steps:
-    - name: Trigger Render Deployment
-      run: |
-        if [ -n "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
-          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
-          echo "✅ Render deployment triggered"
-        else
-          echo "⚠️  RENDER_DEPLOY_HOOK not configured"
-        fi
-
-  deploy-railway:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
-    steps:
-    - name: Trigger Railway Deployment
-      run: |
-        if [ -n "${{ secrets.RAILWAY_DEPLOY_HOOK }}" ]; then
-          curl -X POST ${{ secrets.RAILWAY_DEPLOY_HOOK }}
-          echo "✅ Railway deployment triggered"
-        else
-          echo "⚠️  RAILWAY_DEPLOY_HOOK not configured"
-        fi
-
   notify:
-    needs: [test, deploy-render, deploy-railway]
+    needs: test
     runs-on: ubuntu-latest
     if: always()
 
@@ -105,5 +75,3 @@ jobs:
       run: |
         echo "🚀 Deployment workflow completed"
         echo "Test status: ${{ needs.test.result }}"
-        echo "Render deploy: ${{ needs.deploy-render.result }}"
-        echo "Railway deploy: ${{ needs.deploy-railway.result }}"
