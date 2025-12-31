@@ -142,6 +142,12 @@ class HoldingsCollectorExt:
                 holdings = self._get_simulated_holdings(fund_symbol, 50)
                 is_simulated = True
 
+        if holdings:
+            total_weight = sum(h.get('weight', 0) for h in holdings)
+            if total_weight <= 0:
+                holdings = self._get_simulated_holdings(fund_symbol, 50)
+                is_simulated = True
+
         # Normalize weights to sum to 100%
         total_weight = sum(h['weight'] for h in holdings)
 
