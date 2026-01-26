@@ -17,6 +17,7 @@ import time
 import os
 import threading
 import warnings
+import logging
 warnings.filterwarnings('ignore')
 
 # Logging + app config
@@ -4403,6 +4404,16 @@ def create_game_changer_tab():
     </div>
     """, unsafe_allow_html=True)
 
+    logger = logging.getLogger(__name__)
+
+    def _safe_render(label, fn):
+        try:
+            fn()
+        except Exception as e:
+            logger.exception("Game Changer tab error: %s", label)
+            st.error(f"⚠️ {label} yüklenirken hata oluştu.")
+            st.caption("Lütfen tekrar deneyin veya System Status bölümünden logları kontrol edin.")
+
     # Feature navigation
     feature_tabs = st.tabs([
         "📸 Social Features",
@@ -4423,16 +4434,16 @@ def create_game_changer_tab():
         ])
 
         with social_subtabs[0]:
-            social.portfolio_snapshot_ui()
+            _safe_render("Portfolio Snapshots", social.portfolio_snapshot_ui)
 
         with social_subtabs[1]:
-            social.public_watchlists_ui()
+            _safe_render("Public Watchlists", social.public_watchlists_ui)
 
         with social_subtabs[2]:
-            social.ticker_notes_ui()
+            _safe_render("Ticker Notes", social.ticker_notes_ui)
 
         with social_subtabs[3]:
-            social.leaderboard_ui()
+            _safe_render("Leaderboard", social.leaderboard_ui)
 
     # Tab 2: Advanced Visualizations
     with feature_tabs[1]:
@@ -4449,16 +4460,19 @@ def create_game_changer_tab():
             ticker = st.text_input("Enter Ticker Symbol", "SPY", key="heatmap_ticker")
             period = st.selectbox("Select Period", ["1y", "2y", "3y", "5y"], key="heatmap_period")
             if st.button("Generate Heatmap", type="primary"):
-                viz.create_returns_heatmap_calendar(ticker.upper(), period)
+                _safe_render(
+                    "Calendar Heatmap",
+                    lambda: viz.create_returns_heatmap_calendar(ticker.upper(), period)
+                )
 
         with viz_subtabs[1]:
-            viz.create_sector_rotation_wheel()
+            _safe_render("Sector Rotation", viz.create_sector_rotation_wheel)
 
         with viz_subtabs[2]:
-            viz.create_fear_greed_gauge()
+            _safe_render("Fear & Greed", viz.create_fear_greed_gauge)
 
         with viz_subtabs[3]:
-            viz.create_3d_portfolio_allocation()
+            _safe_render("3D Portfolio", viz.create_3d_portfolio_allocation)
 
     # Tab 3: AI Tools
     with feature_tabs[2]:
@@ -4481,7 +4495,10 @@ def create_game_changer_tab():
                 days = st.number_input("Time Horizon (days)", 30, 1000, 252)
 
             if st.button("Run Simulation", type="primary", key="run_mc"):
-                ai.monte_carlo_simulation(ticker.upper(), investment, 10000, days)
+                _safe_render(
+                    "Monte Carlo",
+                    lambda: ai.monte_carlo_simulation(ticker.upper(), investment, 10000, days)
+                )
 
         with ai_subtabs[1]:
             ticker = st.text_input("Enter Ticker", "SPY", key="bt_ticker")
@@ -4489,24 +4506,33 @@ def create_game_changer_tab():
             period = st.selectbox("Backtest Period", ["1y", "2y", "3y", "5y"], key="bt_period")
 
             if st.button("Run Backtest", type="primary", key="run_bt"):
-                ai.backtest_strategy(ticker.upper(), strategy, period)
+                _safe_render(
+                    "Backtesting",
+                    lambda: ai.backtest_strategy(ticker.upper(), strategy, period)
+                )
 
         with ai_subtabs[2]:
             ticker = st.text_input("Enter Ticker", "TSLA", key="chart_ticker")
             period = st.selectbox("Chart Period", ["3mo", "6mo", "1y", "2y"], key="chart_period")
 
             if st.button("Annotate Chart", type="primary", key="annotate"):
-                ai.auto_annotate_chart(ticker.upper(), period)
+                _safe_render(
+                    "Chart Annotation",
+                    lambda: ai.auto_annotate_chart(ticker.upper(), period)
+                )
 
         with ai_subtabs[3]:
             ticker = st.text_input("Enter Ticker", "NVDA", key="news_ticker")
 
             if st.button("Analyze News", type="primary", key="analyze_news"):
-                ai.news_sentiment_analysis(ticker.upper())
+                _safe_render(
+                    "News Sentiment",
+                    lambda: ai.news_sentiment_analysis(ticker.upper())
+                )
 
         with ai_subtabs[4]:
             from app.ui.hf_insights import render_hf_insights
-            render_hf_insights()
+            _safe_render("HF Insights", render_hf_insights)
 
     # Tab 4: Export & Share
     with feature_tabs[3]:
@@ -4535,7 +4561,10 @@ def create_game_changer_tab():
             }
 
             if st.button("Generate Sample PDF", type="primary", key="gen_pdf"):
-                export.export_to_pdf("Portfolio Report", sample_data)
+                _safe_render(
+                    "PDF Export",
+                    lambda: export.export_to_pdf("Portfolio Report", sample_data)
+                )
 
         with export_subtabs[1]:
             st.markdown("### Export Data to Excel")
@@ -4549,7 +4578,10 @@ def create_game_changer_tab():
             }
 
             if st.button("Generate Sample Excel", type="primary", key="gen_excel"):
-                export.export_to_excel(sample_sheets, "portfolio_data")
+                _safe_render(
+                    "Excel Export",
+                    lambda: export.export_to_excel(sample_sheets, "portfolio_data")
+                )
 
         with export_subtabs[2]:
             st.markdown("### Generate QR Code for Dashboard")
@@ -4558,7 +4590,10 @@ def create_game_changer_tab():
             description = st.text_input("Description", "FinanceIQ Dashboard", key="qr_desc")
 
             if st.button("Generate QR Code", type="primary", key="gen_qr"):
-                export.generate_qr_code(url, description)
+                _safe_render(
+                    "QR Code",
+                    lambda: export.generate_qr_code(url, description)
+                )
 
 def main():
     """Main application function"""
