@@ -230,13 +230,16 @@ class SocialFeatures:
                 st.metric("Total Stocks", len(symbols))
             with col2:
                 if 'Change (%)' in watchlist_data.columns:
-                    avg_change = watchlist_data['Change (%)'].mean()
-                    st.metric("Avg Change", f"{avg_change:.2f}%", delta=f"{avg_change:.2f}%")
+                    avg_change = watchlist_data['Change (%)'].dropna().mean()
+                    if pd.isna(avg_change):
+                        st.metric("Avg Change", "N/A")
+                    else:
+                        st.metric("Avg Change", f"{avg_change:.2f}%", delta=f"{avg_change:.2f}%")
                 else:
                     st.metric("Avg Change", "N/A")
             with col3:
                 if 'Change (%)' in watchlist_data.columns:
-                    gainers = (watchlist_data['Change (%)'] > 0).sum()
+                    gainers = (watchlist_data['Change (%)'].fillna(0) > 0).sum()
                     st.metric("Gainers", f"{gainers}/{len(symbols)}")
                 else:
                     st.metric("Gainers", "N/A")
@@ -319,8 +322,13 @@ class SocialFeatures:
             st.info("Performance chart is not available for this watchlist yet.")
             return
 
+        plot_df = watchlist_data.dropna(subset=['Change (%)']).copy()
+        if plot_df.empty:
+            st.info("Performance chart is not available for this watchlist yet.")
+            return
+
         fig = px.bar(
-            watchlist_data.sort_values('Change (%)', ascending=True),
+            plot_df.sort_values('Change (%)', ascending=True),
             x='Change (%)',
             y='Symbol',
             orientation='h',
