@@ -38,6 +38,7 @@ from utils.stock_search import simple_stock_search_ui, create_enhanced_stock_sea
 from utils.price_alerts import create_price_alerts_ui
 from utils.market_data_fetcher import get_market_fetcher
 from utils.data_quality import format_quality_badge, DataQuality
+from utils.secret_utils import get_secret
 
 # Import Game Changer Features - Phase 1
 from app.analytics.social_features import SocialFeatures
@@ -4593,6 +4594,16 @@ def main():
                 st.write(f"TradingView Bridge: `{ 'available' if tv_available else 'unavailable' }`")
             except Exception:
                 st.write("TradingView Bridge: `unavailable`")
+
+            # Secrets presence (no values shown)
+            hf_token = get_secret("HF_API_TOKEN")
+            fred_key = get_secret("FRED_API_KEY")
+            av_key = get_secret("ALPHA_VANTAGE_API_KEY", "ALPHA_VANTAGE_KEY")
+            fmp_key = get_secret("FMP_API_KEY")
+            st.write(f"HF Token: `{ 'set' if hf_token else 'missing' }`")
+            st.write(f"FRED Key: `{ 'set' if fred_key else 'missing' }`")
+            st.write(f"Alpha Vantage Key: `{ 'set' if av_key else 'missing' }`")
+            st.write(f"FMP Key: `{ 'set' if fmp_key else 'missing' }`")
 
     # Main navigation tabs - Professional workflow organization
     tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16 = st.tabs([
