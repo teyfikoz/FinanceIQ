@@ -3602,6 +3602,16 @@ def create_comprehensive_stock_research():
         # Overview - Quick metrics
         st.subheader("📊 Stock Overview")
         try:
+            def _safe_float(val, default=0.0):
+                try:
+                    if val is None:
+                        return default
+                    if isinstance(val, (float, int)):
+                        return float(val)
+                    return float(val)
+                except Exception:
+                    return default
+
             fetcher = get_market_fetcher()
             hist, info, quality = fetcher.get_stock_data_with_meta(
                 symbol,
@@ -3617,16 +3627,20 @@ def create_comprehensive_stock_research():
                 col1, col2, col3, col4, col5 = st.columns(5)
 
                 with col1:
-                    st.metric("Price", f"${info.get('currentPrice', hist['Close'].iloc[-1]):.2f}")
+                    current_price = info.get('currentPrice', hist['Close'].iloc[-1])
+                    st.metric("Price", f"${_safe_float(current_price):.2f}")
                 with col2:
                     change = ((hist['Close'].iloc[-1] - hist['Close'].iloc[0]) / hist['Close'].iloc[0] * 100)
                     st.metric("1Y Return", f"{change:+.2f}%")
                 with col3:
-                    st.metric("Market Cap", f"${info.get('marketCap', 0)/1e9:.2f}B")
+                    market_cap = _safe_float(info.get('marketCap', 0.0))
+                    st.metric("Market Cap", f"${market_cap/1e9:.2f}B")
                 with col4:
-                    st.metric("P/E Ratio", f"{info.get('trailingPE', 0):.2f}")
+                    pe = _safe_float(info.get('trailingPE', 0.0))
+                    st.metric("P/E Ratio", f"{pe:.2f}")
                 with col5:
-                    st.metric("Div Yield", f"{info.get('dividendYield', 0)*100:.2f}%")
+                    dy = _safe_float(info.get('dividendYield', 0.0)) * 100
+                    st.metric("Div Yield", f"{dy:.2f}%")
 
                 # Price chart
                 fig = go.Figure()
@@ -3656,7 +3670,11 @@ def create_comprehensive_stock_research():
                     st.markdown(f"**Industry:** {info.get('industry', 'N/A')}")
                 with col2:
                     st.markdown(f"**Country:** {info.get('country', 'N/A')}")
-                    st.markdown(f"**Employees:** {info.get('fullTimeEmployees', 'N/A'):,}")
+                    employees = info.get('fullTimeEmployees')
+                    if isinstance(employees, (int, float)) and employees > 0:
+                        st.markdown(f"**Employees:** {int(employees):,}")
+                    else:
+                        st.markdown("**Employees:** N/A")
                     st.markdown(f"**Website:** {info.get('website', 'N/A')}")
 
                 if info.get('longBusinessSummary'):

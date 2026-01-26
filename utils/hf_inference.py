@@ -25,7 +25,11 @@ def _get_hf_token() -> Optional[str]:
         return token
     try:
         import streamlit as st  # type: ignore
-        return st.secrets.get("HF_API_TOKEN")
+        if "HF_API_TOKEN" in st.secrets:
+            return st.secrets.get("HF_API_TOKEN")
+        if "ai" in st.secrets and "HF_API_TOKEN" in st.secrets["ai"]:
+            return st.secrets["ai"]["HF_API_TOKEN"]
+        return None
     except Exception:
         return None
 
