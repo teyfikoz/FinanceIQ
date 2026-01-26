@@ -14,3 +14,12 @@ backgroundColor = "#0b1020"
 secondaryBackgroundColor = "#111827"
 textColor = "#e5e7eb"
 font = "sans serif"
+
+[theme.sidebar]
+backgroundColor = "#0f172a"
+secondaryBackgroundColor = "#111827"
+textColor = "#e5e7eb"
+primaryColor = "#00c3ff"
+widgetBackgroundColor = "#0b1224"
+widgetBorderColor = "#1f2937"
+skeletonBackgroundColor = "#0f172a"
