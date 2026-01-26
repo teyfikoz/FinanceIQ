@@ -14,9 +14,14 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 import time
+import os
 import threading
 import warnings
 warnings.filterwarnings('ignore')
+
+# Logging + app config
+from utils.logging_config import configure_logging
+from utils.app_config import get_app_config
 
 # Import authentication and utilities
 from utils.authentication import require_authentication, get_current_user, logout_user, init_session_state, AuthenticationManager
@@ -32,6 +37,7 @@ from utils.coingecko_api import CoinGeckoAPI
 from utils.stock_search import simple_stock_search_ui, create_enhanced_stock_search
 from utils.price_alerts import create_price_alerts_ui
 from utils.market_data_fetcher import get_market_fetcher
+from utils.data_quality import format_quality_badge, DataQuality
 
 # Import Game Changer Features - Phase 1
 from app.analytics.social_features import SocialFeatures
@@ -162,6 +168,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Configure logging and app settings
+configure_logging()
+APP_CONFIG = get_app_config()
+
 # Initialize database and demo user on first run
 @st.cache_resource
 def init_app_database():
@@ -175,12 +185,16 @@ def init_app_database():
     # Initialize database schema
     db = DatabaseManager(db_path)
 
-    # Create demo user if it doesn't exist
-    auth = AuthenticationManager(db_path)
-    try:
-        auth.create_user("demo", "demo@example.com", "demo123")
-    except:
-        pass  # User already exists
+    # Create demo user if enabled (default: false in production, true otherwise)
+    env = os.getenv("FINANCEIQ_ENV", "production").lower()
+    default_demo = "false" if env in ("production", "prod") else "true"
+    create_demo = os.getenv("FINANCEIQ_CREATE_DEMO_USER", default_demo).lower() in ("1", "true", "yes", "on")
+    if create_demo:
+        auth = AuthenticationManager(db_path)
+        try:
+            auth.create_user("demo", "demo@example.com", "demo123")
+        except Exception:
+            pass  # User already exists
 
     return db
 
@@ -190,12 +204,12 @@ init_app_database()
 # Initialize session state
 init_session_state()
 
-# Check authentication - DISABLED for open access
-# if not require_authentication():
-#     st.stop()
-
-# Authentication bypassed - direct access enabled
-print("🚀 Direct access mode - no authentication required")
+# Authentication (toggle via env)
+if APP_CONFIG.require_auth:
+    if not require_authentication():
+        st.stop()
+else:
+    print("🚀 Direct access mode - no authentication required")
 
 # Professional CSS styling
 st.markdown("""
@@ -3588,9 +3602,16 @@ def create_comprehensive_stock_research():
         # Overview - Quick metrics
         st.subheader("📊 Stock Overview")
         try:
-            stock = yf.Ticker(symbol)
-            info = stock.info
-            hist = stock.history(period="1y")
+            fetcher = get_market_fetcher()
+            hist, info, quality = fetcher.get_stock_data_with_meta(
+                symbol,
+                period="1y",
+                interval="1d",
+                source_preference="auto",
+            )
+
+            if isinstance(quality, DataQuality):
+                st.markdown(format_quality_badge(quality), unsafe_allow_html=True)
 
             if not hist.empty:
                 col1, col2, col3, col4, col5 = st.columns(5)
@@ -3641,6 +3662,8 @@ def create_comprehensive_stock_research():
                 if info.get('longBusinessSummary'):
                     with st.expander("📝 Business Summary"):
                         st.write(info['longBusinessSummary'])
+            else:
+                st.warning("No historical data available for this symbol.")
 
         except Exception as e:
             st.error(f"Error loading overview: {str(e)}")
@@ -4129,33 +4152,26 @@ def create_stock_screener_ui():
         else:
             st.info("👆 Configure filters and click 'Run Screen' to find stocks")
 
-def create_strategy_lab():
-    """Strategy backtesting lab"""
+def _render_backtest_lab():
+    """Backtesting UI (kept separate for Strategy Lab tabs)."""
     from app.analytics.backtest_engine import BacktestEngine
-
-    st.header("🧪 Strategy Lab")
-
-    st.markdown("""
-    Test trading strategies on historical data to evaluate their performance.
-    Compare multiple strategies and optimize parameters.
-    """)
 
     col1, col2 = st.columns([1, 2])
 
     with col1:
         st.subheader("⚙️ Configuration")
 
-        symbol = st.text_input("Stock Symbol", value="AAPL")
+        symbol = st.text_input("Stock Symbol", value="AAPL", key="bt_symbol")
 
         col_a, col_b = st.columns(2)
         with col_a:
             start_date = st.date_input("Start Date",
-                value=datetime.now() - timedelta(days=730))
+                value=datetime.now() - timedelta(days=730), key="bt_start")
         with col_b:
-            end_date = st.date_input("End Date", value=datetime.now())
+            end_date = st.date_input("End Date", value=datetime.now(), key="bt_end")
 
         initial_capital = st.number_input("Initial Capital ($)",
-            min_value=1000, value=10000, step=1000)
+            min_value=1000, value=10000, step=1000, key="bt_capital")
 
         st.markdown("---")
         st.subheader("📋 Strategy")
@@ -4166,27 +4182,27 @@ def create_strategy_lab():
             "RSI Strategy",
             "MACD Strategy",
             "Bollinger Bands"
-        ])
+        ], key="bt_strategy")
 
         # Strategy parameters
         params = {}
 
         if strategy == "SMA Crossover":
-            params['fast_period'] = st.slider("Fast SMA Period", 10, 100, 50)
-            params['slow_period'] = st.slider("Slow SMA Period", 100, 300, 200)
+            params['fast_period'] = st.slider("Fast SMA Period", 10, 100, 50, key="bt_fast")
+            params['slow_period'] = st.slider("Slow SMA Period", 100, 300, 200, key="bt_slow")
         elif strategy == "RSI Strategy":
-            params['period'] = st.slider("RSI Period", 5, 30, 14)
-            params['oversold'] = st.slider("Oversold Level", 10, 40, 30)
-            params['overbought'] = st.slider("Overbought Level", 60, 90, 70)
+            params['period'] = st.slider("RSI Period", 5, 30, 14, key="bt_rsi_len")
+            params['oversold'] = st.slider("Oversold Level", 10, 40, 30, key="bt_rsi_os")
+            params['overbought'] = st.slider("Overbought Level", 60, 90, 70, key="bt_rsi_ob")
         elif strategy == "MACD Strategy":
-            params['fast'] = st.slider("Fast Period", 5, 20, 12)
-            params['slow'] = st.slider("Slow Period", 20, 40, 26)
-            params['signal'] = st.slider("Signal Period", 5, 15, 9)
+            params['fast'] = st.slider("Fast Period", 5, 20, 12, key="bt_macd_fast")
+            params['slow'] = st.slider("Slow Period", 20, 40, 26, key="bt_macd_slow")
+            params['signal'] = st.slider("Signal Period", 5, 15, 9, key="bt_macd_signal")
         elif strategy == "Bollinger Bands":
-            params['period'] = st.slider("BB Period", 10, 30, 20)
-            params['std_dev'] = st.slider("Std Deviation", 1.0, 3.0, 2.0, 0.5)
+            params['period'] = st.slider("BB Period", 10, 30, 20, key="bt_bb_period")
+            params['std_dev'] = st.slider("Std Deviation", 1.0, 3.0, 2.0, 0.5, key="bt_bb_std")
 
-        run_backtest = st.button("🚀 Run Backtest", type="primary", use_container_width=True)
+        run_backtest = st.button("🚀 Run Backtest", type="primary", use_container_width=True, key="bt_run")
 
     with col2:
         st.subheader("📊 Results")
@@ -4225,7 +4241,6 @@ def create_strategy_lab():
                                 st.metric("Total Return", f"{perf.get('total_return', 0):.2f}%")
                             with col2:
                                 total_profit = perf.get('total_profit', 0)
-                                profit_color = "normal" if total_profit >= 0 else "inverse"
                                 st.metric("Total Profit", f"${total_profit:,.2f}")
                             with col3:
                                 st.metric("Win Rate", f"{perf.get('win_rate', 0):.1f}%")
@@ -4278,6 +4293,33 @@ def create_strategy_lab():
                     st.error(f"Backtest error: {str(e)}")
         else:
             st.info("👆 Configure strategy and click 'Run Backtest' to begin")
+
+
+def create_strategy_lab():
+    """Strategy backtesting + indicator lab"""
+    st.header("🧪 Strategy Lab")
+
+    st.markdown("""
+    Test trading strategies on historical data to evaluate their performance.
+    Compare multiple strategies and optimize parameters.
+    """)
+
+    lab_tabs = st.tabs([
+        "📈 Backtesting",
+        "🧭 Indicator Lab",
+        "🧩 TradingView Tools"
+    ])
+
+    with lab_tabs[0]:
+        _render_backtest_lab()
+
+    with lab_tabs[1]:
+        from app.ui.indicator_lab import render_indicator_lab
+        render_indicator_lab()
+
+    with lab_tabs[2]:
+        from app.ui.tradingview_tools import render_tradingview_tools
+        render_tradingview_tools()
 
 def create_turkish_markets():
     """Turkish Markets Analysis"""
@@ -4410,7 +4452,8 @@ def create_game_changer_tab():
             "🎲 Monte Carlo",
             "⚡ Backtesting",
             "🎯 Chart Annotation",
-            "📰 News Sentiment"
+            "📰 News Sentiment",
+            "🧠 HF Insights"
         ])
 
         with ai_subtabs[0]:
@@ -4444,6 +4487,10 @@ def create_game_changer_tab():
 
             if st.button("Analyze News", type="primary", key="analyze_news"):
                 ai.news_sentiment_analysis(ticker.upper())
+
+        with ai_subtabs[4]:
+            from app.ui.hf_insights import render_hf_insights
+            render_hf_insights()
 
     # Tab 4: Export & Share
     with feature_tabs[3]:
@@ -4512,13 +4559,25 @@ def main():
     # Sidebar info (authentication disabled)
     with st.sidebar:
         st.markdown("### 🌐 Open Access Mode")
-        st.caption("No login required")
+        st.caption("No login required" if not APP_CONFIG.require_auth else "Authentication enabled")
 
         # Auto-refresh toggle
         st.markdown("---")
         auto_refresh = st.checkbox("🔄 Auto-refresh (30s)", value=False, key="auto_refresh_toggle")
         if auto_refresh:
             add_auto_refresh(30)
+
+        # System status
+        st.markdown("---")
+        with st.expander("⚙️ System Status", expanded=False):
+            st.write(f"Environment: `{APP_CONFIG.env}`")
+            st.write(f"Auth: `{ 'enabled' if APP_CONFIG.require_auth else 'disabled' }`")
+            try:
+                from utils.tradingview_bridge import TradingViewBridge
+                tv_available = TradingViewBridge().available()
+                st.write(f"TradingView Bridge: `{ 'available' if tv_available else 'unavailable' }`")
+            except Exception:
+                st.write("TradingView Bridge: `unavailable`")
 
     # Main navigation tabs - Professional workflow organization
     tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16 = st.tabs([

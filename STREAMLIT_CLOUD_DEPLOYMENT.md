@@ -76,6 +76,10 @@ Add the following secrets (if you have API keys):
 FRED_API_KEY = "your-fred-api-key"
 ALPHA_VANTAGE_API_KEY = "your-alpha-vantage-key"
 FMP_API_KEY = "your-fmp-key"
+FINNHUB_API_KEY = ""
+POLYGON_API_KEY = ""
+NEWSAPI_KEY = ""
+COINGECKO_API_KEY = ""
 
 # Database (optional - not required for basic functionality)
 [database]
@@ -86,9 +90,15 @@ POSTGRES_DB = "liquidity_dashboard"
 
 # Security
 SECRET_KEY = "your-super-secret-jwt-key-here"
+
+[ai]
+HF_API_TOKEN = ""
+HF_SUMMARY_MODEL = "facebook/bart-large-cnn"
+HF_SENTIMENT_MODEL = "ProsusAI/finbert"
+HF_RISK_MODEL = "google/flan-t5-base"
 ```
 
-**Important**: Game Changer features work 100% **without any API keys** - they use free data from yfinance!
+**Important**: Core features work 100% **without any API keys** - they use free data from yfinance and fallback systems!
 
 ---
 

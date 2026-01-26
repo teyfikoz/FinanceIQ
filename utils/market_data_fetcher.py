@@ -11,6 +11,15 @@ from datetime import datetime, timedelta
 import time
 import logging
 
+from utils.data_quality import DataQuality
+
+try:
+    from utils.tradingview_bridge import TradingViewBridge
+    _TV_BRIDGE_AVAILABLE = True
+except Exception:
+    TradingViewBridge = None  # type: ignore
+    _TV_BRIDGE_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 class MarketDataFetcher:
@@ -43,10 +52,12 @@ class MarketDataFetcher:
         """Initialize with cache duration in seconds (default 5 minutes)"""
         self.cache_duration = cache_duration
         self.cache = {}
+        self.cache_meta = {}
         self.last_api_call = {}
         self.min_api_interval = 2  # Minimum 2 seconds between API calls
+        self.tv_bridge = TradingViewBridge() if _TV_BRIDGE_AVAILABLE else None
 
-    def get_stock_data(self, symbol, period="5d", use_fallback=True):
+    def get_stock_data(self, symbol, period="5d", use_fallback=True, interval=None):
         """
         Get stock data with intelligent fallback
 
@@ -59,7 +70,8 @@ class MarketDataFetcher:
             tuple: (historical_data, info_dict, data_source)
         """
         # Check cache first
-        cache_key = f"{symbol}_{period}"
+        interval_key = interval or "1d"
+        cache_key = f"{symbol}_{period}_{interval_key}"
         if cache_key in self.cache:
             cached_time, cached_data = self.cache[cache_key]
             if time.time() - cached_time < self.cache_duration:
@@ -76,7 +88,7 @@ class MarketDataFetcher:
         try:
             self.last_api_call[symbol] = time.time()
             ticker = yf.Ticker(symbol)
-            hist = ticker.history(period=period)
+            hist = ticker.history(period=period, interval=interval) if interval else ticker.history(period=period)
 
             if not hist.empty:
                 try:
@@ -85,7 +97,12 @@ class MarketDataFetcher:
                     info = self._get_fallback_info(symbol)
 
                 # Cache the result
-                self.cache[cache_key] = (time.time(), (hist, info))
+                fetched_ts = time.time()
+                self.cache[cache_key] = (fetched_ts, (hist, info))
+                self.cache_meta[cache_key] = {
+                    "provider": "yfinance",
+                    "fetched_at": fetched_ts,
+                }
                 logger.info(f"Successfully fetched real data for {symbol}")
                 return hist, info, "yfinance"
 
@@ -95,7 +112,7 @@ class MarketDataFetcher:
         # Fallback to synthetic data
         if use_fallback:
             logger.info(f"Using fallback data for {symbol}")
-            return self._generate_fallback_data(symbol, period)
+            return self._generate_fallback_data(symbol, period, interval=interval)
 
         return pd.DataFrame(), {}, "none"
 
@@ -117,7 +134,7 @@ class MarketDataFetcher:
             'marketCap': 0
         }
 
-    def _generate_fallback_data(self, symbol, period):
+    def _generate_fallback_data(self, symbol, period, interval=None):
         """
         Generate realistic fallback data based on baseline prices
         """
@@ -159,7 +176,105 @@ class MarketDataFetcher:
 
         info = self._get_fallback_info(symbol)
 
+        if interval and interval != "1d":
+            # Basic intraday expansion for UI continuity (synthetic, not real market data)
+            hist = self._expand_to_intraday(hist, interval)
+
         return hist, info, "fallback"
+
+    def _expand_to_intraday(self, daily_df: pd.DataFrame, interval: str) -> pd.DataFrame:
+        """Expand daily bars to synthetic intraday bars for fallback data."""
+        freq_map = {
+            "1m": "1min",
+            "5m": "5min",
+            "15m": "15min",
+            "30m": "30min",
+            "60m": "60min",
+            "90m": "90min",
+            "1h": "60min",
+            "4h": "4H",
+        }
+        freq = freq_map.get(interval, "60min")
+        expanded = []
+        for idx, row in daily_df.iterrows():
+            intraday_index = pd.date_range(start=idx, periods=6, freq=freq)
+            base = row['Close']
+            noise = np.random.normal(0, 0.002, len(intraday_index))
+            prices = base * (1 + noise).cumprod()
+            day_df = pd.DataFrame({
+                'Open': prices,
+                'High': prices * (1 + np.random.uniform(0, 0.002, len(prices))),
+                'Low': prices * (1 - np.random.uniform(0, 0.002, len(prices))),
+                'Close': prices,
+                'Volume': np.random.randint(10000, 100000, len(prices))
+            }, index=intraday_index)
+            expanded.append(day_df)
+        return pd.concat(expanded).sort_index()
+
+    def _make_quality(self, status: str, provider: str, fetched_ts: float, cache_age: float = None, note: str = None) -> DataQuality:
+        return DataQuality(
+            status=status,
+            provider=provider,
+            fetched_at=datetime.fromtimestamp(fetched_ts),
+            cache_age_s=cache_age,
+            note=note,
+        )
+
+    def get_stock_data_with_meta(self, symbol, period="5d", interval=None, use_fallback=True, source_preference: str = "auto"):
+        """
+        Get stock data with data-quality metadata (non-breaking helper).
+
+        Returns:
+            tuple: (historical_data, info_dict, DataQuality)
+        """
+        interval_key = interval or "1d"
+        cache_key = f"{symbol}_{period}_{interval_key}"
+
+        # Cache check
+        if cache_key in self.cache:
+            cached_time, cached_data = self.cache[cache_key]
+            if time.time() - cached_time < self.cache_duration:
+                provider = self.cache_meta.get(cache_key, {}).get("provider", "unknown")
+                quality = self._make_quality(
+                    status="cache",
+                    provider=provider,
+                    fetched_ts=cached_time,
+                    cache_age=time.time() - cached_time,
+                    note="served from in-memory cache",
+                )
+                return cached_data[0], cached_data[1], quality
+
+        # Optional TradingView bridge
+        if source_preference in ("auto", "tradingview") and self.tv_bridge and self.tv_bridge.available():
+            try:
+                tv_df = self.tv_bridge.fetch_ohlc(symbol, timeframe=interval or "D", limit=200)
+                if tv_df is not None and not tv_df.empty:
+                    info = self._get_fallback_info(symbol)
+                    fetched_ts = time.time()
+                    self.cache[cache_key] = (fetched_ts, (tv_df, info))
+                    self.cache_meta[cache_key] = {
+                        "provider": "tradingview",
+                        "fetched_at": fetched_ts,
+                    }
+                    quality = self._make_quality("real", "tradingview", fetched_ts)
+                    return tv_df, info, quality
+            except Exception as e:
+                logger.warning(f"TradingView bridge failed: {str(e)[:120]}")
+
+        # Default yfinance path
+        hist, info, source = self.get_stock_data(symbol, period=period, use_fallback=use_fallback, interval=interval)
+        fetched_ts = time.time()
+
+        if source == "yfinance":
+            quality = self._make_quality("real", "yfinance", fetched_ts)
+        elif source == "cache":
+            provider = self.cache_meta.get(cache_key, {}).get("provider", "yfinance")
+            cache_time = self.cache.get(cache_key, (fetched_ts,))[0] if cache_key in self.cache else fetched_ts
+            quality = self._make_quality("cache", provider, cache_time, cache_age=time.time() - cache_time)
+        else:
+            quality = self._make_quality("fallback", "synthetic", fetched_ts, note="synthetic baseline data")
+
+        return hist, info, quality
 
     def get_multiple_stocks(self, symbols, period="5d"):
         """

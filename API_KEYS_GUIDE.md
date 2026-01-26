@@ -118,6 +118,47 @@ CoinGecko API key'i olmadan da çalışır, ancak daha düşük limitlerle.
 
 ---
 
+## 5. 🧠 Hugging Face Inference API (Opsiyonel)
+
+### 📋 Ne İçin Kullanılır:
+- Haber/KAP/Earnings özetleme
+- Duygu analizi (sentiment)
+- Risk ve kırmızı bayrak çıkarımı
+
+### 🔗 Kurulum:
+1. https://huggingface.co/join üzerinden ücretsiz hesap oluşturun
+2. Profile → Settings → Access Tokens → **New token** oluşturun
+3. Token'ı `HF_API_TOKEN` olarak ortam değişkeni (env) veya Streamlit Secrets'a ekleyin
+
+### 💡 Örnek ENV:
+```
+HF_API_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+### Notlar:
+- Serverless inference ilk çağrıda model yükleme yapabilir (gecikme)
+- Kullanım kotası planınıza göre değişir
+
+---
+
+## 6. 🧩 TradingView API (Opsiyonel - Node.js)
+
+### 📋 Ne İçin Kullanılır:
+- TradingView üzerinden OHLCV çekme (proxy/bridge)
+- İndikatör değerlerini dışarıdan hesaplamaya yardımcı
+
+### 🔗 Kurulum:
+1. Node.js kurun (LTS)
+2. Proje kökünde `npm i @mathieuc/tradingview`
+3. (Opsiyonel) TradingView session cookie gerekiyorsa env ekleyin:
+```
+TRADINGVIEW_SESSION=YOUR_SESSION_ID
+TRADINGVIEW_SIGNATURE=YOUR_SIGNATURE
+```
+
+### ⚠️ Lisans/Şartlar:
+TradingView veri kullanım hakları ayrı lisans gerektirebilir. Üretim/ticari kullanım öncesi TradingView şartlarını kontrol edin.
+
 ## 🔧 API Anahtarlarını Nasıl Kullanırsınız?
 
 ### 1. `.env` Dosyasını Oluşturun:

@@ -1,0 +1,290 @@
+// This Pine Script code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © teyfikoz
+
+//@version=6
+indicator("Institutional Market State Engine (IMSE) - Institutional+",
+     overlay=true, max_labels_count=500, max_lines_count=500,
+     max_boxes_count=200, max_bars_back=2000)
+
+// 0) Colors
+c_bull = #00f2ff
+c_bear = #ff2e63
+c_main = #08d9d6
+c_gold = #ffd700
+
+// 1) Inputs - IMSE Ensemble
+grp_core = "IMSE - Market State Ensemble"
+src     = input.source(close, "Source", group=grp_core)
+
+k_s  = input.int(10,  "Short k",  group=grp_core)
+w_s  = input.int(30,  "Short Window",  minval=10, group=grp_core)
+s_s  = input.float(1.0, "Short Sensitivity", step=0.1, group=grp_core)
+
+k_m  = input.int(25,  "Mid k",   group=grp_core)
+w_m  = input.int(90,  "Mid Window",   minval=30, group=grp_core)
+s_m  = input.float(1.0, "Mid Sensitivity",  step=0.1, group=grp_core)
+
+k_l  = input.int(60,  "Long k",  group=grp_core)
+w_l  = input.int(180, "Long Window",  minval=60, group=grp_core)
+s_l  = input.float(1.0, "Long Sensitivity", step=0.1, group=grp_core)
+
+wgt_s = input.float(0.30, "Weight Short", group=grp_core)
+wgt_m = input.float(0.50, "Weight Mid",   group=grp_core)
+wgt_l = input.float(0.20, "Weight Long",  group=grp_core)
+
+base_th  = input.float(0.15, "Base Threshold", step=0.01, group=grp_core)
+min_conf = input.float(0.40, "Min Confidence", step=0.05, group=grp_core)
+
+// 2) Regime
+grp_reg   = "Regime"
+adx_len   = input.int(14, "ADX Length", group=grp_reg)
+atrp_high = input.float(2.0, "High Vol ATR %", step=0.1, group=grp_reg)
+
+// ADX manual calculation (SAFE)
+calc_adx(int len) =>
+    float upDM   = math.max(high - high[1], 0)
+    float downDM = math.max(low[1] - low, 0)
+    float plusDM  = upDM  > downDM ? upDM  : 0.0
+    float minusDM = downDM > upDM  ? downDM : 0.0
+    float tr      = math.max(math.max(high - low, math.abs(high - close[1])), math.abs(low - close[1]))
+    float atr     = ta.rma(tr, len)
+    float atrSafe = math.max(atr, 1e-9)
+    float plusDI  = 100 * ta.rma(plusDM, len)  / atrSafe
+    float minusDI = 100 * ta.rma(minusDM, len) / atrSafe
+    float denom   = math.max(plusDI + minusDI, 1e-9)
+    float dx      = 100 * math.abs(plusDI - minusDI) / denom
+    ta.rma(dx, len)
+
+// Regime variables
+atrp   = (ta.atr(14) / math.max(src, syminfo.mintick)) * 100.0
+adxv   = calc_adx(adx_len)
+regime = atrp > atrp_high ? "HIGH_VOL" : adxv > 20 ? "TREND" : "RANGE"
+th_eff = regime == "RANGE" ? base_th * 1.5 : regime == "HIGH_VOL" ? base_th * 1.2 : base_th
+
+// 3) Feature Engineering
+chg     = ta.change(src)
+f_rsi   = ta.rsi(src, 14) / 100.0
+f_vol   = ta.atr(14) / math.max(src, syminfo.mintick)
+f_adx   = calc_adx(14) / 100.0
+f_trend = (src - ta.ema(src, 50)) / math.max(src, syminfo.mintick)
+
+// Distance function
+dist_calc(int i) =>
+    math.log(1 + math.abs(f_rsi - f_rsi[i]))
+     + math.log(1 + math.abs(f_vol - f_vol[i]))
+     + math.log(1 + math.abs(f_adx - f_adx[i]))
+     + math.log(1 + math.abs(f_trend - f_trend[i]))
+
+// 4) TRUE k-NN Engine (Safe) - optimized
+knn_score(int k_in, int win_in, float sens) =>
+    float score = 0.0
+    float wsum  = 0.0
+    int   k_eff = math.min(k_in, win_in)
+    if bar_index > win_in + 100
+        for i = 1 to k_eff
+            float d = dist_calc(i)
+            float y = chg[i] > 0 ? 1.0 : -1.0
+            float w = 1.0 / (1.0 + d * sens)
+            score += y * w
+            wsum  += w
+    wsum > 0 ? score / wsum : 0.0
+
+s_sco = knn_score(k_s, w_s, s_s)
+m_sco = knn_score(k_m, w_m, s_m)
+l_sco = knn_score(k_l, w_l, s_l)
+
+final_score = (wgt_s * s_sco + wgt_m * m_sco + wgt_l * l_sco) / math.max(1e-9, (wgt_s + wgt_m + wgt_l))
+confidence  = math.abs(final_score)
+
+bull = barstate.isconfirmed and final_score >  th_eff and confidence >= min_conf
+bear = barstate.isconfirmed and final_score < -th_eff and confidence >= min_conf
+
+// 5) Trend Line - slope-based + dashed (simulated)
+grp_tr      = "Trend Visualization"
+trend_len   = input.int(20, "Trend EMA Length", group=grp_tr)
+trend_scale = input.float(0.5, "ATR Scale", step=0.1, group=grp_tr)
+dash_every  = input.int(3, "Dash Every N Bars", minval=1, maxval=10, group=grp_tr)
+dash_len    = input.int(2, "Dash Length (bars)", minval=1, maxval=10, group=grp_tr)
+slope_len   = input.int(6, "Slope Lookback", minval=1, maxval=50, group=grp_tr)
+
+trend_base  = ta.ema(src, trend_len) + final_score * ta.atr(14) * trend_scale
+trend_slope_raw = trend_base - trend_base[slope_len]
+trend_slope = na(trend_slope_raw) ? 0.0 : trend_slope_raw  // stabilize
+
+transp = 85 - int(confidence * 70)
+transp := math.max(10, math.min(90, transp))
+
+trend_col = trend_slope > 0 and final_score > 0 ? color.new(c_bull, transp) :
+    trend_slope < 0 and final_score < 0 ? color.new(c_bear, transp) :
+    color.new(color.gray, 80)
+
+var line[] dash_lines = array.new_line()
+
+if barstate.islastconfirmedhistory
+    if array.size(dash_lines) > 300
+        line.delete(array.shift(dash_lines))
+
+do_draw = (bar_index % dash_every) == 0
+if do_draw and bar_index > dash_len + 5
+    l = line.new(
+        x1=bar_index - dash_len,
+        y1=trend_base[dash_len],
+        x2=bar_index,
+        y2=trend_base,
+        xloc=xloc.bar_index,
+        extend=extend.none,
+        color=trend_col,
+        width=2
+    )
+    array.push(dash_lines, l)
+
+show_ref = input.bool(false, "Show Faint Continuous Trend (ref)", group=grp_tr)
+plot(show_ref ? trend_base : na, "Trend Ref", color=color.new(trend_col, 70), linewidth=1)
+
+// 6) Institutional BUY/SELL Blocks (simplified)
+grp_ob        = "Institutional Blocks (Order Block)"
+ob_on         = input.bool(true,  "Enable Order Blocks", group=grp_ob)
+swing_len     = input.int(2,     "Swing Length",   minval=1, maxval=10, group=grp_ob)
+max_obs       = input.int(20,    "Max Active Blocks", minval=5, maxval=50, group=grp_ob)
+extend_right  = input.bool(true, "Extend Blocks Right", group=grp_ob)
+show_labels   = input.bool(true, "Show BOS Labels",  group=grp_ob)
+gate_with_imse = input.bool(true, "Gate OB creation with IMSE state", group=grp_ob)
+
+ph = ta.pivothigh(high, swing_len, swing_len)
+pl = ta.pivotlow(low, swing_len, swing_len)
+
+var float lastSwingHigh = na
+var float lastSwingLow  = na
+
+if not na(ph)
+    lastSwingHigh := ph
+if not na(pl)
+    lastSwingLow := pl
+
+bos_up = not na(lastSwingHigh) and close > lastSwingHigh
+bos_dn = not na(lastSwingLow)  and close < lastSwingLow
+
+bos_up_ok = bos_up and (not gate_with_imse or bull)
+bos_dn_ok = bos_dn and (not gate_with_imse or bear)
+
+find_last_bear(int lookback) =>
+    int idx = na
+    for i = 1 to lookback
+        if close[i] < open[i]
+            idx := i
+            break
+    idx
+
+find_last_bull(int lookback) =>
+    int idx = na
+    for i = 1 to lookback
+        if close[i] > open[i]
+            idx := i
+            break
+    idx
+
+var box[] bull_obs = array.new_box()
+var box[] bear_obs = array.new_box()
+
+trim_boxes(box[] arr) =>
+    while array.size(arr) > max_obs
+        box.delete(array.shift(arr))
+
+if ob_on and bos_up_ok
+    idx = find_last_bear(30)
+    if not na(idx)
+        top = open[idx]
+        bot = low[idx]
+        b = box.new(
+            left=bar_index - idx,
+            top=top,
+            right=bar_index,
+            bottom=bot,
+            xloc=xloc.bar_index,
+            bgcolor=color.new(c_bull, 88),
+            border_color=color.new(c_bull, 30),
+            extend=extend_right ? extend.right : extend.none
+        )
+        array.push(bull_obs, b)
+        trim_boxes(bull_obs)
+        if show_labels
+            label.new(bar_index, high, "BOS↑",
+                style=label.style_label_up, textcolor=color.white,
+                color=color.new(c_bull, 0))
+
+if ob_on and bos_dn_ok
+    idx = find_last_bull(30)
+    if not na(idx)
+        top = high[idx]
+        bot = open[idx]
+        b = box.new(
+            left=bar_index - idx,
+            top=top,
+            right=bar_index,
+            bottom=bot,
+            xloc=xloc.bar_index,
+            bgcolor=color.new(c_bear, 88),
+            border_color=color.new(c_bear, 30),
+            extend=extend_right ? extend.right : extend.none
+        )
+        array.push(bear_obs, b)
+        trim_boxes(bear_obs)
+        if show_labels
+            label.new(bar_index, low, "BOS↓",
+                style=label.style_label_down, textcolor=color.white,
+                color=color.new(c_bear, 0))
+
+mitigate(box[] arr, bool isBull) =>
+    int n = array.size(arr)
+    if n > 0
+        for i = n - 1 to 0
+            bx  = array.get(arr, i)
+            top = box.get_top(bx)
+            bot = box.get_bottom(bx)
+            invalid = isBull ? (close < bot) : (close > top)
+            if invalid
+                box.delete(bx)
+                array.remove(arr, i)
+
+if ob_on
+    mitigate(bull_obs, true)
+    mitigate(bear_obs, false)
+
+// 7) Signals
+grp_sig  = "Signals"
+show_sig = input.bool(true, "Show IMSE BUY/SELL markers", group=grp_sig)
+
+plotshape(show_sig and bull, title="IMSE BUY",  style=shape.labelup,
+    text="BUY",  location=location.belowbar, color=color.new(c_bull, 0),
+    textcolor=color.black, size=size.tiny)
+plotshape(show_sig and bear, title="IMSE SELL", style=shape.labeldown,
+    text="SELL", location=location.abovebar, color=color.new(c_bear, 0),
+    textcolor=color.white, size=size.tiny)
+
+// 8) Dashboard
+var table ui = table.new(position.top_right, 2, 6,
+    bgcolor=color.new(color.black, 20), border_color=color.new(color.gray, 70), border_width=1)
+
+if barstate.islast
+    table.cell(ui, 0, 0, "Score", text_color=color.white)
+    table.cell(ui, 1, 0, str.tostring(final_score, "#.##"), text_color=final_score >= 0 ? c_bull : c_bear)
+    table.cell(ui, 0, 1, "Confidence", text_color=color.white)
+    table.cell(ui, 1, 1, str.tostring(confidence * 100.0, "#") + "%", text_color=color.white)
+    table.cell(ui, 0, 2, "Regime", text_color=color.white)
+    table.cell(ui, 1, 2, regime, text_color=color.aqua)
+    table.cell(ui, 0, 3, "Threshold", text_color=color.white)
+    table.cell(ui, 1, 3, str.tostring(th_eff, "#.##"), text_color=color.white)
+    table.cell(ui, 0, 4, "State", text_color=color.white)
+    table.cell(ui, 1, 4, bull ? "BULL" : bear ? "BEAR" : "NEUTRAL", text_color=bull ? c_bull : bear ? c_bear : color.gray)
+    table.cell(ui, 0, 5, "ADX / ATR%", text_color=color.white)
+    table.cell(ui, 1, 5, str.tostring(adxv, "#.0") + " / " + str.tostring(atrp, "#.0"), text_color=color.white)
+
+// 9) EXPORT SERIES (for Strategy via input.source dropdown)
+// These plot lines are hidden but selectable in strategies.
+grp_export = "Export (for Strategy)"
+export_on  = input.bool(true, "Enable Export Plots", group=grp_export)
+
+plot(export_on ? final_score : na, "IMSE Score", display=display.none)
+plot(export_on ? th_eff      : na, "IMSE Threshold", display=display.none)
+plot(export_on ? confidence  : na, "IMSE Confidence", display=display.none)
+plot(export_on ? trend_slope : na, "IMSE Slope", display=display.none)

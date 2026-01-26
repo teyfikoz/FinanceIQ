@@ -109,8 +109,8 @@ celerybeat-schedule
 ehthumbs.db
 Thumbs.db
 
-# Streamlit
-.streamlit/
+# Streamlit (keep config, ignore secrets)
+.streamlit/secrets.toml
 
 # Data files (exclude from git)
 data/raw/*

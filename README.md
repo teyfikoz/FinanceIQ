@@ -29,6 +29,8 @@
 
 ## 🚀 Quick Start
 
+**Production Guide:** `docs/financeiq_deployement_guide.md`
+
 ### Prerequisites
 
 - Python 3.8+

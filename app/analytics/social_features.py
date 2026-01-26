@@ -215,17 +215,29 @@ class SocialFeatures:
             # Fetch real-time data for watchlist
             with st.spinner(f"Loading {selected_watchlist}..."):
                 watchlist_data = self._fetch_watchlist_data(symbols)
+                watchlist_data = self._normalize_watchlist_df(watchlist_data, symbols)
+
+            if watchlist_data.empty:
+                st.info("No data available for this watchlist right now. Showing symbols only.")
+                st.dataframe(pd.DataFrame({"Symbol": symbols}), use_container_width=True, hide_index=True)
+                return
 
             # Display watchlist with metrics
             col1, col2, col3 = st.columns(3)
             with col1:
                 st.metric("Total Stocks", len(symbols))
             with col2:
-                avg_change = watchlist_data['Change (%)'].mean()
-                st.metric("Avg Change", f"{avg_change:.2f}%", delta=f"{avg_change:.2f}%")
+                if 'Change (%)' in watchlist_data.columns:
+                    avg_change = watchlist_data['Change (%)'].mean()
+                    st.metric("Avg Change", f"{avg_change:.2f}%", delta=f"{avg_change:.2f}%")
+                else:
+                    st.metric("Avg Change", "N/A")
             with col3:
-                gainers = (watchlist_data['Change (%)'] > 0).sum()
-                st.metric("Gainers", f"{gainers}/{len(symbols)}")
+                if 'Change (%)' in watchlist_data.columns:
+                    gainers = (watchlist_data['Change (%)'] > 0).sum()
+                    st.metric("Gainers", f"{gainers}/{len(symbols)}")
+                else:
+                    st.metric("Gainers", "N/A")
 
             # Watchlist table
             st.dataframe(
@@ -269,6 +281,22 @@ class SocialFeatures:
 
         return pd.DataFrame(data)
 
+    def _normalize_watchlist_df(self, df: pd.DataFrame, symbols):
+        """Ensure watchlist dataframe has required columns and safe defaults."""
+        if df is None or df.empty:
+            return pd.DataFrame()
+
+        required_cols = ["Symbol", "Price", "Change (%)", "Volume", "Market Cap"]
+        for col in required_cols:
+            if col not in df.columns:
+                df[col] = np.nan
+
+        # Ensure Symbol column is present
+        if df["Symbol"].isna().all():
+            df["Symbol"] = symbols[:len(df)]
+
+        return df[required_cols]
+
     def _format_market_cap(self, market_cap):
         """Format market cap in human-readable form"""
         if market_cap >= 1e12:
@@ -282,6 +310,10 @@ class SocialFeatures:
 
     def _plot_watchlist_performance(self, watchlist_data):
         """Plot watchlist performance bar chart"""
+        if watchlist_data is None or watchlist_data.empty or 'Change (%)' not in watchlist_data.columns:
+            st.info("Performance chart is not available for this watchlist yet.")
+            return
+
         fig = px.bar(
             watchlist_data.sort_values('Change (%)', ascending=True),
             x='Change (%)',
