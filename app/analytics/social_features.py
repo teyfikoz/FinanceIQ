@@ -16,6 +16,8 @@ from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 import yfinance as yf
 
+from utils.market_data_fetcher import get_market_fetcher
+
 
 class SocialFeatures:
     """Social layer functionality for FinanceIQ"""
@@ -257,23 +259,26 @@ class SocialFeatures:
 
     def _fetch_watchlist_data(self, symbols):
         """Fetch real-time data for watchlist symbols"""
+        fetcher = get_market_fetcher()
         data = []
         for symbol in symbols:
             try:
-                ticker = yf.Ticker(symbol)
-                info = ticker.info
-                hist = ticker.history(period="1d")
+                hist, info, _ = fetcher.get_stock_data(symbol, period="5d")
 
                 if not hist.empty:
                     current_price = hist['Close'].iloc[-1]
-                    prev_close = info.get('previousClose', current_price)
-                    change_pct = ((current_price - prev_close) / prev_close) * 100
+                    if len(hist) > 1:
+                        prev_close = hist['Close'].iloc[-2]
+                    else:
+                        prev_close = info.get('previousClose', current_price)
+
+                    change_pct = ((current_price - prev_close) / prev_close) * 100 if prev_close else 0.0
 
                     data.append({
                         'Symbol': symbol,
                         'Price': current_price,
                         'Change (%)': change_pct,
-                        'Volume': hist['Volume'].iloc[-1],
+                        'Volume': hist['Volume'].iloc[-1] if 'Volume' in hist.columns else 0,
                         'Market Cap': self._format_market_cap(info.get('marketCap', 0))
                     })
             except:
