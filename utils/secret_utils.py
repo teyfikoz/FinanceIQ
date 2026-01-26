@@ -40,6 +40,10 @@ def get_secret(*names: str, default: Optional[str] = None) -> Optional[str]:
     try:
         if "api_keys" in secrets:
             sources.append(secrets["api_keys"])
+        if "ai" in secrets:
+            sources.append(secrets["ai"])
+        if "app" in secrets:
+            sources.append(secrets["app"])
     except Exception:
         pass
 
