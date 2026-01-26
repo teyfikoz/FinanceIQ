@@ -71,6 +71,34 @@ python3-dev
 3. Click on "⋮" menu → "Logs"
 4. Look for error messages in red
 
+### Browser Console Warning (Not App Bug)
+If you see this in the browser console:
+```
+content.js:1 Uncaught (in promise) The message port closed before a response was received.
+```
+This is **not** caused by the FinanceIQ app. It comes from a browser extension’s content script.
+
+**Why this happens**
+- The console line points to `content.js`, which typically belongs to a Chrome/Brave extension.
+- Streamlit app code doesn’t include `content.js`.
+
+**How to confirm**
+- Open the console link to see a `chrome-extension://.../content.js` URL.
+- Disable extensions (or use an incognito window with extensions off) and reload the app.
+
+### Theme Sidebar Color Warnings (Browser Console)
+If you see warnings like:
+```
+Invalid color passed for widgetBackgroundColor in theme.sidebar: ""
+Invalid color passed for widgetBorderColor in theme.sidebar: ""
+Invalid color passed for skeletonBackgroundColor in theme.sidebar: ""
+```
+These are theme config issues (not runtime crashes).
+
+**Fix**
+- Ensure `.streamlit/config.toml` has valid hex colors for sidebar theme.
+- If Streamlit Cloud theme settings were edited in the UI, clear any blank fields and re-save.
+
 ### Step 2: Common Error Messages
 
 #### "ModuleNotFoundError: No module named 'X'"
