@@ -154,19 +154,96 @@ Gizlilik ayarlari (auth aciksa).
 
 ---
 
-## 5) Opsiyonel Ayarlar ve Entegrasyonlar
+## 5) Hizli Turlar (Rol Bazli)
+
+### 5.1 Kisa Vadeli Trader
+1. Dashboard: gunluk degisimleri ve sektor performansini kontrol et
+2. Stock Research: sembol gir, 1d/5d periyotla teknik gorunume bak
+3. Strategy Lab: kisa vadeli backtest denemesi yap
+4. Watchlist/Alerts: takip listesine ekle, esik alarmlari kur
+
+### 5.2 Orta-Uzun Vadeli Yatirimci
+1. ETFs & Funds: temel ETF/fon karsilastirmasi yap
+2. Institutional: buyuk fonlarin pozisyonlarini incele
+3. Portfolio: portfoy olustur, performans metriklerini izle
+4. Export: Excel/CSV/HTML raporu indir
+
+### 5.3 Makro Odakli Analist
+1. Dashboard: global endeks ve sektor gorunumu
+2. Cycle Intelligence: risk-on/risk-off rejimlerini incele
+3. Entropy Analysis: belirsizlik ve rejim degisim sinyalleri
+4. Crypto Dominance: risk ishtahi icin tamamlayici veri
+
+---
+
+## 6) Kisa Video Akislari (Storyboard)
+
+### Video 1: Genel Tur (60-90 sn)
+- Sahne 1: Dashboard genel gorunumu (endeks + sektor grafigi)
+- Sahne 2: Stock Research ile bir hisse analizi (AAPL ornek)
+- Sahne 3: Strategy Lab - Backtesting (parametre gir, calistir)
+- Sahne 4: Portfolio - Export (Excel/CSV)
+
+### Video 2: IMSE Indicator Lab (45-60 sn)
+- Sahne 1: Strategy Lab -> Indicator Lab
+- Sahne 2: Sembol secimi + veri kaynagi (Auto/YFinance/TradingView)
+- Sahne 3: Profil tablari (Gunluk/Kisa/Orta/Uzun)
+- Sahne 4: IMSE metrikleri ve plotlar
+
+### Video 3: Whale Intelligence (60-90 sn)
+- Sahne 1: Whale Intelligence giris ekrani
+- Sahne 2: Whale Momentum ve Correlation gorunumleri
+- Sahne 3: ETF-Whale Linkage ozet grafikleri
+- Sahne 4: Event Reaction Lab (FOMC/CPI)
+
+---
+
+## 7) Ekran Goruntusu Cekim Listesi
+
+Onerilen ekran goruntuleri:
+- Dashboard ana ekran (global endeksler + sektor grafigi)
+- Stock Research (candlestick + RSI/MACD)
+- Strategy Lab (backtest sonuclari)
+- Indicator Lab (IMSE skor ve plotlar)
+- ETFs & Funds (performans tablosu)
+- Whale Intelligence (momentum/correlation)
+- Portfolio (export alani)
+- System Status (sidebar)
+
+Not: 1280x720 veya 1440x900 boyutlari dokumantasyon icin idealdir.
+
+---
+
+## 8) Opsiyonel Ayarlar ve Entegrasyonlar
 - **TradingView Bridge**: Node.js + `@mathieuc/tradingview` gerekir.
 - **AI**: HF API token eklenirse LLM tabanli ozetler aktif olur.
 - **FRED / Alpha Vantage / FMP**: Makro ve alternatif veri icin opsiyonel.
 
 ---
 
-## 6) Sık Sorulan Sorular
+## 9) Sık Sorulan Sorular (Genisletilmis)
 
 **Veri gelmiyor / N/A gorunuyor**
 - Sembol formatini kontrol et (TR hisseleri `.IS`)
 - Rate limit olabilir; birkac dakika bekle
 - Auto-refresh kapali deneyin
+
+**TradingView Bridge "unavailable"**
+- Node.js kurulu degilse bu uyarı gorunur
+- `@mathieuc/tradingview` paketi yoksa bridge aktif olmaz
+- Streamlit Cloud uzerinde Node kurulumuna izin verilmez (local icin uygundur)
+
+**Crypto Dominance bos gorunuyor**
+- CoinGecko limiti veya erisim problemi olabilir
+- Bir sure sonra tekrar deneyin
+
+**TEFAS modulu gorunmuyor**
+- Modul importu basarisiz olabilir
+- Loglar ve `PHASE_3_4_MODULES` durumunu kontrol edin
+
+**AI bolumleri sonuc vermiyor**
+- HF API key ekli degilse bazi ozellikler pasif kalir
+- Veri kaynagi yoksa model cagrisi yapilmaz
 
 **Real/Cache/Fallback ne demek?**
 - Real: canli veri
@@ -182,12 +259,12 @@ Gizlilik ayarlari (auth aciksa).
 
 ---
 
-## 7) Ipuclari
+## 10) Ipuclari
 - Auto-refresh ozelligini sadece gerekli oldugunda acik tutun.
 - Cok fazla sembol ile ayni anda sorgu yapmak rate limit ihtimalini arttirir.
+- Uzun listelerde once 5-10 sembolle test edin.
 
 ---
 
-## 8) Not
+## 11) Not
 FinanceIQ bir finansal analiz platformudur. Yatirim tavsiyesi degildir.
-
