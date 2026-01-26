@@ -186,10 +186,7 @@ def init_app_database():
     db = DatabaseManager(db_path)
 
     # Create demo user if enabled (default: false in production, true otherwise)
-    env = os.getenv("FINANCEIQ_ENV", "production").lower()
-    default_demo = "false" if env in ("production", "prod") else "true"
-    create_demo = os.getenv("FINANCEIQ_CREATE_DEMO_USER", default_demo).lower() in ("1", "true", "yes", "on")
-    if create_demo:
+    if APP_CONFIG.create_demo_user:
         auth = AuthenticationManager(db_path)
         try:
             auth.create_user("demo", "demo@example.com", "demo123")

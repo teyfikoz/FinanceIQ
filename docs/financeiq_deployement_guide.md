@@ -185,6 +185,12 @@ FMP_API_KEY = "..."
 
 [ai]
 HF_API_TOKEN = "..."
+ 
+[app]
+FINANCEIQ_ENV = "production"
+FINANCEIQ_REQUIRE_AUTH = false
+FINANCEIQ_DIRECT_ACCESS = true
+FINANCEIQ_CREATE_DEMO_USER = false
 ```
 
 ## 11) Custom Domain + DNS + SSL (Streamlit Cloud)

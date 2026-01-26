@@ -96,6 +96,12 @@ HF_API_TOKEN = ""
 HF_SUMMARY_MODEL = "facebook/bart-large-cnn"
 HF_SENTIMENT_MODEL = "ProsusAI/finbert"
 HF_RISK_MODEL = "google/flan-t5-base"
+
+[app]
+FINANCEIQ_ENV = "production"
+FINANCEIQ_REQUIRE_AUTH = false
+FINANCEIQ_DIRECT_ACCESS = true
+FINANCEIQ_CREATE_DEMO_USER = false
 ```
 
 **Important**: Core features work 100% **without any API keys** - they use free data from yfinance and fallback systems!
