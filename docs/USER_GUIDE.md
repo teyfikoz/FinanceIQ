@@ -89,7 +89,16 @@ Uretken ve analitik ozellikler:
   - News sentiment analysis
 - **Export & Share**: ciktilari disari aktarma
 
-### 3.9 Whale Intelligence
+### 3.9 Education
+Yeni baslayanlardan uzmanlara kadar kapsamli egitim icerigi:
+- Temel ve teknik analiz
+- Sektor analizi adimlari
+- Piyasa donguleri
+- ETF ve fonlar
+- Uzun vade, kisa vade ve trader bakis acilari
+- Risk yonetimi ve psikoloji
+
+### 3.10 Whale Intelligence
 Kurumsal hareket ve akil urunleri:
 - Whale investor takibi
 - Whale correlation network
@@ -98,31 +107,31 @@ Kurumsal hareket ve akil urunleri:
 - Hedge Fund radar
 - Event reaction lab
 
-### 3.10 Entropy Analysis
+### 3.11 Entropy Analysis
 Piyasa belirsizligi ve rejim analizi.
 
-### 3.11 Crypto Dominance
+### 3.12 Crypto Dominance
 Kripto dominans oranlari ve trend analizi.
 
-### 3.12 Cycle Intelligence
+### 3.13 Cycle Intelligence
 Makro dongu sinyalleri ve risk/return rejimleri.
 
-### 3.13 Portfolio
+### 3.14 Portfolio
 Portfoy olusturma ve raporlama:
 - Portfoy ve pozisyon ekleme
 - Performans ozeti
 - Excel / CSV / HTML rapor indirme
 
-### 3.14 Watchlist
+### 3.15 Watchlist
 Takip listeleri (auth aciksa):
 - Yeni watchlist olusturma
 - Canli fiyat tablosu
 
-### 3.15 Alerts
+### 3.16 Alerts
 Fiyat alarm kurallari (auth aciksa):
 - Ust/alt esik bildirimleri
 
-### 3.16 Privacy
+### 3.17 Privacy
 Gizlilik ayarlari (auth aciksa).
 
 ---
@@ -206,6 +215,7 @@ Onerilen ekran goruntuleri:
 - Strategy Lab (backtest sonuclari)
 - Indicator Lab (IMSE skor ve plotlar)
 - ETFs & Funds (performans tablosu)
+- Education (egitim tab ana sayfa)
 - Whale Intelligence (momentum/correlation)
 - Portfolio (export alani)
 - System Status (sidebar)

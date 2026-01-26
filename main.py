@@ -4595,6 +4595,248 @@ def create_game_changer_tab():
                     lambda: export.generate_qr_code(url, description)
                 )
 
+def create_education_tab():
+    """🎓 Education tab with beginner-friendly learning content."""
+    st.title("🎓 Eğitim Merkezi")
+    st.caption(
+        "Baslangictan uzmana adim adim. "
+        "Egitim amacli bilgiler icerir, yatirim tavsiyesi degildir."
+    )
+
+    st.markdown(
+        "Bu bolum, finansal okuryazarligi hizla gelistirmek icin tasarlanmistir. "
+        "Terimler sade anlatilir, adim adim ilerler ve hem uzun vadeli yatirimci "
+        "hem de kisa vadeli trader icin gerekli temel bilgileri kapsar."
+    )
+
+    edu_tabs = st.tabs([
+        "🚀 Baslangic",
+        "📚 Temel & Teknik Analiz",
+        "🏭 Sektor Analizi",
+        "🔄 Piyasa Donguleri",
+        "📊 ETF & Fonlar",
+        "🧭 Uzun Vade Yatirimci",
+        "⚡ Kisa Vade & Trader",
+        "🛡️ Risk & Psikoloji",
+        "🧾 Sozluk",
+    ])
+
+    with edu_tabs[0]:
+        st.subheader("Finansal Piyasalar 101")
+        st.markdown(
+            """
+**Temel Kavramlar**
+- **Hisse**: Bir sirketin ortaklik payidir. Degeri sirketin geliri ve beklentilerine gore dalgalanir.
+- **ETF/Fon**: Bir sepet yatirim aracidir. Tek bir urunle cok sayida varliga erisim saglar.
+- **Endeks**: Bir piyasa grubunun ortalama performansini temsil eder.
+- **Getiri**: Fiyat degisimi + varsa temettu. Pozitif veya negatif olabilir.
+- **Volatilite**: Fiyatlarin oynakligi. Yuksek volatilite daha fazla risk demektir.
+- **Likidite**: Alis/satis yapmanin kolayligi. Dusuk likidite fiyatlari sert etkileyebilir.
+- **Spread**: Alis ve satis fiyati arasindaki fark. Ne kadar dusukse o kadar iyidir.
+
+**Basit Ogrenme Yolu**
+1) Hisse, ETF, endeks farkini ogren
+2) Getiri, risk, volatilite kavramlarini anla
+3) Temel analiz + teknik analiz farkini ayirt et
+4) Risk yonetimi ile basla (kucuk pozisyon, planli hareket)
+"""
+        )
+
+    with edu_tabs[1]:
+        st.subheader("Temel Analiz (Fundamental)")
+        st.markdown(
+            """
+**Temel Analiz Neyi Inceler?**
+- **Gelir ve buyume**: Satislar artiyor mu?
+- **Karlilik**: Kar marjlari, net kar, faaliyet kari.
+- **Nakit akisi**: Sirketin gercekten para uretip uretmedigi.
+- **Borc ve bilanco sagligi**: Borc/ozsermaye, likidite oranlari.
+- **Degerleme**: P/E, P/B, EV/EBITDA gibi carpansal oranlar.
+
+**Temel Analizde Sık Kullanilan Oranlar**
+- **P/E (F/K)**: Fiyat / kar. Yuksek F/K = yuksek beklenti olabilir.
+- **P/B**: Fiyat / ozsermaye.
+- **ROE**: Ozsermaye karliligi.
+- **Marjlar**: Brut / faaliyet / net marjlar.
+"""
+        )
+
+        st.subheader("Teknik Analiz (Technical)")
+        st.markdown(
+            """
+**Teknik Analiz Neyi Inceler?**
+- **Trend**: Yukselen, dusen veya yatay.
+- **Destek/Direnc**: Fiyatin zorlandigi seviyeler.
+- **Hareketli Ortalamalar**: SMA/EMA trendin gucunu gosterir.
+- **RSI/MACD**: Momentum ve trendin guclu olup olmadigini anlatir.
+- **Hacim**: Hareketlerin gucunu teyit eder.
+
+**Basit Teknik Akis**
+1) Trend yonu tespit et
+2) Destek/direnc belirle
+3) Giris seviyesi planla
+4) Risk seviyesini (stop) belirle
+5) Hedef ve cikis planini hazirla
+"""
+        )
+
+    with edu_tabs[2]:
+        st.subheader("Sektorlere Gore Analiz Nasil Yapilir?")
+        st.markdown(
+            """
+**Sektor Analizi Adimlari**
+1) **Makro baglam**: Faiz, enflasyon, buyume gibi faktorler.
+2) **Sektor tipi**:
+   - **Dongusel** (ornek: sanayi, teknoloji)
+   - **Defansif** (ornek: saglik, tuketim)
+3) **Talep dinamikleri**: Maliyetler, arz-talep dengesi.
+4) **Regulasyon ve riskler**: Yasal degisiklikler, jeopolitik riskler.
+5) **Sirket karsilastirmasi**: Sektor icinde liderler, fiyatlama gucu.
+
+**Sektor Rotasyonu**
+- Ekonomi canlandikca dongusel sektorler one cikar.
+- Belirsizlik artinca defansif sektorler tercih edilir.
+
+**Kisa Kontrol Listesi**
+- Sektorun ana gelir kaynagi nedir?
+- Marjlar artiyor mu?
+- Girdi maliyetleri (enerji, faiz) nasil etkiliyor?
+- Sektor ETF performansi piyasaya gore nasil?
+"""
+        )
+
+    with edu_tabs[3]:
+        st.subheader("Piyasa Donguleri ve Beklentiler")
+        st.markdown(
+            """
+**Ekonomik Dongu Evreleri**
+- **Toparlanma**: Faizler dusuk, risk istahi artar.
+- **Genisleme**: Buyume gucludur, sirket karlari artar.
+- **Yavaslama**: Enflasyon/borc baskisi artar.
+- **Durgunluk**: Risk ishtahi dusuk, defansif sektorler one cikar.
+
+**Piyasa Dongusu**
+- **Biriktirme (Accumulation)**: Uzun sureli dusus sonrasi toparlanma.
+- **Yukselis (Uptrend)**: Trend yukari, katilim artar.
+- **Dagitim (Distribution)**: Zirveye yakin, volatilite artar.
+- **Dusum (Downtrend)**: Fiyatlar geriler, risk artar.
+
+**Pratik Not**
+Donguler tekrarlasa da birebir ayni olmaz. Bu nedenle sinyaller tek basina degil, baglam icinde okunmalidir.
+"""
+        )
+
+    with edu_tabs[4]:
+        st.subheader("ETF ve Fonlar Nedir?")
+        st.markdown(
+            """
+**ETF (Borsa Yatirim Fonu)**
+- Borsada hisse gibi alinir/satilir.
+- Genis sepetlere tek urunle erisim saglar.
+- Dusuk maliyetli olabilir (expense ratio).
+
+**Yatirim Fonu / Mutual Fund**
+- Profesyonel yonetilir, fiyatlama gun sonunda olur.
+- Bazi fonlar aktif strateji uygular.
+
+**Dikkat Edilmesi Gerekenler**
+- **Expense Ratio**: Uzun vadede getiriye etki eder.
+- **Likidite ve Spread**: Islem maliyetlerini etkiler.
+- **Takip hatasi (tracking error)**: Endekse ne kadar yakin hareket ediyor?
+- **AUM**: Fon buyuklugu, istikrar sinyali olabilir.
+
+**Fon Kategorileri**
+- Genis piyasa ETF'leri
+- Sektor ETF'leri
+- Faktor ETF'leri (deger, momentum, kalite)
+- Tahvil ETF'leri
+- Emtia/altin ETF'leri
+- Uluslararasi ETF'ler
+"""
+        )
+
+    with edu_tabs[5]:
+        st.subheader("Uzun Vade Yatirimci Neler Bilmelidir?")
+        st.markdown(
+            """
+**Temel Prensipler**
+- **Varlik dagilimi**: Hisse/tahvil/nakit dengesini belirlemek.
+- **Cesitlendirme**: Tek varliga bagimli kalmamak.
+- **Dengeleme (rebalancing)**: Dagilimi periyodik olarak hedefe cekmek.
+- **Bilesik getiri**: Zamanla biriken etkiler.
+- **Davranissal disiplin**: Panik satisini onlemek.
+
+**Ornek Yaklasim (Egitim Amacli)**
+- Ana cekirdek portfoy (genis piyasa ETF)
+- Tamamlayici sektor/faktor ETF'leri
+- Belirsizlikte risk azaltma
+"""
+        )
+
+    with edu_tabs[6]:
+        st.subheader("Kisa Vade Yatirimci ve Trader")
+        st.markdown(
+            """
+**Kisa Vade Yatirimci**
+- Katalizorler: bilanco, makro veri, haber akisi
+- Kisa vadeli trend takibi
+- Sik takip ve planli cikis
+
+**Trader**
+- Zamanlama odakli (dakika/saat/gun)
+- Emir tipleri (limit/market/stop)
+- Strateji testleri ve istatistik
+- Disiplinli risk yonetimi
+
+**Bilmesi Gerekenler**
+- Volatilite rejimleri
+- Slippage ve spread etkisi
+- Beklenen deger (expectancy)
+"""
+        )
+
+    with edu_tabs[7]:
+        st.subheader("Risk Yonetimi ve Psikoloji")
+        st.markdown(
+            """
+**Risk Yonetimi**
+- Her islemin riski once belirlenir
+- Pozisyon buyuklugu risk butcesine gore ayarlanir
+- Maksimum kayip limiti tanimlanir
+
+**Basit Ornek Formul (Egitim Amacli)**
+```
+Pozisyon Adedi = Risk Butcesi / (Giris Fiyati - Stop Fiyati)
+```
+
+**Psikoloji**
+- FOMO ve panik kararlar
+- Asiri islem (overtrading)
+- Disiplinli plan ve islem gunlugu
+"""
+        )
+
+    with edu_tabs[8]:
+        st.subheader("Mini Sozluk")
+        st.markdown(
+            """
+| Terim | Kisa Aciklama |
+|---|---|
+| Volatilite | Fiyat oynakligi |
+| Beta | Piyasa ile birlikte hareket derecesi |
+| Drawdown | Zirveden dusus orani |
+| Sharpe | Risk basina getiri olcusu |
+| P/E (F/K) | Fiyat / Kar orani |
+| EPS | Hisse basi kar |
+| Market Cap | Piyasa degeri |
+| Likidite | Islem kolayligi |
+| Spread | Alis-satis farki |
+| Stop Loss | Zarar durdurma seviyesi |
+| Slippage | Emirde kayma maliyeti |
+| Korelasyon | Birlikte hareket derecesi |
+"""
+        )
+
 def main():
     """Main application function"""
     # Initialize session state
@@ -4641,7 +4883,7 @@ def main():
             st.write(f"FMP Key: `{ 'set' if fmp_key else 'missing' }`")
 
     # Main navigation tabs - Professional workflow organization
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17 = st.tabs([
         "🎯 Dashboard",
         "🔍 Stock Research",
         "📡 Screener",
@@ -4650,6 +4892,7 @@ def main():
         "🏛️ Institutional",
         "🇹🇷 Turkish Markets",
         "🤖 AI Tools",
+        "🎓 Education",
         "🐋 Whale Intelligence",
         "🎲 Entropy Analysis",
         "📊 Crypto Dominance",
@@ -4686,9 +4929,12 @@ def main():
         create_game_changer_tab()
 
     with tab9:
+        create_education_tab()
+
+    with tab10:
         # TEST: Make sure this tab renders
         st.title("🐋 Whale Intelligence - Institutional Analytics")
-        st.success("✅ Tab13 is loading! If you see this, the tab is working.")
+        st.success("✅ Whale Intelligence tab is loading!")
 
         # Whale Intelligence: Advanced Institutional Analytics
         st.markdown("""
@@ -4812,7 +5058,7 @@ def main():
             - Contact support@financeiq.com if issue persists
             """)
 
-    with tab10:
+    with tab11:
         st.title("🎲 Entropy Analysis - Market Intelligence")
         try:
             from dashboard.pages.entropy_analysis import render_entropy_dashboard
@@ -4821,7 +5067,7 @@ def main():
             st.error(f"Failed to load Entropy Analysis: {e}")
             st.info("This feature requires additional dependencies. Please check the logs.")
 
-    with tab11:
+    with tab12:
         st.title("📊 Crypto Market Dominance & Forecasting")
         try:
             from dashboard.pages.crypto_market_dominance import render_crypto_dominance_dashboard
@@ -4830,7 +5076,7 @@ def main():
             st.error(f"Failed to load Crypto Dominance Analysis: {e}")
             st.info("This feature requires CoinGecko API access. Please check the logs.")
 
-    with tab12:
+    with tab13:
         # Cycle Intelligence Engine
         try:
             if PHASE_3_4_MODULES.get('cycle_analysis_ui') is True:
@@ -4853,19 +5099,19 @@ def main():
             import traceback
             st.code(traceback.format_exc())
 
-    with tab13:
+    with tab14:
         create_portfolio_management()
 
-    with tab14:
+    with tab15:
         create_watchlist_management()
 
-    with tab15:
+    with tab16:
         if user:
             create_price_alerts_ui(user['id'])
         else:
             st.info("🔔 Price alerts available - no login required")
 
-    with tab16:
+    with tab17:
         if user:
             from utils.privacy_ui import display_privacy_settings
             display_privacy_settings(user['id'])
