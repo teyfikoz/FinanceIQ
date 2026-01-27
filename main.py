@@ -4621,6 +4621,129 @@ def create_education_tab():
         "🧾 Sozluk",
     ])
 
+    def _education_compute_rsi(series, period=14):
+        delta = series.diff()
+        gain = delta.clip(lower=0)
+        loss = -delta.clip(upper=0)
+        avg_gain = gain.rolling(period).mean()
+        avg_loss = loss.rolling(period).mean()
+        rs = avg_gain / avg_loss.replace(0, np.nan)
+        rsi = 100 - (100 / (1 + rs))
+        return rsi.fillna(50)
+
+    def _education_compute_atr(high, low, close, period=14):
+        high_low = high - low
+        high_close = (high - close.shift()).abs()
+        low_close = (low - close.shift()).abs()
+        tr = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+        return tr.rolling(period).mean()
+
+    @st.cache_data(ttl=3600)
+    def _education_sample_data():
+        np.random.seed(42)
+        dates = pd.date_range(end=datetime.now(), periods=220, freq="B")
+        returns = np.random.normal(0.0006, 0.012, len(dates))
+        close = 100 * (1 + returns).cumprod()
+        high = close * (1 + np.random.uniform(0.001, 0.015, len(dates)))
+        low = close * (1 - np.random.uniform(0.001, 0.015, len(dates)))
+        open_ = close * (1 + np.random.uniform(-0.005, 0.005, len(dates)))
+        volume = np.random.randint(800_000, 2_000_000, len(dates))
+        df = pd.DataFrame(
+            {"Open": open_, "High": high, "Low": low, "Close": close, "Volume": volume},
+            index=dates,
+        )
+        df["SMA20"] = df["Close"].rolling(20).mean()
+        df["EMA20"] = df["Close"].ewm(span=20, adjust=False).mean()
+        df["EMA50"] = df["Close"].ewm(span=50, adjust=False).mean()
+        std20 = df["Close"].rolling(20).std()
+        df["BB_upper"] = df["SMA20"] + 2 * std20
+        df["BB_lower"] = df["SMA20"] - 2 * std20
+        df["RSI14"] = _education_compute_rsi(df["Close"])
+        ema12 = df["Close"].ewm(span=12, adjust=False).mean()
+        ema26 = df["Close"].ewm(span=26, adjust=False).mean()
+        df["MACD"] = ema12 - ema26
+        df["MACD_signal"] = df["MACD"].ewm(span=9, adjust=False).mean()
+        df["MACD_hist"] = df["MACD"] - df["MACD_signal"]
+        df["ATR14"] = _education_compute_atr(df["High"], df["Low"], df["Close"])
+        return df
+
+    def _plot_price_with_overlays(df, title, overlays):
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=df.index, y=df["Close"], name="Close", line=dict(color="#e5e7eb")))
+        for name, series, color, dash in overlays:
+            fig.add_trace(go.Scatter(x=df.index, y=series, name=name, line=dict(color=color, dash=dash)))
+        fig.update_layout(template="plotly_dark", height=320, title=title, margin=dict(l=20, r=20, t=40, b=20))
+        return fig
+
+    def _plot_combo_ema_rsi(df, title):
+        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.65, 0.35])
+        fig.add_trace(go.Scatter(x=df.index, y=df["Close"], name="Close", line=dict(color="#e5e7eb")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["EMA20"], name="EMA20", line=dict(color="#22c55e")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["EMA50"], name="EMA50", line=dict(color="#3b82f6")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["RSI14"], name="RSI14", line=dict(color="#f59e0b")), row=2, col=1)
+        fig.add_hline(y=70, line_dash="dash", line_color="#ef4444", row=2, col=1)
+        fig.add_hline(y=30, line_dash="dash", line_color="#22c55e", row=2, col=1)
+        fig.update_layout(template="plotly_dark", height=520, title=title, margin=dict(l=20, r=20, t=40, b=20))
+        return fig
+
+    def _plot_combo_bollinger_rsi(df, title):
+        fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.65, 0.35])
+        fig.add_trace(go.Scatter(x=df.index, y=df["Close"], name="Close", line=dict(color="#e5e7eb")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["BB_upper"], name="BB Upper", line=dict(color="#60a5fa")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["SMA20"], name="SMA20", line=dict(color="#a855f7")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["BB_lower"], name="BB Lower", line=dict(color="#60a5fa")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["RSI14"], name="RSI14", line=dict(color="#f59e0b")), row=2, col=1)
+        fig.add_hline(y=70, line_dash="dash", line_color="#ef4444", row=2, col=1)
+        fig.add_hline(y=30, line_dash="dash", line_color="#22c55e", row=2, col=1)
+        fig.update_layout(template="plotly_dark", height=520, title=title, margin=dict(l=20, r=20, t=40, b=20))
+        return fig
+
+    def _plot_combo_macd_volume(df, title):
+        fig = make_subplots(rows=3, cols=1, shared_xaxes=True, row_heights=[0.55, 0.25, 0.2])
+        fig.add_trace(go.Scatter(x=df.index, y=df["Close"], name="Close", line=dict(color="#e5e7eb")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["MACD"], name="MACD", line=dict(color="#22c55e")), row=2, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["MACD_signal"], name="Signal", line=dict(color="#ef4444")), row=2, col=1)
+        fig.add_trace(go.Bar(x=df.index, y=df["Volume"], name="Volume", marker_color="#94a3b8"), row=3, col=1)
+        fig.update_layout(template="plotly_dark", height=560, title=title, margin=dict(l=20, r=20, t=40, b=20))
+        return fig
+
+    def _plot_combo_ema_rsi_atr(df, title):
+        fig = make_subplots(rows=3, cols=1, shared_xaxes=True, row_heights=[0.55, 0.25, 0.2])
+        fig.add_trace(go.Scatter(x=df.index, y=df["Close"], name="Close", line=dict(color="#e5e7eb")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["EMA50"], name="EMA50", line=dict(color="#3b82f6")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["RSI14"], name="RSI14", line=dict(color="#f59e0b")), row=2, col=1)
+        fig.add_hline(y=70, line_dash="dash", line_color="#ef4444", row=2, col=1)
+        fig.add_hline(y=30, line_dash="dash", line_color="#22c55e", row=2, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["ATR14"], name="ATR14", line=dict(color="#a855f7")), row=3, col=1)
+        fig.update_layout(template="plotly_dark", height=560, title=title, margin=dict(l=20, r=20, t=40, b=20))
+        return fig
+
+    def _plot_combo_ema_macd_rsi(df, title):
+        fig = make_subplots(rows=3, cols=1, shared_xaxes=True, row_heights=[0.55, 0.25, 0.2])
+        fig.add_trace(go.Scatter(x=df.index, y=df["Close"], name="Close", line=dict(color="#e5e7eb")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["EMA20"], name="EMA20", line=dict(color="#22c55e")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["EMA50"], name="EMA50", line=dict(color="#3b82f6")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["MACD"], name="MACD", line=dict(color="#22c55e")), row=2, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["MACD_signal"], name="Signal", line=dict(color="#ef4444")), row=2, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["RSI14"], name="RSI14", line=dict(color="#f59e0b")), row=3, col=1)
+        fig.add_hline(y=70, line_dash="dash", line_color="#ef4444", row=3, col=1)
+        fig.add_hline(y=30, line_dash="dash", line_color="#22c55e", row=3, col=1)
+        fig.update_layout(template="plotly_dark", height=600, title=title, margin=dict(l=20, r=20, t=40, b=20))
+        return fig
+
+    def _plot_combo_bollinger_rsi_volume(df, title):
+        fig = make_subplots(rows=3, cols=1, shared_xaxes=True, row_heights=[0.55, 0.25, 0.2])
+        fig.add_trace(go.Scatter(x=df.index, y=df["Close"], name="Close", line=dict(color="#e5e7eb")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["BB_upper"], name="BB Upper", line=dict(color="#60a5fa")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["SMA20"], name="SMA20", line=dict(color="#a855f7")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["BB_lower"], name="BB Lower", line=dict(color="#60a5fa")), row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.index, y=df["RSI14"], name="RSI14", line=dict(color="#f59e0b")), row=2, col=1)
+        fig.add_hline(y=70, line_dash="dash", line_color="#ef4444", row=2, col=1)
+        fig.add_hline(y=30, line_dash="dash", line_color="#22c55e", row=2, col=1)
+        fig.add_trace(go.Bar(x=df.index, y=df["Volume"], name="Volume", marker_color="#94a3b8"), row=3, col=1)
+        fig.update_layout(template="plotly_dark", height=600, title=title, margin=dict(l=20, r=20, t=40, b=20))
+        return fig
+
     with edu_tabs[0]:
         st.subheader("Finansal Piyasalar 101")
         st.markdown(
@@ -4642,10 +4765,31 @@ def create_education_tab():
 """
         )
 
+        with st.expander("Uygulama Icinde Ornek Analiz Akislari"):
+            st.markdown(
+                """
+- **Stock Research**: Sembol gir -> Analyze Stock -> RSI/MACD ve trendi incele
+- **Strategy Lab**: Backtesting -> parametreleri sec -> performans metriklerini oku
+- **ETFs & Funds**: Fon/ETF karsilastirmasi -> expense ratio ve trendi kontrol et
+- **Whale Intelligence**: kurumsal hareketleri ve korelasyonlari yorumla
+"""
+            )
+
     with edu_tabs[1]:
-        st.subheader("Temel Analiz (Fundamental)")
-        st.markdown(
-            """
+        st.subheader("Temel & Teknik Analiz")
+        st.caption("Asagidaki ornek grafikler egitim amaclidir ve sentetik veri kullanir.")
+
+        sub_tabs = st.tabs([
+            "Temel Analiz",
+            "Teknik Analiz",
+            "Indikatorler",
+            "En Uyumlu 2'li",
+            "En Uyumlu 3'lu",
+        ])
+
+        with sub_tabs[0]:
+            st.markdown(
+                """
 **Temel Analiz Neyi Inceler?**
 - **Gelir ve buyume**: Satislar artiyor mu?
 - **Karlilik**: Kar marjlari, net kar, faaliyet kari.
@@ -4653,17 +4797,17 @@ def create_education_tab():
 - **Borc ve bilanco sagligi**: Borc/ozsermaye, likidite oranlari.
 - **Degerleme**: P/E, P/B, EV/EBITDA gibi carpansal oranlar.
 
-**Temel Analizde Sık Kullanilan Oranlar**
-- **P/E (F/K)**: Fiyat / kar. Yuksek F/K = yuksek beklenti olabilir.
-- **P/B**: Fiyat / ozsermaye.
-- **ROE**: Ozsermaye karliligi.
-- **Marjlar**: Brut / faaliyet / net marjlar.
+**Ornek (Basit)**
+- Gelirler 3 yil ust uste artiyor
+- Borc/ozsermaye dusuyor
+- Kar marjlari iyilesiyor
+- Bu genelde daha saglikli bir profil anlamina gelir
 """
-        )
+            )
 
-        st.subheader("Teknik Analiz (Technical)")
-        st.markdown(
-            """
+        with sub_tabs[1]:
+            st.markdown(
+                """
 **Teknik Analiz Neyi Inceler?**
 - **Trend**: Yukselen, dusen veya yatay.
 - **Destek/Direnc**: Fiyatin zorlandigi seviyeler.
@@ -4671,14 +4815,90 @@ def create_education_tab():
 - **RSI/MACD**: Momentum ve trendin guclu olup olmadigini anlatir.
 - **Hacim**: Hareketlerin gucunu teyit eder.
 
-**Basit Teknik Akis**
+**Ornek Akis**
 1) Trend yonu tespit et
 2) Destek/direnc belirle
-3) Giris seviyesi planla
-4) Risk seviyesini (stop) belirle
-5) Hedef ve cikis planini hazirla
+3) Giris ve cikis planini olustur
+4) Risk seviyesini belirle (stop)
 """
-        )
+            )
+
+        with sub_tabs[2]:
+            st.markdown(
+                """
+**Yaygin Indikatorler ve Anlamlari**
+- **SMA/EMA**: Trend yonu ve gucu
+- **RSI**: Asiri alim/satim ve momentum
+- **MACD**: Trend + momentum kesismeleri
+- **Bollinger Bands**: Volatilite ve olasi fiyat sikismalari
+- **ATR**: Volatilite seviyesini sayisal gosterir
+- **Hacim**: Hareketlerin saglamligini teyit eder
+"""
+            )
+            df = _education_sample_data()
+            fig = _plot_price_with_overlays(
+                df,
+                "Ornek: Fiyat + SMA20 + EMA50",
+                [
+                    ("SMA20", df["SMA20"], "#a855f7", "solid"),
+                    ("EMA50", df["EMA50"], "#3b82f6", "dash"),
+                ],
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+        with sub_tabs[3]:
+            df = _education_sample_data()
+
+            st.markdown(
+                """
+**Kombinasyon 1: EMA (Trend) + RSI (Momentum)**
+- Trend yonunu EMA ile, momentum gucunu RSI ile okursun.
+"""
+            )
+            st.plotly_chart(_plot_combo_ema_rsi(df, "EMA + RSI (Trend + Momentum)"), use_container_width=True)
+
+            st.markdown(
+                """
+**Kombinasyon 2: Bollinger Bands + RSI (Mean Reversion)**
+- Fiyat bant disina tasmissa RSI ile momentum kontrol edilir.
+"""
+            )
+            st.plotly_chart(_plot_combo_bollinger_rsi(df, "Bollinger + RSI (Mean Reversion)"), use_container_width=True)
+
+            st.markdown(
+                """
+**Kombinasyon 3: MACD + Volume (Momentum Onayi)**
+- MACD kesismeleri hacimle destekleniyorsa sinyal guclenebilir.
+"""
+            )
+            st.plotly_chart(_plot_combo_macd_volume(df, "MACD + Volume (Momentum Confirmation)"), use_container_width=True)
+
+        with sub_tabs[4]:
+            df = _education_sample_data()
+
+            st.markdown(
+                """
+**Kombinasyon 1: EMA + RSI + ATR (Trend + Momentum + Volatilite)**
+- Trend EMA, momentum RSI, volatilite ATR ile izlenir.
+"""
+            )
+            st.plotly_chart(_plot_combo_ema_rsi_atr(df, "EMA + RSI + ATR"), use_container_width=True)
+
+            st.markdown(
+                """
+**Kombinasyon 2: EMA + MACD + RSI (Trend + Momentum Guclendirme)**
+- EMA trendi gosterir, MACD ve RSI momentum teyidi verir.
+"""
+            )
+            st.plotly_chart(_plot_combo_ema_macd_rsi(df, "EMA + MACD + RSI"), use_container_width=True)
+
+            st.markdown(
+                """
+**Kombinasyon 3: Bollinger + RSI + Volume (Sikisma ve Kirilma)**
+- Bant daralmasi + RSI + hacim, olasi kirilmalari izlemede kullanilir.
+"""
+            )
+            st.plotly_chart(_plot_combo_bollinger_rsi_volume(df, "Bollinger + RSI + Volume"), use_container_width=True)
 
     with edu_tabs[2]:
         st.subheader("Sektorlere Gore Analiz Nasil Yapilir?")
