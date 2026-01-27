@@ -4578,6 +4578,8 @@ def create_education_tab():
         "hem de kisa vadeli trader icin gerekli temel bilgileri kapsar."
     )
 
+    st.markdown("**Seviye Rehberi:** Beginner / Intermediate / Advanced")
+
     edu_tabs = st.tabs([
         "🚀 Baslangic",
         "📚 Temel & Teknik Analiz",
@@ -4714,6 +4716,7 @@ def create_education_tab():
         return fig
 
     with edu_tabs[0]:
+        st.markdown("### Beginner")
         st.subheader("Finansal Piyasalar 101")
         st.markdown(
             """
@@ -4745,6 +4748,7 @@ def create_education_tab():
             )
 
     with edu_tabs[1]:
+        st.markdown("### Intermediate")
         st.subheader("Temel & Teknik Analiz")
         st.caption("Asagidaki ornek grafikler egitim amaclidir ve sentetik veri kullanir.")
 
@@ -4870,6 +4874,7 @@ def create_education_tab():
             st.plotly_chart(_plot_combo_bollinger_rsi_volume(df, "Bollinger + RSI + Volume"), use_container_width=True)
 
     with edu_tabs[2]:
+        st.markdown("### Intermediate")
         st.subheader("Sektorlere Gore Analiz Nasil Yapilir?")
         st.markdown(
             """
@@ -4895,6 +4900,7 @@ def create_education_tab():
         )
 
     with edu_tabs[3]:
+        st.markdown("### Intermediate")
         st.subheader("Piyasa Donguleri ve Beklentiler")
         st.markdown(
             """
@@ -4916,6 +4922,7 @@ Donguler tekrarlasa da birebir ayni olmaz. Bu nedenle sinyaller tek basina degil
         )
 
     with edu_tabs[4]:
+        st.markdown("### Beginner")
         st.subheader("ETF ve Fonlar Nedir?")
         st.markdown(
             """
@@ -4945,6 +4952,7 @@ Donguler tekrarlasa da birebir ayni olmaz. Bu nedenle sinyaller tek basina degil
         )
 
     with edu_tabs[5]:
+        st.markdown("### Intermediate")
         st.subheader("Uzun Vade Yatirimci Neler Bilmelidir?")
         st.markdown(
             """
@@ -4963,6 +4971,7 @@ Donguler tekrarlasa da birebir ayni olmaz. Bu nedenle sinyaller tek basina degil
         )
 
     with edu_tabs[6]:
+        st.markdown("### Advanced")
         st.subheader("Kisa Vade Yatirimci ve Trader")
         st.markdown(
             """
@@ -4985,6 +4994,7 @@ Donguler tekrarlasa da birebir ayni olmaz. Bu nedenle sinyaller tek basina degil
         )
 
     with edu_tabs[7]:
+        st.markdown("### Advanced")
         st.subheader("Risk Yonetimi ve Psikoloji")
         st.markdown(
             """
@@ -5006,6 +5016,7 @@ Pozisyon Adedi = Risk Butcesi / (Giris Fiyati - Stop Fiyati)
         )
 
     with edu_tabs[8]:
+        st.markdown("### Beginner")
         st.subheader("Mini Sozluk")
         st.markdown(
             """
