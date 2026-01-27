@@ -1260,67 +1260,36 @@ def create_executive_dashboard():
     st.markdown("---")
     st.subheader("📈 Quick Stats")
 
-    col1, col2, col3, col4 = st.columns(4)
+    def _quick_stat(col, symbol, label, formatter):
+        try:
+            ticker = yf.Ticker(symbol)
+            hist = ticker.history(period='2d')
+            if not hist.empty:
+                current = hist['Close'].iloc[-1]
+                prev = hist['Close'].iloc[-2] if len(hist) > 1 else current
+                change = ((current - prev) / prev * 100) if prev else 0
+                with col:
+                    st.metric(label, formatter(current), f"{change:+.2f}%")
+                return
+        except Exception:
+            pass
+        with col:
+            st.metric(label, "N/A")
 
-    try:
-        # Crypto market
-        btc = yf.Ticker('BTC-USD')
-        btc_hist = btc.history(period='2d')
-        if not btc_hist.empty:
-            btc_price = btc_hist['Close'].iloc[-1]
-            btc_change = ((btc_hist['Close'].iloc[-1] - btc_hist['Close'].iloc[-2]) /
-                         btc_hist['Close'].iloc[-2] * 100) if len(btc_hist) > 1 else 0
+    row1 = st.columns(3)
+    _quick_stat(row1[0], "BTC-USD", "Bitcoin", lambda v: f"${v:,.0f}")
+    _quick_stat(row1[1], "GC=F", "Gold", lambda v: f"${v:,.2f}")
+    _quick_stat(row1[2], "SI=F", "Silver", lambda v: f"${v:,.2f}")
 
-            with col1:
-                st.metric("Bitcoin", f"${btc_price:,.0f}", f"{btc_change:+.2f}%")
-    except:
-        with col1:
-            st.metric("Bitcoin", "N/A")
+    row2 = st.columns(3)
+    _quick_stat(row2[0], "PL=F", "Platinum", lambda v: f"${v:,.2f}")
+    _quick_stat(row2[1], "PA=F", "Palladium", lambda v: f"${v:,.2f}")
+    _quick_stat(row2[2], "HG=F", "Copper", lambda v: f"${v:,.2f}")
 
-    try:
-        # Gold
-        gold = yf.Ticker('GC=F')
-        gold_hist = gold.history(period='2d')
-        if not gold_hist.empty:
-            gold_price = gold_hist['Close'].iloc[-1]
-            gold_change = ((gold_hist['Close'].iloc[-1] - gold_hist['Close'].iloc[-2]) /
-                          gold_hist['Close'].iloc[-2] * 100) if len(gold_hist) > 1 else 0
-
-            with col2:
-                st.metric("Gold", f"${gold_price:,.2f}", f"{gold_change:+.2f}%")
-    except:
-        with col2:
-            st.metric("Gold", "N/A")
-
-    try:
-        # Oil
-        oil = yf.Ticker('CL=F')
-        oil_hist = oil.history(period='2d')
-        if not oil_hist.empty:
-            oil_price = oil_hist['Close'].iloc[-1]
-            oil_change = ((oil_hist['Close'].iloc[-1] - oil_hist['Close'].iloc[-2]) /
-                         oil_hist['Close'].iloc[-2] * 100) if len(oil_hist) > 1 else 0
-
-            with col3:
-                st.metric("Oil (WTI)", f"${oil_price:.2f}", f"{oil_change:+.2f}%")
-    except:
-        with col3:
-            st.metric("Oil", "N/A")
-
-    try:
-        # USD/TRY
-        usdtry = yf.Ticker('TRY=X')
-        usdtry_hist = usdtry.history(period='2d')
-        if not usdtry_hist.empty:
-            usdtry_price = usdtry_hist['Close'].iloc[-1]
-            usdtry_change = ((usdtry_hist['Close'].iloc[-1] - usdtry_hist['Close'].iloc[-2]) /
-                            usdtry_hist['Close'].iloc[-2] * 100) if len(usdtry_hist) > 1 else 0
-
-            with col4:
-                st.metric("USD/TRY", f"₺{usdtry_price:.2f}", f"{usdtry_change:+.2f}%")
-    except:
-        with col4:
-            st.metric("USD/TRY", "N/A")
+    row3 = st.columns(3)
+    _quick_stat(row3[0], "URA", "Uranium (URA ETF)", lambda v: f"${v:,.2f}")
+    _quick_stat(row3[1], "CL=F", "Oil (WTI)", lambda v: f"${v:,.2f}")
+    _quick_stat(row3[2], "TRY=X", "USD/TRY", lambda v: f"₺{v:.2f}")
 
     # Sector performance
     st.markdown("---")
