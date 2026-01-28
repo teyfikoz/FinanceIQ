@@ -15,6 +15,7 @@ import yfinance as yf
 from scipy import stats
 from sklearn.preprocessing import StandardScaler
 import re
+from utils.news_utils import normalize_yfinance_news
 
 
 class AILiteTools:
@@ -516,7 +517,7 @@ class AILiteTools:
         try:
             # Fetch news from yfinance
             stock = yf.Ticker(ticker)
-            news = stock.news
+            news = normalize_yfinance_news(stock.news or [])
 
             if not news:
                 st.warning(f"No recent news found for {ticker}")
@@ -527,6 +528,9 @@ class AILiteTools:
             for article in news[:20]:  # Analyze last 20 articles
                 title = article.get('title', '')
                 summary = article.get('summary', '')
+                pub_time = article.get('publish_time', '')
+                if isinstance(pub_time, (int, float)):
+                    pub_time = datetime.fromtimestamp(pub_time)
 
                 text = f"{title} {summary}".lower()
                 sentiment_score = self._calculate_sentiment_score(text)
@@ -534,7 +538,7 @@ class AILiteTools:
                 sentiments.append({
                     'Title': title,
                     'Publisher': article.get('publisher', 'Unknown'),
-                    'Published': datetime.fromtimestamp(article.get('providerPublishTime', 0)),
+                    'Published': pub_time,
                     'Sentiment': sentiment_score,
                     'Sentiment_Label': self._get_sentiment_label(sentiment_score),
                     'Link': article.get('link', '')

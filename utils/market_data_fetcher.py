@@ -12,6 +12,7 @@ import time
 import logging
 
 from utils.data_quality import DataQuality
+from utils.unified_api_manager import api_manager
 
 try:
     from utils.tradingview_bridge import TradingViewBridge
@@ -109,6 +110,22 @@ class MarketDataFetcher:
         except Exception as e:
             logger.warning(f"Failed to fetch {symbol}: {str(e)[:100]}")
 
+        # Try TwelveData as a secondary fallback (intraday/FX capable)
+        try:
+            td_hist = self._fetch_twelvedata_history(symbol, period, interval=interval)
+            if td_hist is not None and not td_hist.empty:
+                info = self._get_fallback_info(symbol)
+                fetched_ts = time.time()
+                self.cache[cache_key] = (fetched_ts, (td_hist, info))
+                self.cache_meta[cache_key] = {
+                    "provider": "twelvedata",
+                    "fetched_at": fetched_ts,
+                }
+                logger.info(f"Successfully fetched TwelveData for {symbol}")
+                return td_hist, info, "twelvedata"
+        except Exception as e:
+            logger.warning(f"TwelveData fallback failed for {symbol}: {str(e)[:100]}")
+
         # Fallback to synthetic data
         if use_fallback:
             logger.info(f"Using fallback data for {symbol}")
@@ -181,6 +198,89 @@ class MarketDataFetcher:
             hist = self._expand_to_intraday(hist, interval)
 
         return hist, info, "fallback"
+
+    def _normalize_twelvedata_symbol(self, symbol: str) -> str:
+        """Convert yfinance-style FX symbols to TwelveData format when needed."""
+        if symbol.endswith("=X") and len(symbol) >= 6:
+            pair = symbol[:-2]
+            base = pair[:3]
+            quote = pair[3:6]
+            return f"{base}/{quote}"
+        return symbol
+
+    def _normalize_twelvedata_interval(self, interval: str) -> str:
+        """Map yfinance-style intervals to TwelveData intervals."""
+        if not interval:
+            return "1day"
+        mapping = {
+            "1m": "1min",
+            "5m": "5min",
+            "15m": "15min",
+            "30m": "30min",
+            "60m": "1h",
+            "1h": "1h",
+            "4h": "4h",
+            "1d": "1day",
+            "1wk": "1week",
+            "1mo": "1month",
+        }
+        return mapping.get(interval, "1day")
+
+    def _period_to_outputsize(self, period: str) -> int:
+        """Estimate output size for TwelveData based on requested period."""
+        period_points = {
+            "1d": 1,
+            "5d": 5,
+            "1mo": 22,
+            "3mo": 66,
+            "6mo": 132,
+            "1y": 252,
+            "2y": 504,
+        }
+        return min(max(period_points.get(period, 200), 50), 5000)
+
+    def _fetch_twelvedata_history(self, symbol: str, period: str, interval: str = None) -> pd.DataFrame:
+        """Fetch OHLCV data from TwelveData and convert to DataFrame."""
+        interval_td = self._normalize_twelvedata_interval(interval)
+        outputsize = self._period_to_outputsize(period)
+        symbol_td = self._normalize_twelvedata_symbol(symbol)
+
+        data = api_manager.get_twelvedata_time_series(
+            symbol_td,
+            interval=interval_td,
+            outputsize=outputsize,
+            order="ASC",
+        )
+
+        if not data or "values" not in data:
+            return pd.DataFrame()
+
+        if data.get("status") == "error":
+            return pd.DataFrame()
+
+        df = pd.DataFrame(data["values"])
+        if df.empty:
+            return df
+
+        df.rename(
+            columns={
+                "datetime": "Date",
+                "open": "Open",
+                "high": "High",
+                "low": "Low",
+                "close": "Close",
+                "volume": "Volume",
+            },
+            inplace=True,
+        )
+        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+        df = df.dropna(subset=["Date"]).set_index("Date").sort_index()
+
+        for col in ["Open", "High", "Low", "Close", "Volume"]:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
+
+        return df
 
     def _expand_to_intraday(self, daily_df: pd.DataFrame, interval: str) -> pd.DataFrame:
         """Expand daily bars to synthetic intraday bars for fallback data."""

@@ -85,6 +85,14 @@ class APIConfigUI:
                - Create account → API Management
                - Free: 1200 requests/minute
 
+            5. **Twelve Data** (Intraday + FX)
+               - Visit: https://twelvedata.com/
+               - Get free API key
+
+            6. **Data360** (Global macro snapshots)
+               - Public endpoint, no API key required
+               - Optional base override: `DATA360_API_BASE`
+
             📖 **Full guide:** See `docs/FREE_API_SETUP_GUIDE.md`
             """)
 
@@ -169,6 +177,24 @@ class APIConfigUI:
             st.success("✅ Alpha Vantage key saved!")
             st.rerun()
 
+        # Twelve Data
+        st.markdown("#### Twelve Data")
+        st.info("📌 Provides: Intraday prices, FX rates, multi-asset time series")
+
+        current_td_key = api_manager.api_keys.get('twelvedata', '')
+        td_key = st.text_input(
+            "Twelve Data API Key",
+            value=current_td_key,
+            type="password",
+            key="td_key_input",
+            help="Get free key: https://twelvedata.com/"
+        )
+
+        if st.button("💾 Save Twelve Data Key", key="save_td"):
+            self._save_api_key('twelvedata', td_key)
+            st.success("✅ Twelve Data key saved!")
+            st.rerun()
+
         # Yahoo Finance info (no key needed)
         st.markdown("#### Yahoo Finance")
         st.success("✅ **Already configured!** (No API key needed)")
@@ -218,6 +244,11 @@ class APIConfigUI:
         st.markdown("#### World Bank API")
         st.success("✅ **Already configured!** (No API key needed)")
         st.caption("🌍 Unlimited global economic data")
+
+        # Data360 info
+        st.markdown("#### Data360 (World Bank)")
+        st.success("✅ **Public endpoint** (No API key needed)")
+        st.caption("🌍 Country-level macro snapshots via Data360 data endpoint")
 
     def _render_crypto_apis(self):
         """Render crypto API configuration"""

@@ -23,6 +23,7 @@ warnings.filterwarnings('ignore')
 # Logging + app config
 from utils.logging_config import configure_logging
 from utils.app_config import get_app_config
+from utils.dotenv_loader import load_dotenv
 
 # Import authentication and utilities
 from utils.authentication import require_authentication, get_current_user, logout_user, init_session_state, AuthenticationManager
@@ -33,13 +34,19 @@ from utils.auto_refresh import add_auto_refresh
 from utils.stock_comparison import create_stock_comparison
 from utils.alpha_vantage_api import AlphaVantageAPI
 from utils.fred_api import FREDAPI
+from utils.data360_api import Data360API
 from utils.fmp_api import FMPAPI
 from utils.coingecko_api import CoinGeckoAPI
 from utils.stock_search import simple_stock_search_ui, create_enhanced_stock_search
 from utils.price_alerts import create_price_alerts_ui
 from utils.market_data_fetcher import get_market_fetcher
+from utils.market_data_engine import MarketDataEngine
 from utils.data_quality import format_quality_badge, DataQuality
+from utils.news_utils import normalize_yfinance_news
 from utils.secret_utils import get_secret
+
+# Load local .env if present (dev convenience)
+load_dotenv()
 
 # Import Game Changer Features - Phase 1
 from app.analytics.social_features import SocialFeatures
@@ -3648,6 +3655,93 @@ def create_comprehensive_stock_research():
                 if info.get('longBusinessSummary'):
                     with st.expander("📝 Business Summary"):
                         st.write(info['longBusinessSummary'])
+
+                # News & Sentiment (Finnhub -> Alpha Vantage -> yfinance fallback)
+                st.markdown("### 📰 News & Sentiment")
+                news_items = None
+                sentiment_label = None
+                sentiment_score = None
+
+                try:
+                    market_engine = MarketDataEngine()
+                    news_items = market_engine.get_news(symbol)
+                    sentiment = market_engine.get_sentiment(symbol)
+
+                    if sentiment:
+                        reddit = sentiment.get("reddit", [])
+                        twitter = sentiment.get("twitter", [])
+
+                        def _avg_score(items):
+                            scores = [i.get("score") for i in items if i.get("score") is not None]
+                            return float(np.mean(scores)) if scores else None
+
+                        reddit_score = _avg_score(reddit)
+                        twitter_score = _avg_score(twitter)
+                        scores = [s for s in [reddit_score, twitter_score] if s is not None]
+                        if scores:
+                            sentiment_score = float(np.mean(scores))
+                            if sentiment_score > 0.2:
+                                sentiment_label = "Positive"
+                            elif sentiment_score < -0.2:
+                                sentiment_label = "Negative"
+                            else:
+                                sentiment_label = "Neutral"
+                except Exception:
+                    news_items = None
+
+                # Alpha Vantage fallback (if Finnhub not available)
+                if not news_items:
+                    av_api = st.session_state.get("alpha_vantage_api") or AlphaVantageAPI()
+                    if av_api.api_key and av_api.api_key.lower() != "demo":
+                        av_data = av_api.get_news_sentiment(symbol, limit=5)
+                        if av_data:
+                            news_items = [
+                                {
+                                    "headline": item["headline"],
+                                    "source": item["source"],
+                                    "url": item["url"],
+                                    "time": item["time"],
+                                }
+                                for item in av_data.get("news_items", [])
+                            ]
+                            sentiment_score = av_data.get("overall_sentiment")
+                            sentiment_label = av_data.get("sentiment_label")
+
+                # yfinance fallback
+                if not news_items:
+                    try:
+                        yf_news = normalize_yfinance_news(yf.Ticker(symbol).news or [])
+                        news_items = [
+                            {
+                                "headline": item.get("title", ""),
+                                "source": item.get("publisher", ""),
+                                "url": item.get("link", ""),
+                                "time": item.get("publish_time", 0),
+                            }
+                            for item in yf_news[:5]
+                        ]
+                    except Exception:
+                        news_items = []
+
+                metric_cols = st.columns(2)
+                with metric_cols[0]:
+                    if sentiment_label:
+                        st.metric("Sentiment", sentiment_label, f"{sentiment_score:.2f}" if sentiment_score is not None else None)
+                    else:
+                        st.metric("Sentiment", "N/A")
+                with metric_cols[1]:
+                    st.metric("News Items", len(news_items) if news_items else 0)
+
+                if news_items:
+                    for item in news_items[:5]:
+                        headline = item.get("headline", "Headline")
+                        source = item.get("source", "Source")
+                        url = item.get("url", "")
+                        st.markdown(f"- **{headline}** — {source}")
+                        if url:
+                            st.caption(url)
+                else:
+                    st.info("News bulunamadi veya API anahtari tanimli degil.")
             else:
                 st.warning("No historical data available for this symbol.")
 
@@ -4364,14 +4458,17 @@ def create_turkish_markets():
 
 def create_game_changer_tab():
     """🤖 AI Tools - Advanced Analytics with Artificial Intelligence"""
-    st.markdown("""
+    st.markdown(
+        f"""
     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem; text-align: center; color: white;">
         <h1>🤖 AI Tools - Advanced Analytics</h1>
         <p style="font-size: 1.1rem; margin-top: 0.5rem;">
             Social, Visualization & AI-Lite Tools | Cost: $0 | Offline-Friendly
         </p>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     logger = logging.getLogger(__name__)
 
@@ -4388,7 +4485,7 @@ def create_game_changer_tab():
         "📸 Social Features",
         "🎨 Advanced Visualizations",
         "🤖 AI Tools",
-        "📤 Export & Share"
+        "📤 Export & Share",
     ])
 
     # Tab 1: Social Features
@@ -4399,7 +4496,7 @@ def create_game_changer_tab():
             "📸 Portfolio Snapshots",
             "📋 Public Watchlists",
             "📝 Ticker Notes",
-            "🏆 Leaderboard"
+            "🏆 Leaderboard",
         ])
 
         with social_subtabs[0]:
@@ -4422,7 +4519,7 @@ def create_game_changer_tab():
             "📅 Calendar Heatmap",
             "🔄 Sector Rotation",
             "😱 Fear & Greed",
-            "📊 3D Portfolio"
+            "📊 3D Portfolio",
         ])
 
         with viz_subtabs[0]:
@@ -4452,7 +4549,6 @@ def create_game_changer_tab():
             "⚡ Backtesting",
             "🎯 Chart Annotation",
             "📰 News Sentiment",
-            "🧠 HF Insights"
         ])
 
         with ai_subtabs[0]:
@@ -4499,10 +4595,6 @@ def create_game_changer_tab():
                     lambda: ai.news_sentiment_analysis(ticker.upper())
                 )
 
-        with ai_subtabs[4]:
-            from app.ui.hf_insights import render_hf_insights
-            _safe_render("HF Insights", render_hf_insights)
-
     # Tab 4: Export & Share
     with feature_tabs[3]:
         export = ExportTools()
@@ -4510,7 +4602,7 @@ def create_game_changer_tab():
         export_subtabs = st.tabs([
             "📄 PDF Export",
             "📊 Excel Export",
-            "📱 QR Code"
+            "📱 QR Code",
         ])
 
         with export_subtabs[0]:
@@ -4637,6 +4729,23 @@ def create_education_tab():
         df["MACD_hist"] = df["MACD"] - df["MACD_signal"]
         df["ATR14"] = _education_compute_atr(df["High"], df["Low"], df["Close"])
         return df
+
+    def _format_compact(value, suffix=""):
+        try:
+            if value is None or (isinstance(value, float) and np.isnan(value)):
+                return "N/A"
+            abs_val = abs(value)
+            if abs_val >= 1e12:
+                return f"{value/1e12:.2f}T{suffix}"
+            if abs_val >= 1e9:
+                return f"{value/1e9:.2f}B{suffix}"
+            if abs_val >= 1e6:
+                return f"{value/1e6:.2f}M{suffix}"
+            if abs_val >= 1e3:
+                return f"{value/1e3:.2f}K{suffix}"
+            return f"{value:.2f}{suffix}"
+        except Exception:
+            return "N/A"
 
     def _plot_price_with_overlays(df, title, overlays):
         fig = go.Figure()
@@ -4921,6 +5030,126 @@ Donguler tekrarlasa da birebir ayni olmaz. Bu nedenle sinyaller tek basina degil
 """
         )
 
+        st.markdown("---")
+        st.subheader("🌍 Global Macro Snapshot (FRED + Data360)")
+
+        data360_api = st.session_state.get("data360_api")
+        fred_api = st.session_state.get("fred_api")
+
+        country_options = {
+            "United States (USA)": "USA",
+            "Turkey (TUR)": "TUR",
+            "Germany (DEU)": "DEU",
+            "United Kingdom (GBR)": "GBR",
+            "Japan (JPN)": "JPN",
+            "China (CHN)": "CHN",
+            "India (IND)": "IND",
+            "Brazil (BRA)": "BRA",
+            "South Africa (ZAF)": "ZAF",
+            "World (WLD)": "WLD",
+        }
+
+        indicator_options = {
+            "GDP (current US$)": "NY.GDP.MKTP.CD",
+            "GDP per Capita (current US$)": "NY.GDP.PCAP.CD",
+            "Inflation (CPI, %)": "FP.CPI.TOTL.ZG",
+            "Unemployment (%)": "SL.UEM.TOTL.ZS",
+            "Population": "SP.POP.TOTL",
+            "Life Expectancy": "SP.DYN.LE00.IN",
+        }
+
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            selected_country_name = st.selectbox(
+                "Country",
+                list(country_options.keys()),
+                index=0,
+                key="edu_macro_country",
+            )
+            selected_indicator_label = st.selectbox(
+                "Indicator",
+                list(indicator_options.keys()),
+                index=0,
+                key="edu_macro_indicator",
+            )
+
+        with col2:
+            if data360_api:
+                series = data360_api.get_indicator_series(
+                    indicator_options[selected_indicator_label],
+                    country_options[selected_country_name],
+                )
+                if series:
+                    df = series["series"]
+                    fig = px.line(
+                        df,
+                        x="date",
+                        y="value",
+                        title=f"{selected_indicator_label} ({selected_country_name})",
+                    )
+                    fig.update_layout(template="plotly_dark", height=320)
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("Data360 verisi bulunamadi. Farkli bir ulke/indikator deneyin.")
+            else:
+                st.info("Data360 API hazir degil. Uygulamayi yeniden baslatip tekrar deneyin.")
+
+        st.markdown("#### 📌 Country Snapshot (Data360)")
+        snapshot_cols = st.columns(3)
+        snapshot_indicators = [
+            ("GDP", "NY.GDP.MKTP.CD", ""),
+            ("GDP per Capita", "NY.GDP.PCAP.CD", ""),
+            ("Inflation", "FP.CPI.TOTL.ZG", "%"),
+            ("Unemployment", "SL.UEM.TOTL.ZS", "%"),
+            ("Population", "SP.POP.TOTL", ""),
+            ("Life Expectancy", "SP.DYN.LE00.IN", " yrs"),
+        ]
+
+        for idx, (label, code, suffix) in enumerate(snapshot_indicators):
+            with snapshot_cols[idx % 3]:
+                latest = None
+                if data360_api:
+                    latest = data360_api.get_latest_value(code, country_options[selected_country_name])
+                if latest and latest.get("latest_value") is not None:
+                    value = latest["latest_value"]
+                    date = latest["latest_date"].year if latest.get("latest_date") is not None else "N/A"
+                    st.metric(label, _format_compact(value, suffix), f"as of {date}")
+                else:
+                    st.metric(label, "N/A")
+
+        # FRED snapshot (US only)
+        if country_options[selected_country_name] == "USA":
+            st.markdown("#### 🇺🇸 US Macro Signals (FRED)")
+            if fred_api and getattr(fred_api, "fred", None):
+                econ = fred_api.get_economic_indicators()
+                rates = fred_api.get_interest_rates()
+                liquidity = fred_api.get_global_liquidity_index()
+
+                fred_cols = st.columns(4)
+                with fred_cols[0]:
+                    gdp_growth = econ.get("gdp", {}).get("growth_rate") if econ else None
+                    st.metric("GDP Growth", _format_compact(gdp_growth, "%"))
+                with fred_cols[1]:
+                    inflation = econ.get("inflation", {}).get("current") if econ else None
+                    st.metric("Inflation YoY", _format_compact(inflation, "%"))
+                with fred_cols[2]:
+                    unemployment = econ.get("unemployment", {}).get("current") if econ else None
+                    st.metric("Unemployment", _format_compact(unemployment, "%"))
+                with fred_cols[3]:
+                    fed_funds = rates.get("fed_funds_rate", {}).get("current") if rates else None
+                    st.metric("Fed Funds", _format_compact(fed_funds, "%"))
+
+                if liquidity:
+                    liq_df = pd.DataFrame({
+                        "date": liquidity["dates"],
+                        "liquidity_index": liquidity["values"],
+                    })
+                    fig = px.line(liq_df, x="date", y="liquidity_index", title="Global Liquidity Index (FRED)")
+                    fig.update_layout(template="plotly_dark", height=300)
+                    st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("FRED verisi icin FRED_API_KEY gereklidir.")
+
     with edu_tabs[4]:
         st.markdown("### Beginner")
         st.subheader("ETF ve Fonlar Nedir?")
@@ -5043,6 +5272,14 @@ def main():
     if 'analyze_stock' not in st.session_state:
         st.session_state['analyze_stock'] = False
 
+    # Initialize shared API clients (kept in session for reuse)
+    if 'fred_api' not in st.session_state:
+        st.session_state['fred_api'] = FREDAPI()
+    if 'alpha_vantage_api' not in st.session_state:
+        st.session_state['alpha_vantage_api'] = AlphaVantageAPI()
+    if 'data360_api' not in st.session_state:
+        st.session_state['data360_api'] = Data360API()
+
     # Create header
     create_header()
 
@@ -5073,11 +5310,9 @@ def main():
                 st.write("TradingView Bridge: `unavailable`")
 
             # Secrets presence (no values shown)
-            hf_token = get_secret("HF_API_TOKEN")
             fred_key = get_secret("FRED_API_KEY")
             av_key = get_secret("ALPHA_VANTAGE_API_KEY", "ALPHA_VANTAGE_KEY")
             fmp_key = get_secret("FMP_API_KEY")
-            st.write(f"HF Token: `{ 'set' if hf_token else 'missing' }`")
             st.write(f"FRED Key: `{ 'set' if fred_key else 'missing' }`")
             st.write(f"Alpha Vantage Key: `{ 'set' if av_key else 'missing' }`")
             st.write(f"FMP Key: `{ 'set' if fmp_key else 'missing' }`")

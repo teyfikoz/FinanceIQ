@@ -11,6 +11,7 @@ import threading
 import queue
 import warnings
 warnings.filterwarnings('ignore')
+from utils.news_utils import normalize_yfinance_news
 
 class RealTimeDataEngine:
     """Real-time data engine for live market data"""
@@ -298,7 +299,7 @@ class RealTimeDataEngine:
         """Get news sentiment for a symbol"""
         try:
             ticker = yf.Ticker(symbol)
-            news = ticker.news
+            news = normalize_yfinance_news(ticker.news or [])
 
             if news:
                 # Simple sentiment analysis based on title keywords
@@ -310,6 +311,7 @@ class RealTimeDataEngine:
 
                 for article in news[:5]:  # Last 5 articles
                     title = article.get('title', '').lower()
+                    publish_time = article.get('publish_time', 0)
 
                     pos_count = sum(1 for word in positive_words if word in title)
                     neg_count = sum(1 for word in negative_words if word in title)
@@ -329,7 +331,7 @@ class RealTimeDataEngine:
                         'title': article.get('title', ''),
                         'publisher': article.get('publisher', ''),
                         'link': article.get('link', ''),
-                        'publish_time': article.get('providerPublishTime', 0),
+                        'publish_time': publish_time,
                         'sentiment': sentiment
                     })
 

@@ -120,6 +120,7 @@ class UnifiedAPIManager:
         self.rate_limits = {
             'alpha_vantage': (25, 86400),  # 25 calls per day
             'finnhub': (60, 60),  # 60 calls per minute
+            'twelvedata': (8, 60),  # 8 calls per minute (free tier, conservative)
             'binance': (1200, 60),  # 1200 calls per minute
             'okx': (1200, 60),  # 1200 calls per minute (public)
             'coingecko': (50, 60),  # 50 calls per minute
@@ -152,6 +153,7 @@ class UnifiedAPIManager:
             'alpha_vantage': get_secret('ALPHA_VANTAGE_KEY', 'ALPHA_VANTAGE_API_KEY', 'alpha_vantage', default=''),
             'fred': get_secret('FRED_API_KEY', 'fred', default=''),
             'finnhub': get_secret('FINNHUB_API_KEY', 'finnhub', default=''),
+            'twelvedata': get_secret('TWELVEDATA_API_KEY', 'TWELVEDATA_KEY', 'twelvedata', default=''),
             'binance_key': get_secret('BINANCE_API_KEY', 'binance_key', default=''),
             'binance_secret': get_secret('BINANCE_SECRET_KEY', 'binance_secret', default=''),
             'tradingeconomics': get_secret('TRADINGECONOMICS_KEY', 'tradingeconomics', default=''),
@@ -250,6 +252,43 @@ class UnifiedAPIManager:
         }
 
         return self._make_request('alpha_vantage', url, params, data_type='stock_price')
+
+    # ========== TWELVE DATA ==========
+
+    def get_twelvedata_time_series(
+        self,
+        symbol: str,
+        interval: str = '1day',
+        outputsize: int = 200,
+        order: str = 'ASC',
+    ) -> Optional[Dict]:
+        """Get time series data from Twelve Data (stocks, FX, crypto)."""
+        if not self.api_keys.get('twelvedata'):
+            return None
+
+        url = "https://api.twelvedata.com/time_series"
+        params = {
+            'symbol': symbol,
+            'interval': interval,
+            'outputsize': outputsize,
+            'order': order,
+            'apikey': self.api_keys['twelvedata'],
+        }
+
+        return self._make_request('twelvedata', url, params, data_type='historical')
+
+    def get_twelvedata_exchange_rate(self, symbol: str = 'USD/TRY') -> Optional[Dict]:
+        """Get latest FX rate from Twelve Data."""
+        if not self.api_keys.get('twelvedata'):
+            return None
+
+        url = "https://api.twelvedata.com/exchange_rate"
+        params = {
+            'symbol': symbol,
+            'apikey': self.api_keys['twelvedata'],
+        }
+
+        return self._make_request('twelvedata', url, params, data_type='macro_data')
 
     # ========== FRED ==========
 
