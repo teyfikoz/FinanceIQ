@@ -4463,12 +4463,29 @@ def create_game_changer_tab():
     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem; text-align: center; color: white;">
         <h1>🤖 AI Tools - Advanced Analytics</h1>
         <p style="font-size: 1.1rem; margin-top: 0.5rem;">
-            Social, Visualization & AI-Lite Tools | Cost: $0 | Offline-Friendly
+            AI Narrative Engine (Mixtral-8x7B) + Social, Visualization & AI-Lite Tools
         </p>
     </div>
     """,
         unsafe_allow_html=True,
     )
+
+    # ── AI Narrative Engine (HF Mixtral-8x7B) ──────────────────────────────
+    try:
+        from modules.ai_narrative import render_narrative_panel
+        import streamlit as st as _st
+        lang = _st.session_state.get("lang", "en")
+        with st.expander("🤖 AI Narrative Engine — Executive Summary & Risk Memo", expanded=True):
+            render_narrative_panel(
+                market_data={},      # populated dynamically when user clicks
+                risk_signals=[],
+                portfolio_summary={},
+                language=lang,
+            )
+        st.divider()
+    except Exception as _e:
+        st.info(f"AI Narrative module loading: {_e}")
+    # ────────────────────────────────────────────────────────────────────────
 
     logger = logging.getLogger(__name__)
 
