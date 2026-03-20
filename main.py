@@ -4473,8 +4473,7 @@ def create_game_changer_tab():
     # ── AI Narrative Engine (HF Mixtral-8x7B) ──────────────────────────────
     try:
         from modules.ai_narrative import render_narrative_panel
-        import streamlit as st as _st
-        lang = _st.session_state.get("lang", "en")
+        lang = st.session_state.get("lang", "en")
         with st.expander("🤖 AI Narrative Engine — Executive Summary & Risk Memo", expanded=True):
             render_narrative_panel(
                 market_data={},      # populated dynamically when user clicks
