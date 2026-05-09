@@ -58,7 +58,7 @@ class CycleIndicators:
                 vix = yf.Ticker("^VIX")
                 vix_hist = vix.history(period="5d")
                 vix_level = vix_hist['Close'].iloc[-1] if not vix_hist.empty else 20
-            except:
+            except Exception:
                 vix_level = 20
 
             # Volume trend
@@ -152,7 +152,7 @@ class CycleIndicators:
                     # Get latest economic indicators from FRED
                     # This would require FRED API implementation
                     pass
-                except:
+                except Exception:
                     pass
 
             # Scoring logic

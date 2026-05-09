@@ -71,7 +71,7 @@ class ETFWhaleLinkageUI:
                 else:
                     st.error("❌ 'ticker' ve 'portfolio_weight' kolonları gerekli")
                     user_df = None
-            except:
+            except Exception:
                 st.error("❌ Dosya okunamadı")
 
         # Analyze button

@@ -56,7 +56,7 @@ def get_app_config() -> AppConfig:
     public_app_url = (_get_setting("FINANCEIQ_PUBLIC_APP_URL") or "https://fundpilot.techsyncanalytica.com").rstrip("/")
     public_app_host = _get_setting("FINANCEIQ_PUBLIC_APP_HOST") or public_app_url.replace("https://", "").replace("http://", "")
     app_display_name = _get_setting("FINANCEIQ_APP_DISPLAY_NAME") or "FundPilot"
-    support_email = _get_setting("FINANCEIQ_SUPPORT_EMAIL") or "support@financeiq.com"
+    support_email = _get_setting("FINANCEIQ_SUPPORT_EMAIL") or "techsyncanalytica@gmail.com"
 
     return AppConfig(
         env=env,

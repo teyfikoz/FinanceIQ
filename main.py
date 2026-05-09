@@ -1793,7 +1793,7 @@ def create_executive_dashboard():
                         'Change': f"{change:+.2f}%",
                         'Trend': '🟢' if change > 0 else '🔴' if change < 0 else '⚪'
                     })
-            except:
+            except Exception:
                 continue
 
         if index_data:
@@ -1825,7 +1825,7 @@ def create_executive_dashboard():
                 st.markdown(f"### {sentiment}")
                 st.metric("VIX Level", f"{vix_value:.2f}", help="Volatility Index")
                 st.progress(min(vix_value/50, 1.0))
-        except:
+        except Exception:
             st.info("VIX data unavailable")
 
     # Quick stats row
@@ -1907,7 +1907,7 @@ def create_executive_dashboard():
                 perf = ((hist['Close'].iloc[-1] - hist['Close'].iloc[0]) /
                        hist['Close'].iloc[0] * 100)
                 sector_perf.append({'Sector': name, 'Performance': perf})
-        except:
+        except Exception:
             continue
 
     if sector_perf:
@@ -3235,7 +3235,7 @@ def create_portfolio_management():
                 btc = yf.Ticker("BTC-USD").history(period='1d')['Close'].iloc[-1]
                 gold = yf.Ticker("GC=F").history(period='1d')['Close'].iloc[-1]
                 return {"BTC": btc, "GOLD": gold}
-            except:
+            except Exception:
                 return {"BTC": 0, "GOLD": 0}
 
         rates = get_conversion_rates()
@@ -3437,7 +3437,7 @@ def create_portfolio_management():
                                 'Annual Income': f"${annual_dividend:.2f}",
                                 'Quantity': quantity
                             })
-                    except:
+                    except Exception:
                         continue
 
                 if dividend_data:
@@ -6292,7 +6292,7 @@ def main():
                 try:
                     fred_api_instance = st.session_state.get('fred_api', None)
                     alpha_vantage_api_instance = st.session_state.get('alpha_vantage_api', None)
-                except:
+                except Exception:
                     pass
 
                 cycle_intelligence_ui(fred_api_instance, alpha_vantage_api_instance)
