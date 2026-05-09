@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict
 import streamlit as st
 
+from utils.app_config import get_app_config
+
 class AuthenticationManager:
     """Manages user authentication and sessions"""
 
@@ -147,7 +149,8 @@ def init_session_state():
 
 def show_login_page():
     """Display login/signup page"""
-    st.title("🧠 FinanceIQ")
+    app_name = get_app_config().app_display_name
+    st.title(f"🧠 {app_name}")
     st.markdown("### AI-Powered Financial Analysis Platform")
 
     tab1, tab2 = st.tabs(["Login", "Sign Up"])

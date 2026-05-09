@@ -1,463 +1,122 @@
-# 🚀 Streamlit Cloud Deployment Guide
+# Streamlit Cloud Deployment Guide
 
-## FinanceIQ - Streamlit Cloud Deployment
+## Status
 
-**Live URL**: https://financeiq.streamlit.app/
+`Streamlit Cloud` is now legacy infrastructure for this project.
 
----
+Current production host:
 
-## 📋 Pre-Deployment Checklist
+- `https://fundpilot.techsyncanalytica.com`
 
-### ✅ **Completed**
-- [x] Game Changer features integrated into `main.py` (Tab 12)
-- [x] `.streamlit/config.toml` created with theme settings
-- [x] `requirements.txt` optimized for Streamlit Cloud
-- [x] CORS config fixed in `app/core/config.py`
-- [x] `.gitignore` configured properly
-- [x] All features are offline-compatible (no paid APIs required)
+Legacy Streamlit Cloud host:
 
----
+- `https://financeiq.streamlit.app/`
 
-## 🔧 Streamlit Cloud Configuration
+Current deployment policy:
 
-### **1. Repository Setup**
+- primary production deployment: `Hetzner + nginx + systemd`
+- optional fallback/demo deployment: `Streamlit Cloud`
 
-Your GitHub repository should contain:
-```
-global_liquidity_dashboard/
-├── .streamlit/
-│   ├── config.toml          # Theme & server config
-│   └── secrets.toml         # Secrets template (not committed)
-├── app/
-│   ├── analytics/
-│   │   ├── social_features.py
-│   │   ├── visualization_tools.py
-│   │   ├── ai_lite_tools.py
-│   │   └── ... (other modules)
-│   ├── ui/
-│   │   ├── navigation.py
-│   │   ├── export_tools.py
-│   │   └── theme_toggle.py
-│   └── core/
-│       └── config.py        # Fixed CORS config
-├── main.py                  # Main dashboard entry point
-├── requirements.txt         # Cloud-optimized dependencies
-├── .gitignore              # Excludes .env, secrets
-└── README.md
-```
+Primary production guide:
 
----
+- [DEPLOYMENT_GUIDE.md](/Users/teyfikoz/github-projects/FinanceIQ/DEPLOYMENT_GUIDE.md)
 
-### **2. Streamlit Cloud Settings**
+## When To Use Streamlit Cloud
 
-#### **App URL**
-- Primary URL: `https://financeiq.streamlit.app/`
-- Custom domain (optional): Configure in Streamlit Cloud dashboard
+Use Streamlit Cloud only for:
 
-#### **Python Version**
-- **Recommended**: Python 3.10 or 3.11
-- **Not recommended**: Python 3.13 (limited package support)
+- quick demo environments
+- temporary validation before syncing to Hetzner
+- fallback sharing links
 
-#### **Main File**
-- **Entry point**: `main.py`
-- **Alternative**: `game_changer_dashboard.py` (standalone version)
+Do not treat it as the source of truth for:
 
----
+- canonical branding
+- production DNS
+- long-lived operational deployment
 
-### **3. Environment Variables & Secrets**
+## Current App Identity
 
-#### **In Streamlit Cloud Dashboard → Settings → Secrets**
+- Product name: `FundPilot`
+- Internal legacy name: `FinanceIQ`
+- Preferred public URL: `https://fundpilot.techsyncanalytica.com`
 
-Add the following secrets (if you have API keys):
+If Streamlit Cloud is used again, the app should still present:
+
+- `FundPilot` branding
+- `fundpilot.techsyncanalytica.com` as the canonical public URL
+
+## Streamlit Cloud Requirements
+
+- Python `3.10` or `3.11`
+- `main.py` as the entrypoint
+- dependencies from `requirements.txt`
+
+## Recommended Secrets
+
+Only optional keys are needed. The app can still run in degraded mode without paid data providers.
 
 ```toml
-# Optional API Keys (all features work without these)
+[app]
+FINANCEIQ_ENV = "production"
+FINANCEIQ_REQUIRE_AUTH = false
+FINANCEIQ_DIRECT_ACCESS = true
+FINANCEIQ_CREATE_DEMO_USER = false
+FINANCEIQ_PUBLIC_APP_URL = "https://fundpilot.techsyncanalytica.com"
+FINANCEIQ_APP_DISPLAY_NAME = "FundPilot"
+FINANCEIQ_SUPPORT_EMAIL = "support@techsyncanalytica.com"
+
 [api_keys]
-FRED_API_KEY = "your-fred-api-key"
-ALPHA_VANTAGE_API_KEY = "your-alpha-vantage-key"
-FMP_API_KEY = "your-fmp-key"
+FRED_API_KEY = ""
+ALPHA_VANTAGE_API_KEY = ""
+FMP_API_KEY = ""
 FINNHUB_API_KEY = ""
 POLYGON_API_KEY = ""
 NEWSAPI_KEY = ""
 COINGECKO_API_KEY = ""
-
-# Database (optional - not required for basic functionality)
-[database]
-POSTGRES_SERVER = "your-postgres-host"
-POSTGRES_USER = "your-db-user"
-POSTGRES_PASSWORD = "your-db-password"
-POSTGRES_DB = "liquidity_dashboard"
-
-# Security
-SECRET_KEY = "your-super-secret-jwt-key-here"
 
 [ai]
 HF_API_TOKEN = ""
 HF_SUMMARY_MODEL = "facebook/bart-large-cnn"
 HF_SENTIMENT_MODEL = "ProsusAI/finbert"
 HF_RISK_MODEL = "google/flan-t5-base"
-
-[app]
-FINANCEIQ_ENV = "production"
-FINANCEIQ_REQUIRE_AUTH = false
-FINANCEIQ_DIRECT_ACCESS = true
-FINANCEIQ_CREATE_DEMO_USER = false
 ```
 
-**Important**: Core features work 100% **without any API keys** - they use free data from yfinance and fallback systems!
+## Deploy Steps
 
----
-
-### **4. Resource Limits**
-
-Streamlit Cloud Community Plan:
-- **Memory**: 1 GB RAM
-- **CPU**: Shared
-- **Sleep**: Apps sleep after 7 days of inactivity
-- **Bandwidth**: Unlimited
-
-**Optimization Tips**:
-- Use `@st.cache_data` for expensive operations (already implemented)
-- Limit data fetch to last 1-2 years
-- Use lazy loading for visualizations
-
----
-
-## 🎯 Deployment Steps
-
-### **Step 1: Push to GitHub**
+### 1. Push the current branch
 
 ```bash
-cd /Users/teyfikoz/Downloads/Borsa\ Analiz/global_liquidity_dashboard
-
-# Add all changes
 git add .
-
-# Commit with descriptive message
-git commit -m "Add Phase 1 Game Changer Features
-
-- Social Layer: Portfolio Snapshots, Watchlists, Notes, Leaderboard
-- Visualizations: Heatmap Calendar, Sector Rotation, Fear & Greed, 3D Portfolio
-- AI Tools: Monte Carlo, Backtesting, Chart Annotation, News Sentiment
-- Export: PDF, Excel, QR Codes
-- Fixed CORS config for Streamlit Cloud
-- Optimized requirements.txt for cloud deployment"
-
-# Push to main branch
+git commit -m "Update FundPilot deployment state"
 git push origin main
 ```
 
----
+### 2. Create or update the Streamlit app
 
-### **Step 2: Deploy on Streamlit Cloud**
+- repository: this repo
+- branch: `main`
+- main file: `main.py`
 
-1. **Go to**: https://share.streamlit.io/
-2. **Sign in** with GitHub
-3. **Click** "New app"
-4. **Select**:
-   - Repository: `your-username/global_liquidity_dashboard`
-   - Branch: `main`
-   - Main file: `main.py`
-5. **Click** "Deploy!"
+### 3. Apply secrets
 
-Streamlit Cloud will:
-- Clone your repository
-- Install dependencies from `requirements.txt`
-- Start the app on `https://financeiq.streamlit.app/`
+Set the secrets shown above in the Streamlit Cloud app settings.
 
----
+### 4. Validate
 
-### **Step 3: Configure Secrets** (Optional)
+- app starts without import errors
+- branding shows `FundPilot`
+- exports and QR links point to `https://fundpilot.techsyncanalytica.com`
 
-1. Go to app dashboard
-2. Click **Settings** → **Secrets**
-3. Add your secrets in TOML format (see section 3 above)
-4. Click **Save**
-5. App will automatically restart
+## Limits And Caveats
 
----
+Streamlit Cloud remains weaker than the Hetzner production path for this app because:
 
-## 🔄 Auto-Deployment
+- resource limits are tighter
+- cold starts are more likely
+- custom operational control is lower
+- heavier analytics views are less predictable under load
 
-Streamlit Cloud watches your GitHub repository:
+## Release Rule
 
-- **Push to `main`** → Automatic redeployment
-- **Change detection**: ~30-60 seconds
-- **Build time**: 2-5 minutes (depending on dependencies)
-
----
-
-## 🐛 Troubleshooting
-
-### **Problem 1: "Port already in use"**
-**Solution**: Not applicable on Streamlit Cloud (handled automatically)
-
----
-
-### **Problem 2: "ModuleNotFoundError"**
-**Solution**:
-```bash
-# Verify requirements.txt includes the module
-# Example: If missing 'qrcode'
-echo "qrcode[pil]>=7.4.0" >> requirements.txt
-git add requirements.txt
-git commit -m "Add missing dependency"
-git push
-```
-
----
-
-### **Problem 3: "CORS Error"**
-**Solution**: Already fixed in `app/core/config.py`
-- Changed `List[AnyHttpUrl]` → `List[str]`
-- Added fallback in `assemble_cors_origins()`
-
----
-
-### **Problem 4: "App is slow or crashing"**
-**Solutions**:
-1. **Reduce cache TTL**:
-   ```python
-   @st.cache_data(ttl=600)  # 10 minutes instead of 5
-   ```
-
-2. **Limit data periods**:
-   - Change default from "5y" to "1y"
-   - Reduce Monte Carlo simulations from 10,000 to 5,000
-
-3. **Check logs**: Streamlit Cloud → App → Logs
-
----
-
-### **Problem 5: "Session state issues"**
-**Solution**: Clear cache in Streamlit Cloud:
-- Click **⋮** (three dots) → **Reboot app**
-
----
-
-## 📊 Monitoring & Analytics
-
-### **Streamlit Cloud Dashboard**
-
-- **Analytics**: View usage stats
-- **Logs**: Real-time application logs
-- **Performance**: CPU/Memory usage
-- **Viewers**: Number of active users
-
-### **Access Logs**
-
-```bash
-# View logs in Streamlit Cloud UI
-# Or add custom logging:
-import logging
-logging.info(f"User accessed Game Changer features at {datetime.now()}")
-```
-
----
-
-## 🎨 Customization
-
-### **Change App Theme**
-
-Edit `.streamlit/config.toml`:
-
-```toml
-[theme]
-primaryColor = "#667eea"        # Purple (default)
-backgroundColor = "#0e1117"      # Dark background
-secondaryBackgroundColor = "#1e2130"
-textColor = "#fafafa"
-font = "sans serif"
-```
-
-Then push to GitHub:
-```bash
-git add .streamlit/config.toml
-git commit -m "Update theme colors"
-git push
-```
-
----
-
-### **Add Custom Domain**
-
-1. Go to Streamlit Cloud app settings
-2. Click **General** → **Custom domain**
-3. Enter your domain (e.g., `financeiq.yourdomain.com`)
-4. Configure DNS:
-   ```
-   CNAME record: financeiq → financeiq.streamlit.app
-   ```
-
----
-
-## 🚀 Performance Optimization
-
-### **1. Data Caching**
-
-Already implemented in all modules:
-```python
-@st.cache_data(ttl=300)  # 5 minutes
-def fetch_market_data(ticker):
-    # Expensive operation
-    return data
-```
-
-### **2. Lazy Loading**
-
-Load data only when needed:
-```python
-with st.spinner("Loading data..."):
-    data = fetch_data()  # Only runs when tab is accessed
-```
-
-### **3. Session State**
-
-Minimize session state size:
-```python
-# Good
-st.session_state['ticker'] = "AAPL"
-
-# Bad (large objects)
-st.session_state['entire_dataframe'] = huge_df  # Avoid
-```
-
----
-
-## 📈 Usage Statistics
-
-Monitor your app usage:
-
-- **Daily Active Users (DAU)**
-- **Monthly Active Users (MAU)**
-- **Average Session Duration**
-- **Most Used Features**
-
-Access via: Streamlit Cloud Dashboard → Analytics
-
----
-
-## 🔒 Security Best Practices
-
-### **1. Never Commit Secrets**
-
-✅ **Good**:
-```bash
-# Add to .gitignore
-.env
-.streamlit/secrets.toml
-```
-
-❌ **Bad**:
-```bash
-# Committing .env with API keys
-git add .env  # NEVER DO THIS!
-```
-
-### **2. Use Streamlit Secrets**
-
-✅ **Good**:
-```python
-import streamlit as st
-api_key = st.secrets["api_keys"]["FRED_API_KEY"]
-```
-
-❌ **Bad**:
-```python
-api_key = "hardcoded-api-key-12345"  # NEVER DO THIS!
-```
-
-### **3. Validate User Input**
-
-Already implemented in forms:
-```python
-ticker = st.text_input("Enter Ticker").upper()
-if ticker and len(ticker) <= 10:  # Validate
-    process_ticker(ticker)
-```
-
----
-
-## 🎯 Game Changer Features on Cloud
-
-All Phase 1 features work **100% on Streamlit Cloud**:
-
-### **✅ Fully Functional**
-- ✅ Portfolio Snapshots (PNG generation)
-- ✅ Public Watchlists (yfinance data)
-- ✅ Ticker Notes (session state)
-- ✅ Leaderboard (simulated data)
-- ✅ Calendar Heatmap (Plotly)
-- ✅ Sector Rotation (sector ETFs)
-- ✅ Fear & Greed Gauge (VIX + RSI)
-- ✅ 3D Portfolio (Treemap + Sunburst)
-- ✅ Monte Carlo Simulation (NumPy)
-- ✅ Backtesting (SMA/RSI/MACD)
-- ✅ Chart Annotation (support/resistance)
-- ✅ News Sentiment (keyword-based)
-- ✅ PDF Export (HTML-based)
-- ✅ Excel Export (openpyxl)
-- ✅ QR Code Generator (qrcode library)
-
-### **⚠️ Limitations**
-- ⚠️ TA-Lib not available (using pandas/numpy instead)
-- ⚠️ Prophet not included (heavy dependency)
-- ⚠️ No real-time WebSocket (polling instead)
-
----
-
-## 📞 Support
-
-### **Streamlit Cloud Support**
-- Documentation: https://docs.streamlit.io/streamlit-community-cloud
-- Forum: https://discuss.streamlit.io/
-- GitHub Issues: https://github.com/streamlit/streamlit/issues
-
-### **FinanceIQ Support**
-- Repository: Your GitHub repo
-- Issues: Create GitHub issue
-- Discussions: Enable GitHub Discussions
-
----
-
-## 🎉 Next Steps
-
-After successful deployment:
-
-1. **Test all features** on https://financeiq.streamlit.app/
-2. **Share URL** with users/stakeholders
-3. **Monitor logs** for errors
-4. **Collect feedback** from users
-5. **Plan Phase 2** features
-
----
-
-## 📝 Deployment Checklist
-
-Before pushing to production:
-
-- [ ] Test locally on `localhost:8502`
-- [ ] Verify all imports work
-- [ ] Check `requirements.txt` is complete
-- [ ] Ensure `.env` is in `.gitignore`
-- [ ] Test with demo user credentials
-- [ ] Verify Game Changer tab appears
-- [ ] Test at least 3 features from each category
-- [ ] Check mobile responsiveness
-- [ ] Review logs for errors
-- [ ] Update README.md with new features
-- [ ] Create GitHub release/tag
-- [ ] Push to `main` branch
-- [ ] Monitor Streamlit Cloud deployment
-- [ ] Test live URL
-- [ ] Share with team! 🎊
-
----
-
-**🚀 Your FinanceIQ app with Game Changer features is ready for the world!**
-
-**Live URL**: https://financeiq.streamlit.app/
-
-**Demo Login**: demo / demo123
-
-**Game Changer Features**: Tab 12 → 🚀 Game Changer
+If the Streamlit Cloud version and the Hetzner version diverge, the Hetzner deployment is the authoritative production state.

@@ -76,77 +76,94 @@ def create_tefas_portfolio_analysis_ui():
         st.markdown("---")
         st.info("💡 **İpucu:** Aylık bazda portföy değişimlerini görebilirsiniz")
 
-    if not analyze_button:
+    state_key = "tefas_portfolio_last_run"
+    state = st.session_state.get(state_key)
+    summary = None
+
+    if analyze_button:
+        with st.spinner(f"{fund_code} fonu için portföy değişimleri analiz ediliyor..."):
+            try:
+                summary = tracker.generate_portfolio_summary(fund_code, months_to_analyze)
+                if not summary:
+                    st.error(f"⚠️ {fund_code} fonu için veri bulunamadı. Lütfen fon kodunu kontrol edin.")
+                    return
+                st.session_state[state_key] = {
+                    "fund_code": fund_code,
+                    "months_to_analyze": months_to_analyze,
+                    "summary": summary,
+                }
+            except Exception as e:
+                st.error(f"❌ Analiz sırasında hata oluştu: {str(e)}")
+                st.exception(e)
+                return
+    elif state and state.get("fund_code") == fund_code and state.get("months_to_analyze") == months_to_analyze:
+        summary = state.get("summary")
+        st.caption("Son çalıştırılan TEFAS analizi gösteriliyor. Parametreleri değiştirdiyseniz yeniden analiz edin.")
+    else:
         st.info("👆 Lütfen bir fon seçin ve 'Analiz Et' butonuna tıklayın")
         return
 
-    # Main analysis
-    with st.spinner(f"{fund_code} fonu için portföy değişimleri analiz ediliyor..."):
-        try:
-            summary = tracker.generate_portfolio_summary(fund_code, months_to_analyze)
+    try:
+        # Display summary metrics
+        st.header(f"📈 {fund_code} - Genel Bakış")
 
-            if not summary:
-                st.error(f"⚠️ {fund_code} fonu için veri bulunamadı. Lütfen fon kodunu kontrol edin.")
-                return
+        col1, col2, col3, col4 = st.columns(4)
 
-            # Display summary metrics
-            st.header(f"📈 {fund_code} - Genel Bakış")
+        with col1:
+            st.metric(
+                "Portföy Değeri",
+                f"₺{summary['latest_portfolio_value']:,.0f}",
+                delta=f"₺{summary['portfolio_value_change']:,.0f}"
+            )
 
-            col1, col2, col3, col4 = st.columns(4)
+        with col2:
+            st.metric(
+                "Yatırımcı Sayısı",
+                f"{summary['latest_num_investors']:,}",
+                delta=f"{summary['investor_change']:,}"
+            )
 
-            with col1:
-                st.metric(
-                    "Portföy Değeri",
-                    f"₺{summary['latest_portfolio_value']:,.0f}",
-                    delta=f"₺{summary['portfolio_value_change']:,.0f}"
-                )
+        with col3:
+            st.metric(
+                "Eklenen Holding",
+                summary['total_new_holdings'],
+                help="Portföye eklenen menkul kıymet sayısı"
+            )
 
-            with col2:
-                st.metric(
-                    "Yatırımcı Sayısı",
-                    f"{summary['latest_num_investors']:,}",
-                    delta=f"{summary['investor_change']:,}"
-                )
+        with col4:
+            st.metric(
+                "Çıkarılan Holding",
+                summary['total_removed_holdings'],
+                help="Portföyden çıkarılan menkul kıymet sayısı"
+            )
 
-            with col3:
-                st.metric(
-                    "Eklenen Holding",
-                    summary['total_new_holdings'],
-                    help="Portföye eklenen menkul kıymet sayısı"
-                )
+        st.markdown(f"**Analiz Dönemi:** {summary['period']}")
 
-            with col4:
-                st.metric(
-                    "Çıkarılan Holding",
-                    summary['total_removed_holdings'],
-                    help="Portföyden çıkarılan menkul kıymet sayısı"
-                )
-
-            st.markdown(f"**Analiz Dönemi:** {summary['period']}")
-
-            # Tabs for different analyses
-            tab1, tab2, tab3, tab4 = st.tabs([
+        analysis_view = st.radio(
+            "TEFAS Analysis View",
+            [
                 "📊 Varlık Dağılımı",
                 "🔄 Portföy Değişimleri",
                 "🏆 En Büyük Holdingleri",
                 "📈 Detaylı Analiz"
-            ])
+            ],
+            horizontal=True,
+            key=f"tefas_analysis_view_{fund_code}",
+            label_visibility="collapsed"
+        )
 
-            with tab1:
-                render_asset_allocation_tab(summary)
+        if analysis_view == "📊 Varlık Dağılımı":
+            render_asset_allocation_tab(summary)
+        elif analysis_view == "🔄 Portföy Değişimleri":
+            render_portfolio_changes_tab(summary)
+        elif analysis_view == "🏆 En Büyük Holdingleri":
+            render_top_holdings_tab(summary)
+        else:
+            render_detailed_analysis_tab(summary)
 
-            with tab2:
-                render_portfolio_changes_tab(summary)
-
-            with tab3:
-                render_top_holdings_tab(summary)
-
-            with tab4:
-                render_detailed_analysis_tab(summary)
-
-        except Exception as e:
-            st.error(f"❌ Analiz sırasında hata oluştu: {str(e)}")
-            st.exception(e)
+    except Exception as e:
+        st.error(f"❌ Analiz sırasında hata oluştu: {str(e)}")
+        st.exception(e)
 
 
 def render_asset_allocation_tab(summary: dict):

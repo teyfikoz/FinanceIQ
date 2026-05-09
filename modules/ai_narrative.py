@@ -245,16 +245,22 @@ def render_narrative_panel(
             "Add token to `.env` for Mixtral-8x7B powered narratives."
         )
 
-    tab1, tab2, tab3 = st.tabs(["📊 Executive Summary", "⚠️ Risk Memo", "📰 Event Narrative"])
+    narrative_view = st.radio(
+        "Narrative View",
+        ["📊 Executive Summary", "⚠️ Risk Memo", "📰 Event Narrative"],
+        horizontal=True,
+        key="ai_narrative_view_nav",
+        label_visibility="collapsed"
+    )
 
-    with tab1:
+    if narrative_view == "📊 Executive Summary":
         if st.button("Generate Executive Summary", key="gen_exec"):
             with st.spinner("Generating narrative..."):
                 md = market_data or {}
                 summary = generate_executive_summary(md, language=language)
                 st.markdown(summary)
 
-    with tab2:
+    elif narrative_view == "⚠️ Risk Memo":
         if st.button("Generate Risk Memo", key="gen_risk"):
             with st.spinner("Analyzing risks..."):
                 signals = risk_signals or []
@@ -262,7 +268,7 @@ def render_narrative_panel(
                 memo = generate_risk_memo(port, signals, language=language)
                 st.markdown(memo)
 
-    with tab3:
+    else:
         event_input = st.text_input(
             "Describe a market event",
             placeholder="e.g. BIST 100 rose 1.8% on central bank rate hold decision",

@@ -12,6 +12,7 @@ from modules.portfolio_health import PortfolioHealthScore
 from modules.insight_engine import generate_all_insights
 from io import BytesIO
 import base64
+import hashlib
 
 
 class PortfolioHealthUI:
@@ -50,6 +51,8 @@ class PortfolioHealthUI:
                 portfolio_df = pd.read_csv(uploaded_file)
                 st.success("✅ Portföy başarıyla yüklendi!")
 
+            portfolio_signature = self._portfolio_signature(portfolio_df)
+
             # Display portfolio
             with st.expander("📋 Portföy Detayları"):
                 st.dataframe(portfolio_df, use_container_width=True)
@@ -57,9 +60,18 @@ class PortfolioHealthUI:
             # Calculate health score
             if st.button("🚀 Sağlık Skoru Hesapla", type="primary", use_container_width=True, key="portfolio_health___sa_l_k_skoru_hesapla"):
                 with st.spinner("Portföy analiz ediliyor... (Bu 30-60 saniye sürebilir)"):
-                    self._calculate_and_display(portfolio_df)
+                    self._calculate_and_display(portfolio_df, portfolio_signature)
+            else:
+                cached = st.session_state.get("portfolio_health_last_result")
+                if cached and cached.get("signature") == portfolio_signature:
+                    st.caption("Son hesaplanan portföy sağlık skoru gösteriliyor.")
+                    self._display_cached_results(cached)
 
-    def _calculate_and_display(self, portfolio_df: pd.DataFrame):
+    def _portfolio_signature(self, portfolio_df: pd.DataFrame) -> str:
+        payload = pd.util.hash_pandas_object(portfolio_df.fillna(""), index=True).values.tobytes()
+        return hashlib.md5(payload).hexdigest()
+
+    def _calculate_and_display(self, portfolio_df: pd.DataFrame, signature: str):
         """Calculate and display health score"""
         try:
             # Load and enrich portfolio
@@ -69,6 +81,12 @@ class PortfolioHealthUI:
             # Calculate metrics
             self.calculator.calculate_all_metrics()
             summary = self.calculator.get_summary()
+
+            st.session_state["portfolio_health_last_result"] = {
+                "signature": signature,
+                "enriched_df": enriched_df.copy(),
+                "summary": summary,
+            }
 
             # Display results
             self._display_score_overview(summary)
@@ -82,6 +100,15 @@ class PortfolioHealthUI:
         except Exception as e:
             st.error(f"❌ Hata oluştu: {str(e)}")
             st.info("💡 İpucu: CSV dosyanızın Symbol, Shares, Price, Value sütunlarını içerdiğinden emin olun.")
+
+    def _display_cached_results(self, cached_result: dict):
+        enriched_df = cached_result["enriched_df"]
+        summary = cached_result["summary"]
+        self._display_score_overview(summary)
+        self._display_metric_breakdown(summary)
+        self._display_recommendations(summary)
+        self._display_portfolio_analysis(enriched_df, summary)
+        self._display_export_buttons(enriched_df, summary)
 
     def _display_score_overview(self, summary: dict):
         """Display main health score with gauge"""
@@ -312,9 +339,15 @@ class PortfolioHealthUI:
         st.markdown("---")
         st.subheader("📈 Detaylı Portföy Analizi")
 
-        tab1, tab2, tab3 = st.tabs(["🎯 Pozisyonlar", "📊 Sektör Dağılımı", "⚠️ Risk Analizi"])
+        analysis_view = st.radio(
+            "Portfolio Analysis View",
+            ["🎯 Pozisyonlar", "📊 Sektör Dağılımı", "⚠️ Risk Analizi"],
+            horizontal=True,
+            key="portfolio_health_analysis_view_nav",
+            label_visibility="collapsed"
+        )
 
-        with tab1:
+        if analysis_view == "🎯 Pozisyonlar":
             # Position analysis
             display_df = enriched_df[[
                 'Symbol', 'Shares', 'Price', 'Value', 'Weight',
@@ -332,7 +365,7 @@ class PortfolioHealthUI:
                 height=400
             )
 
-        with tab2:
+        elif analysis_view == "📊 Sektör Dağılımı":
             # Sector distribution
             sector_df = enriched_df.groupby('Sector').agg({
                 'Value': 'sum',
@@ -360,7 +393,7 @@ class PortfolioHealthUI:
 
             st.dataframe(sector_df, use_container_width=True, hide_index=True)
 
-        with tab3:
+        else:
             # Risk analysis
             col1, col2 = st.columns(2)
 

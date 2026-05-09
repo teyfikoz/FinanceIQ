@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 from typing import Dict, List
 import numpy as np
+import hashlib
 
 from modules.scenario_sandbox import ScenarioSandbox
 from modules.insight_engine import generate_all_insights
@@ -55,6 +56,7 @@ class ScenarioSandboxUI:
                 portfolio_df = pd.read_csv(uploaded_file)
             else:
                 portfolio_df = pd.read_excel(uploaded_file)
+            portfolio_signature = self._portfolio_signature(portfolio_df)
 
             # Display portfolio summary
             with st.expander("📊 Portföy Özeti", expanded=False):
@@ -66,21 +68,20 @@ class ScenarioSandboxUI:
             # Main scenario interface
             st.markdown("---")
 
-            # Tab navigation
-            tab1, tab2, tab3 = st.tabs([
-                "🎯 Tek Senaryo",
-                "⚡ Stress Test",
-                "🎲 Monte Carlo VaR"
-            ])
+            scenario_view = st.radio(
+                "Scenario Sandbox View",
+                ["🎯 Tek Senaryo", "⚡ Stress Test", "🎲 Monte Carlo VaR"],
+                horizontal=True,
+                key="scenario_sandbox_view_nav",
+                label_visibility="collapsed"
+            )
 
-            with tab1:
-                self._render_single_scenario(portfolio_df)
-
-            with tab2:
-                self._render_stress_test(portfolio_df)
-
-            with tab3:
-                self._render_var_analysis(portfolio_df)
+            if scenario_view == "🎯 Tek Senaryo":
+                self._render_single_scenario(portfolio_df, portfolio_signature)
+            elif scenario_view == "⚡ Stress Test":
+                self._render_stress_test(portfolio_df, portfolio_signature)
+            else:
+                self._render_var_analysis(portfolio_df, portfolio_signature)
 
         else:
             st.info("👆 Portföy dosyanızı yükleyerek başlayın")
@@ -96,7 +97,11 @@ class ScenarioSandboxUI:
             ```
             """)
 
-    def _render_single_scenario(self, portfolio_df: pd.DataFrame):
+    def _portfolio_signature(self, portfolio_df: pd.DataFrame) -> str:
+        payload = pd.util.hash_pandas_object(portfolio_df.fillna(""), index=True).values.tobytes()
+        return hashlib.md5(payload).hexdigest()
+
+    def _render_single_scenario(self, portfolio_df: pd.DataFrame, portfolio_signature: str):
         """Render single scenario simulation interface"""
 
         st.markdown("### 🎯 Tek Senaryo Simülasyonu")
@@ -136,9 +141,17 @@ class ScenarioSandboxUI:
                         portfolio_df=portfolio_df,
                         scenario=scenario
                     )
+                    st.session_state["scenario_sandbox_single_result"] = {
+                        "portfolio_signature": portfolio_signature,
+                        "result_df": result_df.copy(),
+                        "scenario": scenario,
+                        "params": params,
+                    }
 
-                    # Display results
-                    self._display_scenario_results(result_df, scenario, params)
+        cached = st.session_state.get("scenario_sandbox_single_result")
+        if cached and cached.get("portfolio_signature") == portfolio_signature:
+            st.caption("Son çalıştırılan tek senaryo analizi gösteriliyor.")
+            self._display_scenario_results(cached["result_df"], cached["scenario"], cached["params"])
 
     def _render_scenario_parameters(self, scenario_type: str) -> Dict:
         """Render parameter inputs based on scenario type"""
@@ -351,7 +364,7 @@ class ScenarioSandboxUI:
             mime="text/csv"
         )
 
-    def _render_stress_test(self, portfolio_df: pd.DataFrame):
+    def _render_stress_test(self, portfolio_df: pd.DataFrame, portfolio_signature: str):
         """Render stress test interface"""
 
         st.markdown("### ⚡ Stress Test Analizi")
@@ -430,11 +443,20 @@ class ScenarioSandboxUI:
                         portfolio_df=portfolio_df,
                         scenario=scenario
                     )
+                    st.session_state["scenario_sandbox_stress_result"] = {
+                        "portfolio_signature": portfolio_signature,
+                        "result_df": result_df.copy(),
+                        "scenario": scenario,
+                        "params": selected["params"],
+                        "preset": scenario_preset,
+                    }
 
-                    # Display results
-                    self._display_scenario_results(result_df, scenario, selected['params'])
+        cached = st.session_state.get("scenario_sandbox_stress_result")
+        if cached and cached.get("portfolio_signature") == portfolio_signature:
+            st.caption(f"Son çalıştırılan stress test gösteriliyor: {cached.get('preset', 'Preset')}.")
+            self._display_scenario_results(cached["result_df"], cached["scenario"], cached["params"])
 
-    def _render_var_analysis(self, portfolio_df: pd.DataFrame):
+    def _render_var_analysis(self, portfolio_df: pd.DataFrame, portfolio_signature: str):
         """Render Monte Carlo VaR analysis interface"""
 
         st.markdown("### 🎲 Monte Carlo VaR Analizi")
@@ -480,9 +502,21 @@ class ScenarioSandboxUI:
                         confidence_level=confidence_level / 100,
                         time_horizon_days=time_horizon
                     )
+                    st.session_state["scenario_sandbox_var_result"] = {
+                        "portfolio_signature": portfolio_signature,
+                        "var_results": var_results,
+                        "confidence_level": confidence_level,
+                        "time_horizon": time_horizon,
+                    }
 
-                    # Display VaR results
-                    self._display_var_results(var_results, confidence_level, time_horizon)
+        cached = st.session_state.get("scenario_sandbox_var_result")
+        if cached and cached.get("portfolio_signature") == portfolio_signature:
+            st.caption("Son hesaplanan Monte Carlo VaR sonucu gösteriliyor.")
+            self._display_var_results(
+                cached["var_results"],
+                cached["confidence_level"],
+                cached["time_horizon"],
+            )
 
     def _display_var_results(self, var_results: Dict, confidence_level: int, time_horizon: int):
         """Display Monte Carlo VaR results"""

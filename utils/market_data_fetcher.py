@@ -47,6 +47,7 @@ class MarketDataFetcher:
         "EREGL.IS": {"price": 52.30, "name": "Eregli Demir Celik"},
         "ASELS.IS": {"price": 78.90, "name": "Aselsan"},
         "PETKM.IS": {"price": 12.40, "name": "Petkim"},
+        "MIATK.IS": {"price": 49.60, "name": "MIA Teknoloji"},
     }
 
     def __init__(self, cache_duration=300):
@@ -135,18 +136,26 @@ class MarketDataFetcher:
 
     def _get_fallback_info(self, symbol):
         """Get fallback info for a symbol"""
-        if symbol in self.TURKISH_STOCK_BASELINE:
-            baseline = self.TURKISH_STOCK_BASELINE[symbol]
+        symbol_upper = (symbol or "").upper()
+        if symbol_upper in self.TURKISH_STOCK_BASELINE:
+            baseline = self.TURKISH_STOCK_BASELINE[symbol_upper]
             return {
                 'longName': baseline['name'],
-                'symbol': symbol,
+                'symbol': symbol_upper,
                 'currency': 'TRY',
                 'marketCap': 0,
                 'currentPrice': baseline['price']
             }
+        if symbol_upper.endswith(".IS"):
+            return {
+                'longName': symbol_upper.replace(".IS", ""),
+                'symbol': symbol_upper,
+                'currency': 'TRY',
+                'marketCap': 0,
+            }
         return {
-            'longName': symbol,
-            'symbol': symbol,
+            'longName': symbol_upper or symbol,
+            'symbol': symbol_upper or symbol,
             'currency': 'USD',
             'marketCap': 0
         }
@@ -156,9 +165,13 @@ class MarketDataFetcher:
         Generate realistic fallback data based on baseline prices
         """
         # Get baseline price
-        if symbol in self.TURKISH_STOCK_BASELINE:
-            baseline = self.TURKISH_STOCK_BASELINE[symbol]
+        symbol_upper = (symbol or "").upper()
+        if symbol_upper in self.TURKISH_STOCK_BASELINE:
+            baseline = self.TURKISH_STOCK_BASELINE[symbol_upper]
             base_price = baseline['price']
+        elif symbol_upper.endswith(".IS"):
+            # Keep BIST fallback prices in a realistic TL band.
+            base_price = 20.0 + (abs(hash(symbol_upper)) % 1800) / 10.0
         else:
             base_price = 100.0
 

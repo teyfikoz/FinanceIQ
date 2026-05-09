@@ -36,35 +36,50 @@ class CycleAnalysisUI:
         </div>
         """, unsafe_allow_html=True)
 
-        # Get comprehensive analysis
-        with st.spinner('🔄 Analyzing market cycles...'):
-            analysis = self.engine.get_comprehensive_analysis()
+        cache_key = "cycle_analysis_cached_snapshot"
+        cached = st.session_state.get(cache_key)
+        if cached and isinstance(cached, dict):
+            cache_age = (datetime.utcnow() - cached["fetched_at"]).total_seconds()
+        else:
+            cache_age = None
+
+        if cached and cache_age is not None and cache_age < 900:
+            analysis = cached["analysis"]
+            st.caption("Using cached cycle snapshot from the last 15 minutes.")
+        else:
+            with st.spinner('🔄 Analyzing market cycles...'):
+                analysis = self.engine.get_comprehensive_analysis()
+            st.session_state[cache_key] = {
+                "analysis": analysis,
+                "fetched_at": datetime.utcnow(),
+            }
 
         # Top-level metrics
         self._render_top_metrics(analysis)
 
-        # Main content tabs
-        tab1, tab2, tab3, tab4, tab5 = st.tabs([
-            "🎯 Overview",
-            "📊 Cycle Wheel",
-            "📈 Timeline",
-            "💼 ETF Allocation",
-            "⚙️ Advanced"
-        ])
+        cycle_view = st.radio(
+            "Cycle Analysis View",
+            [
+                "🎯 Overview",
+                "📊 Cycle Wheel",
+                "📈 Timeline",
+                "💼 ETF Allocation",
+                "⚙️ Advanced"
+            ],
+            horizontal=True,
+            key="cycle_analysis_view_nav",
+            label_visibility="collapsed"
+        )
 
-        with tab1:
+        if cycle_view == "🎯 Overview":
             self._render_overview(analysis)
-
-        with tab2:
+        elif cycle_view == "📊 Cycle Wheel":
             self._render_cycle_wheel(analysis)
-
-        with tab3:
+        elif cycle_view == "📈 Timeline":
             self._render_timeline(analysis)
-
-        with tab4:
+        elif cycle_view == "💼 ETF Allocation":
             self._render_etf_recommendations(analysis)
-
-        with tab5:
+        else:
             self._render_advanced_analytics(analysis)
 
     def _render_top_metrics(self, analysis):
@@ -550,9 +565,15 @@ class CycleAnalysisUI:
         """Render advanced analytics and diagnostics"""
         st.markdown("### ⚙️ Advanced Analytics")
 
-        tab1, tab2, tab3 = st.tabs(["📊 Indicators", "🔬 Diagnostics", "📥 Export"])
+        advanced_view = st.radio(
+            "Advanced Analytics View",
+            ["📊 Indicators", "🔬 Diagnostics", "📥 Export"],
+            horizontal=True,
+            key="cycle_advanced_view_nav",
+            label_visibility="collapsed"
+        )
 
-        with tab1:
+        if advanced_view == "📊 Indicators":
             st.markdown("#### Raw Indicator Values")
 
             cycles = analysis['cycles']
@@ -581,8 +602,9 @@ class CycleAnalysisUI:
                 df_sent = pd.DataFrame([cycles['sentiment']['indicators']])
                 st.dataframe(df_sent, use_container_width=True)
 
-        with tab2:
+        elif advanced_view == "🔬 Diagnostics":
             st.markdown("#### 🔬 System Diagnostics")
+            cycles = analysis['cycles']
 
             st.json({
                 'timestamp': analysis['timestamp'].strftime('%Y-%m-%d %H:%M:%S'),
@@ -597,7 +619,7 @@ class CycleAnalysisUI:
                 }
             })
 
-        with tab3:
+        else:
             st.markdown("#### 📥 Export Analysis")
 
             st.info("Export functionality - coming soon")

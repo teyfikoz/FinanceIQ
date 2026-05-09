@@ -30,24 +30,26 @@ class ETFWeightTrackerUI:
         Ağırlık değişimlerini takip edin ve fon yöneticilerinin sinyallerini yakalayın.
         """)
 
-        # Tabs for different analyses
-        tab1, tab2, tab3, tab4 = st.tabs([
-            "🔍 Hisse Analizi",
-            "📈 Ağırlık Geçmişi",
-            "🎯 Fon Yöneticisi Sinyalleri",
-            "⚙️ Veri Yönetimi"
-        ])
+        tracker_view = st.radio(
+            "ETF Tracker View",
+            [
+                "🔍 Hisse Analizi",
+                "📈 Ağırlık Geçmişi",
+                "🎯 Fon Yöneticisi Sinyalleri",
+                "⚙️ Veri Yönetimi"
+            ],
+            horizontal=True,
+            key="etf_tracker_view_nav",
+            label_visibility="collapsed"
+        )
 
-        with tab1:
+        if tracker_view == "🔍 Hisse Analizi":
             self._render_stock_lookup()
-
-        with tab2:
+        elif tracker_view == "📈 Ağırlık Geçmişi":
             self._render_weight_history()
-
-        with tab3:
+        elif tracker_view == "🎯 Fon Yöneticisi Sinyalleri":
             self._render_manager_signals()
-
-        with tab4:
+        else:
             self._render_data_management()
 
     def _render_stock_lookup(self):
@@ -74,13 +76,33 @@ class ETFWeightTrackerUI:
             )
 
         if st.button("🔍 Analiz Et", type="primary", use_container_width=True, key="etf_weight_tracker___analiz_et"):
-            with st.spinner(f"{stock_symbol} için fon taraması yapılıyor..."):
-                self._display_stock_analysis(stock_symbol, min_weight)
+            holdings_df = self.tracker.get_funds_for_stock(stock_symbol, min_weight)
+            action_signal = self.tracker.detect_fund_manager_actions(stock_symbol)
+            st.session_state["etf_tracker_stock_lookup_state"] = {
+                "stock_symbol": stock_symbol,
+                "min_weight": min_weight,
+                "holdings_df": holdings_df.copy() if hasattr(holdings_df, "copy") else holdings_df,
+                "action_signal": action_signal,
+            }
+
+        state = st.session_state.get("etf_tracker_stock_lookup_state")
+        if state:
+            st.caption("Son çalıştırılan hisse analizi gösteriliyor.")
+            self._display_stock_analysis_payload(
+                state["stock_symbol"],
+                state["holdings_df"],
+                state["action_signal"],
+            )
 
     def _display_stock_analysis(self, stock_symbol: str, min_weight: float):
         """Display comprehensive stock analysis"""
         # Get funds holding this stock
         holdings_df = self.tracker.get_funds_for_stock(stock_symbol, min_weight)
+        action_signal = self.tracker.detect_fund_manager_actions(stock_symbol)
+        self._display_stock_analysis_payload(stock_symbol, holdings_df, action_signal)
+
+    def _display_stock_analysis_payload(self, stock_symbol: str, holdings_df: pd.DataFrame, action_signal: dict):
+        """Render stock analysis from precomputed payload."""
 
         if len(holdings_df) == 0:
             st.warning(f"⚠️ {stock_symbol} için veri bulunamadı. Veri tabanını güncelleyin (Veri Yönetimi sekmesi).")
@@ -120,11 +142,15 @@ class ETFWeightTrackerUI:
             hide_index=True
         )
 
-        # Visualization
-        col1, col2 = st.columns(2)
+        chart_view = st.radio(
+            "ETF Visualization View",
+            ["📊 Weight Bars", "🗺️ Treemap"],
+            horizontal=True,
+            key=f"etf_tracker_chart_view_{stock_symbol}",
+            label_visibility="collapsed"
+        )
 
-        with col1:
-            # Bar chart
+        if chart_view == "📊 Weight Bars":
             fig_bar = px.bar(
                 holdings_df.nlargest(15, 'weight_pct'),
                 x='weight_pct',
@@ -137,9 +163,7 @@ class ETFWeightTrackerUI:
             )
             fig_bar.update_layout(showlegend=False, height=500)
             st.plotly_chart(fig_bar, use_container_width=True)
-
-        with col2:
-            # Treemap
+        else:
             fig_tree = px.treemap(
                 holdings_df.nlargest(20, 'weight_pct'),
                 path=['fund_code'],
@@ -151,9 +175,7 @@ class ETFWeightTrackerUI:
             fig_tree.update_layout(height=500)
             st.plotly_chart(fig_tree, use_container_width=True)
 
-        # Fund manager action detection
         st.markdown("### 🎯 Fon Yöneticisi Sinyali")
-        action_signal = self.tracker.detect_fund_manager_actions(stock_symbol)
 
         signal_color = {
             'BULLISH': '🟢',
@@ -259,12 +281,29 @@ class ETFWeightTrackerUI:
                 fund_code = None
 
         if fund_code and st.button("📊 Geçmişi Göster", type="primary", use_container_width=True, key="etf_weight_tracker___ge_mi_i_g_ster"):
-            with st.spinner("Tarihsel veriler yükleniyor..."):
-                self._display_weight_history(stock_symbol, fund_code)
+            history_df = self.tracker.get_weight_history(stock_symbol, fund_code)
+            st.session_state["etf_tracker_weight_history_state"] = {
+                "stock_symbol": stock_symbol,
+                "fund_code": fund_code,
+                "history_df": history_df.copy() if hasattr(history_df, "copy") else history_df,
+            }
+
+        history_state = st.session_state.get("etf_tracker_weight_history_state")
+        if history_state:
+            st.caption("Son çalıştırılan ağırlık geçmişi analizi gösteriliyor.")
+            self._display_weight_history_payload(
+                history_state["stock_symbol"],
+                history_state["fund_code"],
+                history_state["history_df"],
+            )
 
     def _display_weight_history(self, stock_symbol: str, fund_code: str):
         """Display weight history chart"""
         history_df = self.tracker.get_weight_history(stock_symbol, fund_code)
+        self._display_weight_history_payload(stock_symbol, fund_code, history_df)
+
+    def _display_weight_history_payload(self, stock_symbol: str, fund_code: str, history_df: pd.DataFrame):
+        """Render weight history from precomputed payload."""
 
         if len(history_df) == 0:
             st.warning("Bu hisse-fon kombinasyonu için geçmiş veri yok.")
@@ -413,12 +452,23 @@ class ETFWeightTrackerUI:
         """)
 
         if st.button("🔍 En Aktif Hisseleri Bul", type="primary", use_container_width=True, key="etf_weight_tracker___en_aktif_hisseleri_bul"):
-            with st.spinner("Fon hareketleri analiz ediliyor..."):
-                self._display_top_changes()
+            changes_df = self.tracker.get_top_weight_changes(period_days=30, limit=30)
+            st.session_state["etf_tracker_manager_signals_state"] = {
+                "changes_df": changes_df.copy() if hasattr(changes_df, "copy") else changes_df,
+            }
+
+        signals_state = st.session_state.get("etf_tracker_manager_signals_state")
+        if signals_state:
+            st.caption("Son çalıştırılan fon yöneticisi sinyal analizi gösteriliyor.")
+            self._display_top_changes_payload(signals_state["changes_df"])
 
     def _display_top_changes(self):
         """Display stocks with biggest weight changes"""
         changes_df = self.tracker.get_top_weight_changes(period_days=30, limit=30)
+        self._display_top_changes_payload(changes_df)
+
+    def _display_top_changes_payload(self, changes_df: pd.DataFrame):
+        """Render manager signal changes from precomputed payload."""
 
         if len(changes_df) == 0:
             st.warning("⚠️ Yeterli veri yok. Lütfen veri tabanını güncelleyin.")

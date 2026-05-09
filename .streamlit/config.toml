@@ -8,15 +8,15 @@ maxUploadSize = 200
 gatherUsageStats = false
 
 [theme]
-base = "dark"
-primaryColor = "#00c3ff"
-backgroundColor = "#0b1020"
-secondaryBackgroundColor = "#111827"
-textColor = "#e5e7eb"
+base = "light"
+primaryColor = "#0F766E"
+backgroundColor = "#F8FAFC"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#0F172A"
 font = "sans serif"
 
 [theme.sidebar]
-backgroundColor = "#0f172a"
-secondaryBackgroundColor = "#111827"
-textColor = "#e5e7eb"
-primaryColor = "#00c3ff"
+backgroundColor = "#F8FAFC"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#0F172A"
+primaryColor = "#0F766E"

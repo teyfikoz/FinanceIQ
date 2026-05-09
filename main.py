@@ -15,6 +15,7 @@ from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 import time
 import os
+import importlib
 import threading
 import warnings
 import logging
@@ -48,138 +49,39 @@ from utils.secret_utils import get_secret
 # Load local .env if present (dev convenience)
 load_dotenv()
 
-# Import Game Changer Features - Phase 1
-from app.analytics.social_features import SocialFeatures
-from app.analytics.visualization_tools import VisualizationTools
-from app.analytics.ai_lite_tools import AILiteTools
-from app.ui.export_tools import ExportTools
+# Lazy-loaded advanced module registry
+PHASE_3_4_MODULE_PATHS = {
+    "portfolio_health_ui": ("modules.portfolio_health_ui", "PortfolioHealthUI"),
+    "etf_weight_tracker_ui": ("modules.etf_weight_tracker_ui", "ETFWeightTrackerUI"),
+    "scenario_sandbox_ui": ("modules.scenario_sandbox_ui", "ScenarioSandboxUI"),
+    "fund_flow_radar_ui": ("modules.fund_flow_radar_ui", "FundFlowRadarUI"),
+    "whale_investor_analytics_ui": ("modules.whale_investor_analytics_ui", "WhaleInvestorAnalyticsUI"),
+    "whale_correlation_ui": ("modules.whale_correlation_ui", "WhaleCorrelationUI"),
+    "whale_momentum_tracker_ui": ("modules.whale_momentum_tracker_ui", "WhaleMomentumTrackerUI"),
+    "etf_whale_linkage_ui": ("modules.etf_whale_linkage_ui", "ETFWhaleLinkageUI"),
+    "hedge_fund_activity_radar_ui": ("modules.hedge_fund_activity_radar_ui", "HedgeFundActivityRadarUI"),
+    "institutional_event_reaction_lab_ui": ("modules.institutional_event_reaction_lab_ui", "InstitutionalEventReactionLabUI"),
+    "cycle_analysis_ui": ("modules.cycle_analysis_ui", "create_cycle_intelligence_ui"),
+    "tefas_portfolio_analysis_ui": ("modules.tefas_portfolio_analysis_ui", "create_tefas_portfolio_analysis_ui"),
+}
 
-# Import Phase 3-4 Advanced Institutional Analytics (NEW!)
-PHASE_3_4_AVAILABLE = False
-PHASE_3_4_ERROR = None
-PHASE_3_4_MODULES = {}
-
-print("🔍 Starting Phase 3-4 module imports...")
-
-try:
-    from modules.portfolio_health_ui import PortfolioHealthUI
-    PHASE_3_4_MODULES['portfolio_health_ui'] = True
-    print("✅ portfolio_health_ui loaded")
-except Exception as e:
-    PHASE_3_4_MODULES['portfolio_health_ui'] = str(e)
-    print(f"❌ portfolio_health_ui: {e}")
-
-try:
-    from modules.etf_weight_tracker_ui import ETFWeightTrackerUI
-    PHASE_3_4_MODULES['etf_weight_tracker_ui'] = True
-    print("✅ etf_weight_tracker_ui loaded")
-except Exception as e:
-    PHASE_3_4_MODULES['etf_weight_tracker_ui'] = str(e)
-    print(f"❌ etf_weight_tracker_ui: {e}")
-
-try:
-    from modules.scenario_sandbox_ui import ScenarioSandboxUI
-    PHASE_3_4_MODULES['scenario_sandbox_ui'] = True
-    print("✅ scenario_sandbox_ui loaded")
-except Exception as e:
-    PHASE_3_4_MODULES['scenario_sandbox_ui'] = str(e)
-    print(f"❌ scenario_sandbox_ui: {e}")
-
-try:
-    from modules.fund_flow_radar_ui import FundFlowRadarUI
-    PHASE_3_4_MODULES['fund_flow_radar_ui'] = True
-    print("✅ fund_flow_radar_ui loaded")
-except Exception as e:
-    PHASE_3_4_MODULES['fund_flow_radar_ui'] = str(e)
-    print(f"❌ fund_flow_radar_ui: {e}")
-
-try:
-    from modules.whale_investor_analytics_ui import WhaleInvestorAnalyticsUI
-    PHASE_3_4_MODULES['whale_investor_analytics_ui'] = True
-    print("✅ whale_investor_analytics_ui loaded")
-except Exception as e:
-    PHASE_3_4_MODULES['whale_investor_analytics_ui'] = str(e)
-    print(f"❌ whale_investor_analytics_ui: {e}")
-
-try:
-    from modules.whale_correlation_ui import WhaleCorrelationUI
-    PHASE_3_4_MODULES['whale_correlation_ui'] = True
-    print("✅ whale_correlation_ui loaded")
-except Exception as e:
-    PHASE_3_4_MODULES['whale_correlation_ui'] = str(e)
-    print(f"❌ whale_correlation_ui: {e}")
-
-try:
-    from modules.whale_momentum_tracker_ui import WhaleMomentumTrackerUI
-    PHASE_3_4_MODULES['whale_momentum_tracker_ui'] = True
-    print("✅ whale_momentum_tracker_ui loaded")
-except Exception as e:
-    PHASE_3_4_MODULES['whale_momentum_tracker_ui'] = str(e)
-    print(f"❌ whale_momentum_tracker_ui: {e}")
-
-try:
-    from modules.etf_whale_linkage_ui import ETFWhaleLinkageUI
-    PHASE_3_4_MODULES['etf_whale_linkage_ui'] = True
-    print("✅ etf_whale_linkage_ui loaded")
-except Exception as e:
-    PHASE_3_4_MODULES['etf_whale_linkage_ui'] = str(e)
-    print(f"❌ etf_whale_linkage_ui: {e}")
-
-try:
-    from modules.hedge_fund_activity_radar_ui import HedgeFundActivityRadarUI
-    PHASE_3_4_MODULES['hedge_fund_activity_radar_ui'] = True
-    print("✅ hedge_fund_activity_radar_ui loaded")
-except Exception as e:
-    PHASE_3_4_MODULES['hedge_fund_activity_radar_ui'] = str(e)
-    print(f"❌ hedge_fund_activity_radar_ui: {e}")
-
-try:
-    from modules.institutional_event_reaction_lab_ui import InstitutionalEventReactionLabUI
-    PHASE_3_4_MODULES['institutional_event_reaction_lab_ui'] = True
-    print("✅ institutional_event_reaction_lab_ui loaded")
-except Exception as e:
-    PHASE_3_4_MODULES['institutional_event_reaction_lab_ui'] = str(e)
-    print(f"❌ institutional_event_reaction_lab_ui: {e}")
-
-try:
-    from modules.cycle_analysis_ui import create_cycle_intelligence_ui
-    PHASE_3_4_MODULES['cycle_analysis_ui'] = True
-    print("✅ cycle_analysis_ui loaded")
-except Exception as e:
-    PHASE_3_4_MODULES['cycle_analysis_ui'] = str(e)
-    print(f"❌ cycle_analysis_ui: {e}")
-
-try:
-    from modules.tefas_portfolio_analysis_ui import create_tefas_portfolio_analysis_ui
-    PHASE_3_4_MODULES['tefas_portfolio_analysis_ui'] = True
-    print("✅ tefas_portfolio_analysis_ui loaded")
-except Exception as e:
-    PHASE_3_4_MODULES['tefas_portfolio_analysis_ui'] = str(e)
-    print(f"❌ tefas_portfolio_analysis_ui: {e}")
-
-# Check if all modules loaded
-success_count = sum(1 for v in PHASE_3_4_MODULES.values() if v is True)
-total_count = len(PHASE_3_4_MODULES)
-
-if success_count == total_count:
-    PHASE_3_4_AVAILABLE = True
-    print(f"✅ All {total_count} Phase 3-4 modules loaded successfully!")
-else:
-    failed = [k for k, v in PHASE_3_4_MODULES.items() if v is not True]
-    PHASE_3_4_ERROR = f"{success_count}/{total_count} modules loaded. Failed: {', '.join(failed)}"
-    print(f"❌ {PHASE_3_4_ERROR}")
+# Configure app settings before page boot
+APP_CONFIG = get_app_config()
+APP_DISPLAY_NAME = APP_CONFIG.app_display_name
+PUBLIC_APP_URL = APP_CONFIG.public_app_url
+PUBLIC_APP_HOST = APP_CONFIG.public_app_host
+SUPPORT_EMAIL = APP_CONFIG.support_email
 
 # Configure Streamlit page
 st.set_page_config(
-    page_title="FinanceIQ | AI-Powered Financial Analysis Platform",
+    page_title=f"{APP_DISPLAY_NAME} | AI-Powered Financial Analysis Platform",
     page_icon="🧠",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Configure logging and app settings
+# Configure logging
 configure_logging()
-APP_CONFIG = get_app_config()
 
 # Initialize database and demo user on first run
 @st.cache_resource
@@ -217,40 +119,197 @@ if APP_CONFIG.require_auth:
 else:
     print("🚀 Direct access mode - no authentication required")
 
-# Professional CSS styling
+# Global FundPilot design system styling
 st.markdown("""
 <style>
-    .main { padding: 0rem 1rem; }
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 4px;
-        background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
-        border-radius: 10px;
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
+
+    :root {
+        --fp-ink: #0F172A;
+        --fp-slate: #475569;
+        --fp-border: #CBD5E1;
+        --fp-canvas: #F8FAFC;
+        --fp-panel: #FFFFFF;
+        --fp-accent: #0F766E;
+        --fp-accent-strong: #115E59;
+        --fp-positive: #15803D;
+        --fp-negative: #B91C1C;
+        --fp-watch: #B45309;
+        --fp-info: #1D4ED8;
+        --fp-gold: #B8891F;
+    }
+
+    html, body, [class*="css"] {
+        font-family: "IBM Plex Sans", sans-serif;
+    }
+
+    .stApp {
+        background:
+            radial-gradient(circle at top right, rgba(15, 118, 110, 0.07), transparent 28%),
+            radial-gradient(circle at top left, rgba(29, 78, 216, 0.05), transparent 26%),
+            var(--fp-canvas);
+        color: var(--fp-ink);
+    }
+
+    .main .block-container {
+        padding: 1rem 1.25rem 2rem 1.25rem;
+        max-width: 1480px;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: "Space Grotesk", sans-serif !important;
+        color: var(--fp-ink) !important;
+        letter-spacing: -0.02em;
+    }
+
+    p, li, label, .stMarkdown, .stText, .stCaption {
+        color: var(--fp-slate) !important;
+    }
+
+    .fp-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #143b64 52%, #0f766e 100%);
+        color: #f8fafc;
+        border-radius: 24px;
+        padding: 1.4rem 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .fp-hero p, .fp-hero h1, .fp-hero h2, .fp-hero h3, .fp-hero span, .fp-hero div {
+        color: #f8fafc !important;
+    }
+
+    .fp-kicker {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        opacity: 0.84;
+        margin-bottom: 0.35rem;
+    }
+
+    .fp-nav-label {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--fp-slate);
+        margin: 0.35rem 0 0.55rem 0;
+    }
+
+    .stRadio > div {
+        gap: 0.45rem;
+    }
+
+    .stRadio [role="radiogroup"] {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        background: var(--fp-panel);
+        border: 1px solid var(--fp-border);
+        border-radius: 16px;
         padding: 0.5rem;
-        flex-wrap: wrap !important;
-        max-height: none !important;
-        overflow: visible !important;
     }
-    .stTabs [data-baseweb="tab"] {
-        background: rgba(255,255,255,0.1);
-        border-radius: 6px;
-        color: white;
+
+    .stRadio [role="radio"] {
+        background: #edf2f7;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        padding: 0.38rem 0.78rem;
+        min-height: auto;
+    }
+
+    .stRadio [role="radio"][aria-checked="true"] {
+        background: var(--fp-ink);
+        border-color: var(--fp-ink);
+    }
+
+    .stRadio [role="radio"] div, .stRadio [role="radio"] p {
+        color: var(--fp-ink) !important;
         font-weight: 600;
-        padding: 0.4rem 0.8rem !important;
-        font-size: 0.85rem !important;
-        white-space: nowrap;
-        flex-shrink: 0;
+        font-size: 0.9rem;
     }
+
+    .stRadio [role="radio"][aria-checked="true"] div,
+    .stRadio [role="radio"][aria-checked="true"] p {
+        color: #f8fafc !important;
+    }
+
+    div[data-testid="stMetric"] {
+        background: var(--fp-panel);
+        border: 1px solid var(--fp-border);
+        border-radius: 16px;
+        padding: 0.9rem 1rem;
+        box-shadow: none;
+    }
+
+    div[data-testid="stMetric"] label,
+    div[data-testid="stMetricLabel"] {
+        color: var(--fp-slate) !important;
+        font-weight: 600;
+    }
+
+    div[data-testid="stMetricValue"] {
+        color: var(--fp-ink) !important;
+        font-weight: 700;
+    }
+
+    div[data-testid="stMetricDelta"] {
+        color: var(--fp-accent) !important;
+        font-weight: 600;
+    }
+
+    .stButton > button {
+        background: var(--fp-accent);
+        color: #f8fafc;
+        border: 1px solid var(--fp-accent);
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 0.5rem 0.95rem;
+    }
+
+    .stButton > button:hover {
+        background: var(--fp-accent-strong);
+        border-color: var(--fp-accent-strong);
+        color: #f8fafc;
+    }
+
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 0.5rem;
+        background: var(--fp-panel);
+        border: 1px solid var(--fp-border);
+        border-radius: 14px;
+        padding: 0.45rem;
+        flex-wrap: wrap !important;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        background: #edf2f7;
+        border-radius: 10px;
+        color: var(--fp-ink);
+        font-weight: 600;
+        padding: 0.38rem 0.8rem !important;
+        font-size: 0.88rem !important;
+        border: 1px solid transparent;
+    }
+
     .stTabs [aria-selected="true"] {
-        background: rgba(255,255,255,0.3) !important;
+        background: var(--fp-ink) !important;
+        color: #f8fafc !important;
+        border-color: var(--fp-ink) !important;
     }
-    .metric-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin: 0.5rem 0;
-        color: white;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+
+    [data-testid="stDataFrame"], .stTable {
+        background: var(--fp-panel);
+        border: 1px solid var(--fp-border);
+        border-radius: 16px;
+        overflow: hidden;
     }
+
+    [data-testid="stExpander"] {
+        border: 1px solid var(--fp-border);
+        border-radius: 14px;
+        background: rgba(255,255,255,0.7);
+    }
+
     .status-indicator {
         width: 10px;
         height: 10px;
@@ -259,13 +318,62 @@ st.markdown("""
         margin-right: 8px;
         animation: pulse 2s infinite;
     }
-    .status-live { background: #00ff00; }
-    .status-delayed { background: #ffa500; }
-    .status-error { background: #ff0000; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-    .sidebar .sidebar-content { background: linear-gradient(180deg, #2c3e50 0%, #3498db 100%); }
+
+    .status-live { background: var(--fp-positive); }
+    .status-delayed { background: var(--fp-watch); }
+    .status-error { background: var(--fp-negative); }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.45; }
+    }
+
+    .fp-footer {
+        text-align: center;
+        color: var(--fp-slate);
+        padding: 18px 0 6px 0;
+        font-size: 0.92rem;
+    }
 </style>
 """, unsafe_allow_html=True)
+
+
+@st.cache_resource(show_spinner=False)
+def _cached_import_attr(module_path: str, attr_name: str):
+    module = importlib.import_module(module_path)
+    return getattr(module, attr_name)
+
+
+def _get_phase_3_4_status_store():
+    if "phase_3_4_module_status" not in st.session_state:
+        st.session_state.phase_3_4_module_status = {
+            key: "not_loaded" for key in PHASE_3_4_MODULE_PATHS
+        }
+    return st.session_state.phase_3_4_module_status
+
+
+def load_phase_3_4_module(module_key: str):
+    status_store = _get_phase_3_4_status_store()
+    module_path, attr_name = PHASE_3_4_MODULE_PATHS[module_key]
+    try:
+        loaded = _cached_import_attr(module_path, attr_name)
+        status_store[module_key] = True
+        return loaded
+    except Exception as exc:
+        status_store[module_key] = str(exc)
+        return None
+
+
+def load_phase_3_4_modules(module_keys):
+    loaded_modules = {}
+    status_store = _get_phase_3_4_status_store()
+    for module_key in module_keys:
+        loaded_modules[module_key] = load_phase_3_4_module(module_key)
+
+    available = all(status_store.get(module_key) is True for module_key in module_keys)
+    failed = [module_key for module_key in module_keys if status_store.get(module_key) is not True]
+    error = None if available else ", ".join(f"{module_key}: {status_store.get(module_key)}" for module_key in failed)
+    return loaded_modules, available, error, status_store.copy()
 
 # Global data cache with rate limiting protection
 @st.cache_data(ttl=300)  # 5-minute cache to reduce API calls
@@ -1177,26 +1285,482 @@ def get_social_media_sentiment(symbol):
     return social_data.get(symbol, None)
 
 def create_header():
-    """Create professional header with live status"""
-    col1, col2, col3 = st.columns([2, 1, 1])
+    """Create editorial-style FundPilot header."""
+    current_time = datetime.now().strftime("%H:%M:%S")
+    st.markdown(
+        f"""
+        <div class="fp-hero">
+            <div style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:flex-start;">
+                <div style="min-width:280px; flex:2;">
+                    <div class="fp-kicker">Open Market Intelligence Workspace</div>
+                    <h1 style="margin:0;">🧠 {APP_DISPLAY_NAME}</h1>
+                    <p style="margin:0.6rem 0 0 0; font-size:1rem; line-height:1.55;">
+                        Fast market orientation, Turkish fund intelligence, institutional tracking and AI-assisted research in one workspace.
+                    </p>
+                </div>
+                <div style="min-width:260px; flex:1; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:16px; padding:1rem;">
+                    <div style="display:flex; justify-content:space-between; gap:0.6rem; flex-wrap:wrap;">
+                        <div>
+                            <div class="fp-kicker" style="margin-bottom:0.2rem;">Primary Host</div>
+                            <div style="font-weight:700;">{PUBLIC_APP_HOST}</div>
+                        </div>
+                        <div>
+                            <div class="fp-kicker" style="margin-bottom:0.2rem;">Status</div>
+                            <div><span class="status-indicator status-live"></span>Live</div>
+                        </div>
+                        <div>
+                            <div class="fp-kicker" style="margin-bottom:0.2rem;">Clock</div>
+                            <div>🕐 {current_time}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    with col1:
-        st.markdown("# 🧠 FinanceIQ")
-        st.markdown("*AI-Powered Financial Analysis Platform*")
 
-    with col2:
-        status_html = '<span class="status-indicator status-live"></span>Live Data'
-        st.markdown(f'<div style="text-align: center; margin-top: 20px;">{status_html}</div>',
-                   unsafe_allow_html=True)
+WORKSPACE_GROUPS = {
+    "Market Desk": [
+        "🎯 Dashboard",
+        "🇹🇷 Turkish Markets",
+        "📊 ETFs & Funds",
+        "🏛️ Institutional",
+        "📊 Crypto Dominance",
+        "🎲 Entropy Analysis",
+        "🌀 Cycle Intelligence",
+    ],
+    "Research": [
+        "🔍 Stock Research",
+        "📡 Screener",
+        "🧪 Strategy Lab",
+        "🤖 AI Tools",
+        "🐋 Whale Intelligence",
+    ],
+    "Workspace": [
+        "💼 Portfolio",
+        "👁️ Watchlist",
+        "🔔 Alerts",
+        "🔒 Privacy",
+        "🎓 Education",
+    ],
+}
 
-    with col3:
-        current_time = datetime.now().strftime("%H:%M:%S")
-        st.markdown(f'<div style="text-align: center; margin-top: 20px;">🕐 {current_time}</div>',
-                   unsafe_allow_html=True)
+PRIMARY_WORKSPACES = [workspace for group in WORKSPACE_GROUPS.values() for workspace in group]
+
+WORKSPACE_DESCRIPTIONS = {
+    "🎯 Dashboard": "Fast market orientation, top signals and macro context in one screen.",
+    "🔍 Stock Research": "Single-instrument research with overview, technicals, dividends and fundamentals.",
+    "📡 Screener": "Filter stocks quickly across major markets with predefined or custom criteria.",
+    "🧪 Strategy Lab": "Backtesting and indicator lab for tactical experimentation.",
+    "📊 ETFs & Funds": "ETF, sovereign fund and macro allocation views.",
+    "🏛️ Institutional": "Institutional ownership, flow structure and thematic positioning.",
+    "🇹🇷 Turkish Markets": "BIST and TEFAS intelligence with local-market differentiation.",
+    "🤖 AI Tools": "Narrative, visualization and export workflows powered by AI utilities.",
+    "🎓 Education": "Glossary, explainers and concept-first learning modules.",
+    "🐋 Whale Intelligence": "Deep institutional analytics and advanced professional workflows.",
+    "🎲 Entropy Analysis": "Market complexity and uncertainty-focused signal interpretation.",
+    "📊 Crypto Dominance": "Crypto regime and dominance intelligence.",
+    "🌀 Cycle Intelligence": "Cycle-aware macro and market phase interpretation.",
+    "💼 Portfolio": "Portfolio tracking, health and management workflows.",
+    "👁️ Watchlist": "Monitor symbols, ideas and setup candidates.",
+    "🔔 Alerts": "Price-triggered and monitoring workflows.",
+    "🔒 Privacy": "Privacy posture, settings and safe-usage controls.",
+}
+
+WORKSPACE_SLUGS = {
+    "🎯 Dashboard": "dashboard",
+    "🔍 Stock Research": "stock-research",
+    "📡 Screener": "screener",
+    "🧪 Strategy Lab": "strategy-lab",
+    "📊 ETFs & Funds": "etfs-funds",
+    "🏛️ Institutional": "institutional",
+    "🇹🇷 Turkish Markets": "turkish-markets",
+    "🤖 AI Tools": "ai-tools",
+    "🎓 Education": "education",
+    "🐋 Whale Intelligence": "whale-intelligence",
+    "🎲 Entropy Analysis": "entropy-analysis",
+    "📊 Crypto Dominance": "crypto-dominance",
+    "🌀 Cycle Intelligence": "cycle-intelligence",
+    "💼 Portfolio": "portfolio",
+    "👁️ Watchlist": "watchlist",
+    "🔔 Alerts": "alerts",
+    "🔒 Privacy": "privacy",
+}
+
+WORKSPACE_BEST_FOR = {
+    "🎯 Dashboard": "morning brief",
+    "🔍 Stock Research": "single-stock deep dive",
+    "📡 Screener": "idea discovery",
+    "🧪 Strategy Lab": "testing setups",
+    "📊 ETFs & Funds": "allocation checks",
+    "🏛️ Institutional": "ownership context",
+    "🇹🇷 Turkish Markets": "local market edge",
+    "🤖 AI Tools": "memo and export workflows",
+    "🎓 Education": "learning mode",
+    "🐋 Whale Intelligence": "pro-level institutional work",
+    "🎲 Entropy Analysis": "uncertainty analysis",
+    "📊 Crypto Dominance": "crypto regime checks",
+    "🌀 Cycle Intelligence": "macro cycle context",
+    "💼 Portfolio": "portfolio control",
+    "👁️ Watchlist": "monitoring ideas",
+    "🔔 Alerts": "notifications",
+    "🔒 Privacy": "safe usage settings",
+}
+
+SLUG_TO_WORKSPACE = {slug: workspace for workspace, slug in WORKSPACE_SLUGS.items()}
+
+
+def _workspace_group_for(workspace: str) -> str:
+    for group_name, workspaces in WORKSPACE_GROUPS.items():
+        if workspace in workspaces:
+            return group_name
+    return list(WORKSPACE_GROUPS.keys())[0]
+
+
+def _read_workspace_from_query_params():
+    try:
+        query_value = st.query_params.get("view")
+    except Exception:
+        return None
+
+    if isinstance(query_value, list):
+        query_value = query_value[0] if query_value else None
+    if not query_value:
+        return None
+    return SLUG_TO_WORKSPACE.get(str(query_value))
+
+
+def _set_workspace_query_param(workspace: str):
+    try:
+        st.query_params["view"] = WORKSPACE_SLUGS.get(workspace, "dashboard")
+    except Exception:
+        pass
+
+
+def render_primary_navigation() -> str:
+    """Render a grouped navigation shell with query-param deep-link support."""
+    query_workspace = _read_workspace_from_query_params()
+    if query_workspace and st.session_state.get("primary_workspace_nav") != query_workspace:
+        st.session_state.primary_workspace_nav = query_workspace
+
+    active_workspace = st.session_state.get("primary_workspace_nav", "🎯 Dashboard")
+    if active_workspace not in PRIMARY_WORKSPACES:
+        active_workspace = "🎯 Dashboard"
+        st.session_state.primary_workspace_nav = active_workspace
+
+    active_group = _workspace_group_for(active_workspace)
+    if st.session_state.get("workspace_group_nav") != active_group:
+        st.session_state.workspace_group_nav = active_group
+
+    with st.sidebar:
+        st.markdown("---")
+        st.markdown("### 🧭 Navigation")
+        selected_group = st.radio(
+            "Section",
+            list(WORKSPACE_GROUPS.keys()),
+            key="workspace_group_nav",
+            label_visibility="collapsed",
+        )
+
+        group_pages = WORKSPACE_GROUPS[selected_group]
+        if active_workspace not in group_pages:
+            active_workspace = group_pages[0]
+
+        if st.session_state.get("workspace_page_nav") not in group_pages:
+            st.session_state.workspace_page_nav = active_workspace
+
+        selected_workspace = st.selectbox(
+            "Page",
+            group_pages,
+            key="workspace_page_nav",
+        )
+
+        st.caption(WORKSPACE_DESCRIPTIONS.get(selected_workspace, ""))
+        st.markdown("---")
+        st.markdown("### ⚡ Quick Routes")
+
+        quick_route_cols = st.columns(2)
+        quick_routes = [
+            "🎯 Dashboard",
+            "🔍 Stock Research",
+            "🇹🇷 Turkish Markets",
+            "🐋 Whale Intelligence",
+        ]
+        for idx, quick_workspace in enumerate(quick_routes):
+            with quick_route_cols[idx % 2]:
+                if st.button(quick_workspace, key=f"quick_route_{idx}", use_container_width=True):
+                    selected_workspace = quick_workspace
+                    st.session_state.workspace_group_nav = _workspace_group_for(selected_workspace)
+                    st.session_state.workspace_page_nav = selected_workspace
+
+        st.markdown("---")
+        st.markdown("### Performance")
+        st.checkbox(
+            "Performance Mode",
+            key="fp_performance_mode",
+            help="Reduces simultaneous visual rendering in heavy workspaces for faster navigation.",
+        )
+        if st.session_state.get("fp_performance_mode"):
+            st.caption("Streamlined rendering is active for supported views.")
+
+    st.session_state.primary_workspace_nav = selected_workspace
+    _set_workspace_query_param(selected_workspace)
+
+    st.markdown(
+        f"""
+        <div style="background:#ffffff; border:1px solid #CBD5E1; border-radius:16px; padding:1rem 1.1rem; margin-bottom:1rem;">
+            <div class="fp-kicker" style="color:#475569 !important;">{_workspace_group_for(selected_workspace)}</div>
+            <div style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:flex-start;">
+                <div style="min-width:260px; flex:2;">
+                    <h3 style="margin:0;">{selected_workspace}</h3>
+                    <p style="margin:0.4rem 0 0 0;">{WORKSPACE_DESCRIPTIONS.get(selected_workspace, '')}</p>
+                </div>
+                <div style="min-width:180px; flex:1;">
+                    <div class="fp-kicker" style="color:#475569 !important;">Best For</div>
+                    <div style="font-weight:700; color:#0F172A;">{WORKSPACE_BEST_FOR.get(selected_workspace, 'general use')}</div>
+                </div>
+            </div>
+            <div style="margin-top:0.8rem; font-size:0.9rem; color:#475569;">
+                Performance Mode: {"On" if st.session_state.get("fp_performance_mode") else "Off"}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    return selected_workspace
+
+
+def render_footer():
+    st.markdown(
+        f"""
+        <div class='fp-footer'>
+            🧠 {APP_DISPLAY_NAME} | editorial market desk for fast orientation<br>
+            Primary host: {PUBLIC_APP_HOST} | Support: {SUPPORT_EMAIL}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+@st.cache_data(ttl=900, show_spinner=False)
+def get_landing_signal_snapshot():
+    """Create a lightweight, public-facing playbook context for the landing area."""
+    from modules.tr_funds_launchpad_ui import get_tr_top_pick
+
+    market_data = get_market_data_safe(["^VIX", "BTC-USD", "TRY=X"])
+    vix_value = float(market_data.get("^VIX", {}).get("price", 0) or 0)
+    btc_change = float(market_data.get("BTC-USD", {}).get("change", 0) or 0)
+    usdtry_value = float(market_data.get("TRY=X", {}).get("price", 0) or 0)
+    usdtry_change = float(market_data.get("TRY=X", {}).get("change", 0) or 0)
+
+    if vix_value and vix_value >= 28:
+        setup_title = "Risk-Off"
+        setup_note = "Volatility is elevated. Start with Dashboard and Institutional tabs before chasing local momentum."
+    elif vix_value and vix_value < 16 and btc_change >= 0:
+        setup_title = "Risk-On"
+        setup_note = "Calmer volatility and supportive crypto tone favor faster rotation checks and tactical follow-through."
+    elif btc_change >= 2:
+        setup_title = "Momentum Watch"
+        setup_note = "Cross-asset momentum is active. Validate continuation with sector rotation and whale flow before acting."
+    else:
+        setup_title = "Balanced"
+        setup_note = "Mixed tape. Use the dashboard for context, then move to TR funds or institutional tabs for sharper edges."
+
+    top_pick = get_tr_top_pick(12)
+    if top_pick:
+        if float(top_pick.get("signal_score", 0) or 0) >= 75 and setup_title != "Risk-Off":
+            route_title = "Open Turkish Markets First"
+            route_note = f"{top_pick.get('fund_code', 'Top TR fund')} is leading the current peer board and deserves the first deep dive."
+        elif setup_title == "Risk-Off":
+            route_title = "Start with Institutional Read"
+            route_note = "When volatility is high, use whale and ETF tabs first, then confirm whether local fund strength still holds."
+        else:
+            route_title = "Use Dashboard Then TR Funds"
+            route_note = "Global context is not fully one-directional. Confirm macro tone first, then check the TR peer board for dispersion."
+    else:
+        route_title = "Use Dashboard First"
+        route_note = "If TR peer data is unavailable, begin with global context and quick stats, then continue to the local market tab."
+
+    return {
+        "setup_title": setup_title,
+        "setup_note": setup_note,
+        "vix_value": vix_value,
+        "btc_change": btc_change,
+        "usdtry_value": usdtry_value,
+        "usdtry_change": usdtry_change,
+        "top_pick": top_pick,
+        "route_title": route_title,
+        "route_note": route_note,
+    }
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def get_cached_stock_technical_analysis(symbol: str, period: str):
+    from app.analytics.advanced_technical_analysis import AdvancedTechnicalAnalyzer
+
+    analyzer = AdvancedTechnicalAnalyzer(symbol, period=period)
+    return analyzer.get_complete_technical_analysis()
+
+
+@st.cache_data(ttl=1800, show_spinner=False)
+def get_cached_dividend_analysis(symbol: str):
+    from app.analytics.dividend_analysis import DividendAnalyzer
+
+    div_analyzer = DividendAnalyzer(symbol)
+    return div_analyzer.get_comprehensive_dividend_analysis()
+
+
+@st.cache_data(ttl=1800, show_spinner=False)
+def get_cached_sector_analysis(symbol: str):
+    from app.analytics.sector_analysis import SectorAnalyzer
+
+    sector_analyzer = SectorAnalyzer(symbol)
+    return sector_analyzer.get_comprehensive_sector_analysis()
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def get_cached_research_settlement_analysis(symbol: str, period: str):
+    from app.analytics.settlement_analysis import SettlementAnalyzer
+
+    settlement_analyzer = SettlementAnalyzer(symbol)
+    return settlement_analyzer.get_settlement_analysis(period=period)
+
+def render_dashboard_landing_experience():
+    """Render a more guided, premium landing layer for public users."""
+    st.markdown(
+        f"""
+        <div style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 45%, #0ea5e9 100%);
+                    padding: 1.5rem; border-radius: 18px; color: white; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                <div style="min-width: 260px; flex: 2;">
+                    <p style="margin: 0; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.78rem; opacity: 0.8;">
+                        Public Intelligence Workspace
+                    </p>
+                    <h2 style="margin: 0.35rem 0 0 0;">Start with the strongest signal, not the noisiest chart.</h2>
+                    <p style="margin: 0.65rem 0 0 0; font-size: 1rem; line-height: 1.55;">
+                        {APP_DISPLAY_NAME} is structured for fast market orientation: open access dashboard, TR fund signal board,
+                        macro pulse, and institutional flow views in one workspace.
+                    </p>
+                </div>
+                <div style="min-width: 220px; flex: 1; background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.16);
+                            padding: 1rem; border-radius: 14px;">
+                    <p style="margin: 0; font-size: 0.85rem; opacity: 0.84;">Primary host</p>
+                    <p style="margin: 0.35rem 0 0 0; font-size: 1.05rem; font-weight: 600;">{PUBLIC_APP_HOST}</p>
+                    <p style="margin: 0.85rem 0 0 0; font-size: 0.85rem; opacity: 0.84;">Access mode</p>
+                    <p style="margin: 0.35rem 0 0 0; font-size: 1rem; font-weight: 600;">Open access, no hard paywall</p>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    workflow_cols = st.columns(3)
+    workflow_cards = [
+        (
+            "1. Fast Start",
+            "Use Dashboard + Quick Stats",
+            "Best for opening view: broad market pulse, VIX-based sentiment, commodities, and sector rotation in under 30 seconds.",
+            "#eff6ff",
+            "#bfdbfe",
+        ),
+        (
+            "2. Local Edge",
+            "Open Turkish Markets next",
+            "The strongest public differentiation currently sits in TR funds: TEFAS launchpad, peer ranking, allocation drift, and signal board.",
+            "#f0fdf4",
+            "#bbf7d0",
+        ),
+        (
+            "3. Deeper Read",
+            "Use Institutional + AI tabs",
+            "Whale, ETF, and AI narrative layers are for turning raw signals into memos, monitoring ideas, and deeper conviction checks.",
+            "#fffbeb",
+            "#fde68a",
+        ),
+    ]
+
+    for column, card in zip(workflow_cols, workflow_cards):
+        step, title, body, background, border = card
+        with column:
+            st.markdown(
+                f"""
+                <div style="background: {background}; border: 1px solid {border}; border-radius: 16px; padding: 1rem; min-height: 170px;">
+                    <p style="margin: 0; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #475569;">{step}</p>
+                    <h4 style="margin: 0.4rem 0 0.5rem 0; color: #0f172a;">{title}</h4>
+                    <p style="margin: 0; color: #334155; line-height: 1.55;">{body}</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    snapshot = get_landing_signal_snapshot()
+    top_pick = snapshot.get("top_pick")
+    vix_value = float(snapshot.get("vix_value", 0) or 0)
+    btc_change = float(snapshot.get("btc_change", 0) or 0)
+    usdtry_value = float(snapshot.get("usdtry_value", 0) or 0)
+    usdtry_change = float(snapshot.get("usdtry_change", 0) or 0)
+    vix_display = f"{vix_value:.2f}" if vix_value else "N/A"
+    usdtry_display = f"{usdtry_value:.2f}" if usdtry_value else "N/A"
+
+    signal_cols = st.columns(3)
+    with signal_cols[0]:
+        st.markdown(
+            f"""
+            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 16px; padding: 1rem; min-height: 200px;">
+                <p style="margin: 0; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b;">Today's Setup</p>
+                <h4 style="margin: 0.4rem 0 0.5rem 0; color: #0f172a;">{snapshot['setup_title']}</h4>
+                <p style="margin: 0; color: #334155; line-height: 1.55;">{snapshot['setup_note']}</p>
+                <p style="margin: 0.85rem 0 0 0; color: #0f172a;"><strong>VIX:</strong> {vix_display}</p>
+                <p style="margin: 0.2rem 0 0 0; color: #0f172a;"><strong>BTC daily:</strong> {btc_change:+.2f}%</p>
+                <p style="margin: 0.2rem 0 0 0; color: #0f172a;"><strong>USD/TRY:</strong> {usdtry_display} ({usdtry_change:+.2f}%)</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with signal_cols[1]:
+        if top_pick:
+            st.markdown(
+                f"""
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 16px; padding: 1rem; min-height: 200px;">
+                    <p style="margin: 0; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b;">Top TR Fund Signal</p>
+                    <h4 style="margin: 0.4rem 0 0.5rem 0; color: #0f172a;">{top_pick.get('fund_code', 'N/A')} · {top_pick.get('signal_band', 'N/A')}</h4>
+                    <p style="margin: 0; color: #334155; line-height: 1.55;">{top_pick.get('fund_name_short', top_pick.get('fund_name', ''))}</p>
+                    <p style="margin: 0.85rem 0 0 0; color: #0f172a;"><strong>Signal score:</strong> {float(top_pick.get('signal_score', 0) or 0):.1f}</p>
+                    <p style="margin: 0.2rem 0 0 0; color: #0f172a;"><strong>Investor growth:</strong> {float(top_pick.get('investor_growth_pct', 0) or 0):+.1f}%</p>
+                    <p style="margin: 0.2rem 0 0 0; color: #0f172a;"><strong>Dominant asset:</strong> {top_pick.get('dominant_asset', 'N/A')}</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.info("TR fund peer snapshot simdilik hazir degil. Turkish Markets tabinda daha sonra tekrar kontrol et.")
+
+    with signal_cols[2]:
+        st.markdown(
+            f"""
+            <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 16px; padding: 1rem; min-height: 200px;">
+                <p style="margin: 0; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b;">Recommended Route</p>
+                <h4 style="margin: 0.4rem 0 0.5rem 0; color: #0f172a;">{snapshot['route_title']}</h4>
+                <p style="margin: 0; color: #334155; line-height: 1.55;">{snapshot['route_note']}</p>
+                <p style="margin: 0.85rem 0 0 0; color: #0f172a;"><strong>Next tabs:</strong> Dashboard → Turkish Markets → Institutional</p>
+                <p style="margin: 0.2rem 0 0 0; color: #0f172a;"><strong>Use case:</strong> Fast morning orientation or quick pre-memo workflow.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    st.caption(
+        "Privacy-first note: core analysis stays open. Future monetization should prefer contextual sponsors and consent-gated media over hard paywalls."
+    )
 
 def create_executive_dashboard():
     """Executive Dashboard - Market overview and key metrics"""
     st.header("🎯 Executive Dashboard")
+    st.caption(f"Primary app URL: {PUBLIC_APP_URL}")
+    render_dashboard_landing_experience()
 
     col1, col2 = st.columns([2, 1])
 
@@ -1424,10 +1988,15 @@ def create_stocks_analysis():
     """Individual Stock Analysis with Technical Indicators"""
     st.header("📈 Stock Analysis")
 
-    # Add tabs for different analysis types
-    analysis_tab1, analysis_tab2 = st.tabs(["📊 Individual Stock", "⚖️ Compare Stocks"])
+    analysis_view = st.radio(
+        "Analysis Mode",
+        ["📊 Individual Stock", "⚖️ Compare Stocks"],
+        horizontal=True,
+        key="stocks_analysis_view_nav",
+        label_visibility="collapsed"
+    )
 
-    with analysis_tab1:
+    if analysis_view == "📊 Individual Stock":
         # Enhanced stock search
         st.markdown("### 🔍 Search Stock")
         symbol = simple_stock_search_ui()
@@ -1449,8 +2018,7 @@ def create_stocks_analysis():
                         st.session_state.get('stock_symbol', 'AAPL'),
                         st.session_state.get('stock_period', '1mo')
                     )
-
-    with analysis_tab2:
+    else:
         create_stock_comparison()
 
 def analyze_individual_stock(symbol, period):
@@ -1993,21 +2561,28 @@ def analyze_individual_stock(symbol, period):
             if supply_chain_data.get('disruptions'):
                 st.write("**🚨 Active Supply Chain Disruptions:**")
 
-                disruption_tabs = st.tabs([f"📍 {d['region']}" for d in supply_chain_data['disruptions']])
+                disruptions = supply_chain_data['disruptions']
+                disruption_options = [f"📍 {d['region']}" for d in disruptions]
+                selected_disruption_label = st.radio(
+                    "Disruption Region",
+                    disruption_options,
+                    horizontal=True,
+                    key="supply_chain_disruption_nav",
+                    label_visibility="collapsed"
+                )
+                selected_disruption = disruptions[disruption_options.index(selected_disruption_label)]
 
-                for i, disruption in enumerate(supply_chain_data['disruptions']):
-                    with disruption_tabs[i]:
-                        col1, col2 = st.columns(2)
+                col1, col2 = st.columns(2)
 
-                        with col1:
-                            severity_emoji = {"LOW": "🟢", "MEDIUM": "🟡", "HIGH": "🟠", "CRITICAL": "🔴"}.get(disruption['severity'], "⚠️")
-                            st.write(f"**Type:** {disruption['type']}")
-                            st.write(f"**Severity:** {disruption['severity']} {severity_emoji}")
-                            st.write(f"**Timeline:** {disruption['timeline']}")
+                with col1:
+                    severity_emoji = {"LOW": "🟢", "MEDIUM": "🟡", "HIGH": "🟠", "CRITICAL": "🔴"}.get(selected_disruption['severity'], "⚠️")
+                    st.write(f"**Type:** {selected_disruption['type']}")
+                    st.write(f"**Severity:** {selected_disruption['severity']} {severity_emoji}")
+                    st.write(f"**Timeline:** {selected_disruption['timeline']}")
 
-                        with col2:
-                            st.write(f"**Impact:** {disruption['impact']}")
-                            st.write(f"**Mitigation:** {disruption['mitigation']}")
+                with col2:
+                    st.write(f"**Impact:** {selected_disruption['impact']}")
+                    st.write(f"**Mitigation:** {selected_disruption['mitigation']}")
 
             # Early Warning Alerts
             if supply_chain_data.get('early_warnings'):
@@ -2110,9 +2685,6 @@ def create_etfs_and_funds():
     """Global ETFs and Mutual Funds Analysis"""
     st.header("📊 Global ETFs & Funds")
 
-    # Major ETFs by category
-    st.subheader("🌍 Major Global ETFs")
-
     global_etfs = {
         "🇺🇸 US Market ETFs": {
             "SPY": {"name": "SPDR S&P 500 ETF", "aum": 450000, "expense_ratio": 0.0945},
@@ -2140,30 +2712,9 @@ def create_etfs_and_funds():
         }
     }
 
-    etf_tabs = st.tabs(list(global_etfs.keys()))
-
-    for i, (category, etfs) in enumerate(global_etfs.items()):
-        with etf_tabs[i]:
-            cols = st.columns(2)
-
-            for j, (symbol, data) in enumerate(etfs.items()):
-                with cols[j % 2]:
-                    st.markdown(f"""
-                    <div class="metric-card">
-                        <h4>{symbol}</h4>
-                        <h5>{data['name']}</h5>
-                        <p><strong>AUM:</strong> ${data['aum']:,}M</p>
-                        <p><strong>Expense Ratio:</strong> {data['expense_ratio']:.2f}%</p>
-                        <small>Real-time pricing via Yahoo Finance</small>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-    # Major Mutual Fund Families
-    st.subheader("🏦 Major Mutual Fund Families")
-
     fund_families = {
         "🇺🇸 Vanguard Group": {
-            "aum": 8300000,  # $8.3T
+            "aum": 8300000,
             "funds_count": 400,
             "notable_funds": [
                 {"name": "Vanguard 500 Index Fund", "symbol": "VFIAX", "aum": 400000, "min_investment": 3000},
@@ -2173,7 +2724,7 @@ def create_etfs_and_funds():
             ]
         },
         "🏛️ BlackRock (iShares)": {
-            "aum": 10200000,  # $10.2T
+            "aum": 10200000,
             "funds_count": 800,
             "notable_funds": [
                 {"name": "iShares Core S&P 500 ETF", "symbol": "IVV", "aum": 400000, "min_investment": 0},
@@ -2183,7 +2734,7 @@ def create_etfs_and_funds():
             ]
         },
         "🌟 Fidelity Investments": {
-            "aum": 4900000,  # $4.9T
+            "aum": 4900000,
             "funds_count": 500,
             "notable_funds": [
                 {"name": "Fidelity 500 Index Fund", "symbol": "FXAIX", "aum": 450000, "min_investment": 0},
@@ -2194,97 +2745,131 @@ def create_etfs_and_funds():
         }
     }
 
-    fund_cols = st.columns(len(fund_families))
-
-    for i, (family_name, family_data) in enumerate(fund_families.items()):
-        with fund_cols[i]:
-            st.markdown(f"""
-            <div class="metric-card">
-                <h4>{family_name}</h4>
-                <h2>${family_data['aum']:,}M</h2>
-                <p><strong>{family_data['funds_count']} Funds</strong></p>
-            </div>
-            """, unsafe_allow_html=True)
-
-            with st.expander(f"Top Funds - {family_name.split(' ')[1]}"):
-                for fund in family_data['notable_funds']:
-                    st.write(f"**{fund['symbol']}** - {fund['name']}")
-                    st.write(f"AUM: ${fund['aum']:,}M | Min Investment: ${fund['min_investment']:,}")
-                    st.divider()
-
-    # Global Fund Performance Comparison
-    st.subheader("📈 ETF Performance Dashboard")
-
-    # Get real ETF data
-    etf_symbols = ["SPY", "QQQ", "VEA", "VWO", "AGG", "XLK"]
-
-    with st.spinner("Loading ETF performance data..."):
-        etf_performance_data = get_market_data_safe(etf_symbols)
-
-    if etf_performance_data:
-        performance_data = {
-            "Symbol": [],
-            "Name": [],
-            "Current Price": [],
-            "Daily Change (%)": [],
-            "Volume": [],
-            "Status": []
-        }
-
-        for symbol, data in etf_performance_data.items():
-            performance_data["Symbol"].append(symbol)
-            performance_data["Name"].append(data['name'])
-            performance_data["Current Price"].append(f"${data['price']:.2f}")
-            performance_data["Daily Change (%)"].append(f"{data['change']:+.2f}%")
-            performance_data["Volume"].append(f"{data['volume']:,}")
-            performance_data["Status"].append("🟢 Live" if data['status'] == 'live' else "🟡 Mock")
-
-        perf_df = pd.DataFrame(performance_data)
-    else:
-        # Fallback data if all APIs fail
-        performance_data = {
-            "Symbol": ["SPY", "QQQ", "VEA", "VWO", "AGG", "XLK"],
-            "Name": ["S&P 500", "NASDAQ-100", "Developed Markets", "Emerging Markets", "US Bonds", "Technology"],
-            "Current Price": ["$458.75", "$378.92", "$45.67", "$38.45", "$103.21", "$178.34"],
-            "Daily Change (%)": ["+1.2%", "+2.8%", "+0.5%", "-0.8%", "+0.2%", "+3.1%"],
-            "Volume": ["45,234,567", "32,876,543", "12,345,678", "8,765,432", "5,432,109", "15,678,901"],
-            "Status": ["🟡 Mock"] * 6
-        }
-        perf_df = pd.DataFrame(performance_data)
-
-    # Display the dataframe with enhanced styling
-    st.dataframe(perf_df, use_container_width=True)
-
-    # ETF Expense Ratio Comparison
-    st.subheader("💸 Expense Ratio Comparison")
-
-    expense_data = []
-    for category, etfs in global_etfs.items():
-        for symbol, data in etfs.items():
-            expense_data.append({
-                "Symbol": symbol,
-                "Name": data['name'],
-                "Category": category.split(' ')[1],
-                "Expense Ratio (%)": data['expense_ratio'],
-                "AUM ($M)": data['aum']
-            })
-
-    expense_df = pd.DataFrame(expense_data)
-
-    fig = px.scatter(
-        expense_df,
-        x="AUM ($M)",
-        y="Expense Ratio (%)",
-        color="Category",
-        size="AUM ($M)",
-        hover_name="Symbol",
-        hover_data=["Name"],
-        title="ETF Expense Ratio vs AUM",
-        template="plotly_dark"
+    fund_workspace_views = [
+        "🌍 ETF Universe",
+        "🏦 Fund Families",
+        "📈 Performance Dashboard",
+    ]
+    st.markdown('<div class="fp-nav-label">Funds Workspace</div>', unsafe_allow_html=True)
+    active_fund_workspace = st.radio(
+        "Funds Workspace",
+        fund_workspace_views,
+        key="funds_workspace_nav",
+        horizontal=True,
+        label_visibility="collapsed",
     )
 
-    fig.update_layout(height=500)
-    st.plotly_chart(fig, use_container_width=True)
+    if active_fund_workspace == "🌍 ETF Universe":
+        st.subheader("🌍 Major Global ETFs")
+        selected_etf_category = st.selectbox(
+            "ETF Category",
+            list(global_etfs.keys()),
+            key="etf_category_nav",
+        )
+        cols = st.columns(2)
+        for j, (symbol, data) in enumerate(global_etfs[selected_etf_category].items()):
+            with cols[j % 2]:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <h4>{symbol}</h4>
+                    <h5>{data['name']}</h5>
+                    <p><strong>AUM:</strong> ${data['aum']:,}M</p>
+                    <p><strong>Expense Ratio:</strong> {data['expense_ratio']:.2f}%</p>
+                    <small>Real-time pricing via Yahoo Finance</small>
+                </div>
+                """, unsafe_allow_html=True)
+
+    elif active_fund_workspace == "🏦 Fund Families":
+        st.subheader("🏦 Major Mutual Fund Families")
+        selected_family = st.selectbox(
+            "Fund Family",
+            list(fund_families.keys()),
+            key="fund_family_nav",
+        )
+        family_data = fund_families[selected_family]
+        family_metric_cols = st.columns(3)
+        with family_metric_cols[0]:
+            st.metric("AUM", f"${family_data['aum']:,}M")
+        with family_metric_cols[1]:
+            st.metric("Fund Count", f"{family_data['funds_count']}")
+        with family_metric_cols[2]:
+            min_ticket = min(fund['min_investment'] for fund in family_data['notable_funds'])
+            st.metric("Lowest Ticket", f"${min_ticket:,}")
+
+        family_df = pd.DataFrame(family_data["notable_funds"]).rename(
+            columns={
+                "symbol": "Symbol",
+                "name": "Fund",
+                "aum": "AUM ($M)",
+                "min_investment": "Min Investment ($)",
+            }
+        )
+        st.dataframe(family_df, use_container_width=True, hide_index=True)
+
+    elif active_fund_workspace == "📈 Performance Dashboard":
+        st.subheader("📈 ETF Performance Dashboard")
+        etf_symbols = ["SPY", "QQQ", "VEA", "VWO", "AGG", "XLK"]
+
+        with st.spinner("Loading ETF performance data..."):
+            etf_performance_data = get_market_data_safe(etf_symbols)
+
+        if etf_performance_data:
+            performance_data = {
+                "Symbol": [],
+                "Name": [],
+                "Current Price": [],
+                "Daily Change (%)": [],
+                "Volume": [],
+                "Status": []
+            }
+
+            for symbol, data in etf_performance_data.items():
+                performance_data["Symbol"].append(symbol)
+                performance_data["Name"].append(data['name'])
+                performance_data["Current Price"].append(f"${data['price']:.2f}")
+                performance_data["Daily Change (%)"].append(f"{data['change']:+.2f}%")
+                performance_data["Volume"].append(f"{data['volume']:,}")
+                performance_data["Status"].append("🟢 Live" if data['status'] == 'live' else "🟡 Mock")
+
+            perf_df = pd.DataFrame(performance_data)
+        else:
+            perf_df = pd.DataFrame({
+                "Symbol": ["SPY", "QQQ", "VEA", "VWO", "AGG", "XLK"],
+                "Name": ["S&P 500", "NASDAQ-100", "Developed Markets", "Emerging Markets", "US Bonds", "Technology"],
+                "Current Price": ["$458.75", "$378.92", "$45.67", "$38.45", "$103.21", "$178.34"],
+                "Daily Change (%)": ["+1.2%", "+2.8%", "+0.5%", "-0.8%", "+0.2%", "+3.1%"],
+                "Volume": ["45,234,567", "32,876,543", "12,345,678", "8,765,432", "5,432,109", "15,678,901"],
+                "Status": ["🟡 Mock"] * 6
+            })
+
+        st.dataframe(perf_df, use_container_width=True)
+
+        st.subheader("💸 Expense Ratio Comparison")
+        expense_data = []
+        for category, etfs in global_etfs.items():
+            for symbol, data in etfs.items():
+                expense_data.append({
+                    "Symbol": symbol,
+                    "Name": data['name'],
+                    "Category": category.split(' ')[1],
+                    "Expense Ratio (%)": data['expense_ratio'],
+                    "AUM ($M)": data['aum']
+                })
+
+        expense_df = pd.DataFrame(expense_data)
+        fig = px.scatter(
+            expense_df,
+            x="AUM ($M)",
+            y="Expense Ratio (%)",
+            color="Category",
+            size="AUM ($M)",
+            hover_name="Symbol",
+            hover_data=["Name"],
+            title="ETF Expense Ratio vs AUM",
+            template="plotly_dark"
+        )
+        fig.update_layout(height=500)
+        st.plotly_chart(fig, use_container_width=True)
 
 def create_institutional_investors():
     """Institutional Investors tracking module"""
@@ -2457,53 +3042,51 @@ def create_institutional_investors():
         key="institutional_country_filter"
     )
 
-    fund_tabs = st.tabs(list(sovereign_funds.keys()))
+    st.markdown('<div class="fp-nav-label">Sovereign Fund</div>', unsafe_allow_html=True)
+    selected_fund_name = st.selectbox(
+        "Sovereign Fund",
+        list(sovereign_funds.keys()),
+        key="institutional_fund_nav",
+    )
+    fund_data = sovereign_funds[selected_fund_name]
 
-    for i, (fund_name, fund_data) in enumerate(sovereign_funds.items()):
-        with fund_tabs[i]:
-            # Filter holdings by country
-            filtered_holdings = fund_data['top_holdings']
-            if selected_country != "All Countries":
-                filtered_holdings = [h for h in filtered_holdings if h['country'] == selected_country]
+    filtered_holdings = fund_data['top_holdings']
+    if selected_country != "All Countries":
+        filtered_holdings = [h for h in filtered_holdings if h['country'] == selected_country]
 
-            if not filtered_holdings:
-                st.warning(f"No holdings found for {selected_country}")
-                continue
+    if not filtered_holdings:
+        st.warning(f"No holdings found for {selected_country}")
+        return
 
-            col1, col2 = st.columns([1, 2])
+    col1, col2 = st.columns([1, 2])
 
-            with col1:
-                st.metric("Assets Under Management", f"${fund_data['aum']:,}M")
-                st.metric("Total Holdings", len(filtered_holdings))
+    with col1:
+        st.metric("Assets Under Management", f"${fund_data['aum']:,}M")
+        st.metric("Total Holdings", len(filtered_holdings))
+        total_value = sum(holding['value'] for holding in filtered_holdings)
+        st.metric("Holdings Value", f"${total_value:,}M")
 
-                # Calculate total value of filtered holdings
-                total_value = sum(holding['value'] for holding in filtered_holdings)
-                st.metric("Holdings Value", f"${total_value:,}M")
+    with col2:
+        holdings_df = pd.DataFrame(filtered_holdings)
+        fig = px.pie(
+            holdings_df,
+            values='weight',
+            names='symbol',
+            title=f"{selected_fund_name.split(' ')[1]} - Top Holdings Distribution"
+        )
+        fig.update_layout(template="plotly_dark", height=400)
+        st.plotly_chart(fig, use_container_width=True)
 
-            with col2:
-                # Create holdings chart
-                holdings_df = pd.DataFrame(filtered_holdings)
+    st.subheader("📊 Detailed Holdings")
+    holdings_df = pd.DataFrame(filtered_holdings)
+    holdings_df['Value (M$)'] = holdings_df['value']
+    holdings_df['Weight (%)'] = holdings_df['weight']
+    holdings_df['Country'] = holdings_df['country']
 
-                fig = px.pie(
-                    holdings_df,
-                    values='weight',
-                    names='symbol',
-                    title=f"{fund_name.split(' ')[1]} - Top Holdings Distribution"
-                )
-                fig.update_layout(template="plotly_dark", height=400)
-                st.plotly_chart(fig, use_container_width=True)
-
-            # Holdings table
-            st.subheader("📊 Detailed Holdings")
-            holdings_df = pd.DataFrame(filtered_holdings)
-            holdings_df['Value (M$)'] = holdings_df['value']
-            holdings_df['Weight (%)'] = holdings_df['weight']
-            holdings_df['Country'] = holdings_df['country']
-
-            st.dataframe(
-                holdings_df[['symbol', 'name', 'Country', 'Weight (%)', 'Value (M$)']].round(2),
-                use_container_width=True
-            )
+    st.dataframe(
+        holdings_df[['symbol', 'name', 'Country', 'Weight (%)', 'Value (M$)']].round(2),
+        use_container_width=True
+    )
 
 def create_macro_indicators():
     """Macro Economic Indicators module"""
@@ -3176,14 +3759,15 @@ def create_sankey_charts():
         theme = st.selectbox("Chart Theme", ["Light", "Dark"], index=0, key="sankey_theme")
         scale_display = st.selectbox("Value Scale", ["$", "$M", "$B"], index=2, key="sankey_scale")
 
-    # Sub-tabs for different Sankey types
-    sankey_tab1, sankey_tab2, sankey_tab3 = st.tabs([
-        "💰 Income Statement",
-        "📊 Fund Holdings",
-        "🌐 Macro Liquidity"
-    ])
+    sankey_view = st.radio(
+        "Sankey View",
+        ["💰 Income Statement", "📊 Fund Holdings", "🌐 Macro Liquidity"],
+        horizontal=True,
+        key="sankey_view_nav",
+        label_visibility="collapsed"
+    )
 
-    with sankey_tab1:
+    if sankey_view == "💰 Income Statement":
         st.subheader("💰 Income Statement Flow")
 
         col1, col2 = st.columns([1, 3])
@@ -3198,37 +3782,55 @@ def create_sankey_charts():
                     if df is not None and not df.empty:
                         company_name = get_company_name(ticker)
                         sankey_data = income_to_sankey(df, fiscal_index=0)
-
-                        with col2:
-                            fig = plot_income_sankey(
-                                sankey_data,
-                                title=f"{company_name} ({ticker}) - Income Statement Flow",
-                                theme=theme,
-                                scale_display=scale_display
-                            )
-                            st.plotly_chart(fig, use_container_width=True)
-
-                            # Show key metrics
-                            meta = sankey_data.get('meta', {})
-                            cols_metrics = st.columns(4)
-                            with cols_metrics[0]:
-                                st.metric("Revenue", f"${meta.get('revenue', 0)/1e9:.2f}B")
-                            with cols_metrics[1]:
-                                st.metric("Gross Margin", f"{meta.get('gross_margin', 0):.1f}%")
-                            with cols_metrics[2]:
-                                st.metric("Operating Margin", f"{meta.get('op_margin', 0):.1f}%")
-                            with cols_metrics[3]:
-                                st.metric("Net Margin", f"{meta.get('net_margin', 0):.1f}%")
-
-                            # Export section
-                            st.markdown("---")
-                            create_export_section(fig, df, f"{ticker}_income_statement")
+                        st.session_state["sankey_income_run"] = {
+                            "ticker": ticker,
+                            "period": period,
+                            "df": df.copy(),
+                            "sankey_data": sankey_data,
+                            "company_name": company_name,
+                        }
                     else:
                         st.warning(f"No income statement data found for {ticker}")
                 except Exception as e:
                     st.error(f"Error generating income Sankey: {str(e)}")
 
-    with sankey_tab2:
+        active_income = st.session_state.get("sankey_income_run")
+        if active_income:
+            st.caption("Showing last generated income Sankey.")
+            try:
+                df = active_income["df"]
+                if df is not None and not df.empty:
+                    company_name = active_income["company_name"]
+                    sankey_data = active_income["sankey_data"]
+
+                    with col2:
+                        fig = plot_income_sankey(
+                            sankey_data,
+                            title=f"{company_name} ({active_income['ticker']}) - Income Statement Flow",
+                            theme=theme,
+                            scale_display=scale_display
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+
+                        meta = sankey_data.get('meta', {})
+                        cols_metrics = st.columns(4)
+                        with cols_metrics[0]:
+                            st.metric("Revenue", f"${meta.get('revenue', 0)/1e9:.2f}B")
+                        with cols_metrics[1]:
+                            st.metric("Gross Margin", f"{meta.get('gross_margin', 0):.1f}%")
+                        with cols_metrics[2]:
+                            st.metric("Operating Margin", f"{meta.get('op_margin', 0):.1f}%")
+                        with cols_metrics[3]:
+                            st.metric("Net Margin", f"{meta.get('net_margin', 0):.1f}%")
+
+                        st.markdown("---")
+                        create_export_section(fig, df, f"{active_income['ticker']}_income_statement")
+                else:
+                    st.warning(f"No income statement data found for {active_income['ticker']}")
+            except Exception as e:
+                st.error(f"Error generating income Sankey: {str(e)}")
+
+    elif sankey_view == "📊 Fund Holdings":
         st.subheader("📊 Fund Holdings Distribution")
 
         col1, col2 = st.columns([1, 3])
@@ -3244,36 +3846,50 @@ def create_sankey_charts():
                     holdings_df = fund.get_holdings()
 
                     if holdings_df is not None and not holdings_df.empty:
-                        # Convert to list of dicts for fund_to_sankey
                         holdings_list = []
                         for idx, row in holdings_df.head(top_n).iterrows():
                             holdings_list.append({
                                 'symbol': row.get('Symbol', idx),
-                                'weight': row.get('% of Holdings', 0) * 100  # Convert to percentage
+                                'weight': row.get('% of Holdings', 0) * 100
                             })
 
                         sankey_data = fund_to_sankey(fund_symbol, holdings_list)
-
-                        with col2:
-                            fig = plot_fund_sankey(
-                                sankey_data,
-                                title=f"{fund_symbol} - Top {top_n} Holdings",
-                                theme=theme
-                            )
-                            st.plotly_chart(fig, use_container_width=True)
-
-                            # Show holdings table
-                            st.dataframe(holdings_df.head(top_n), use_container_width=True)
-
-                            # Export section
-                            st.markdown("---")
-                            create_export_section(fig, holdings_df.head(top_n), f"{fund_symbol}_holdings")
+                        st.session_state["sankey_fund_run"] = {
+                            "fund_symbol": fund_symbol,
+                            "top_n": top_n,
+                            "holdings_df": holdings_df.head(top_n).copy(),
+                            "sankey_data": sankey_data,
+                        }
                     else:
                         st.warning(f"No holdings data found for {fund_symbol}")
                 except Exception as e:
                     st.error(f"Error generating fund Sankey: {str(e)}")
 
-    with sankey_tab3:
+        active_fund = st.session_state.get("sankey_fund_run")
+        if active_fund:
+            st.caption("Showing last generated fund holdings Sankey.")
+            try:
+                holdings_df = active_fund["holdings_df"]
+
+                if holdings_df is not None and not holdings_df.empty:
+                    sankey_data = active_fund["sankey_data"]
+
+                    with col2:
+                        fig = plot_fund_sankey(
+                            sankey_data,
+                            title=f"{active_fund['fund_symbol']} - Top {active_fund['top_n']} Holdings",
+                            theme=theme
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                        st.dataframe(holdings_df, use_container_width=True)
+                        st.markdown("---")
+                        create_export_section(fig, holdings_df, f"{active_fund['fund_symbol']}_holdings")
+                else:
+                    st.warning(f"No holdings data found for {active_fund['fund_symbol']}")
+            except Exception as e:
+                st.error(f"Error generating fund Sankey: {str(e)}")
+
+    else:
         st.subheader("🌐 Macro Liquidity Flow")
 
         st.markdown("""
@@ -3281,21 +3897,30 @@ def create_sankey_charts():
         """)
 
         if st.button("Generate Macro Sankey", key="sankey_macro_btn"):
+            liquidity_sources = {
+                'M2 Money Supply': 40,
+                'Central Bank Balance': 35,
+                'Global Liquidity Index': 25
+            }
+
+            asset_allocations = {
+                'Equities': 50,
+                'Bitcoin': 30,
+                'Gold': 20
+            }
+
+            st.session_state["sankey_macro_run"] = {
+                "liquidity_sources": liquidity_sources,
+                "asset_allocations": asset_allocations,
+                "sankey_data": macro_to_sankey(liquidity_sources, asset_allocations),
+            }
+
+        active_macro = st.session_state.get("sankey_macro_run")
+        if active_macro:
             try:
-                # Example macro liquidity data
-                liquidity_sources = {
-                    'M2 Money Supply': 40,
-                    'Central Bank Balance': 35,
-                    'Global Liquidity Index': 25
-                }
-
-                asset_allocations = {
-                    'Equities': 50,
-                    'Bitcoin': 30,
-                    'Gold': 20
-                }
-
-                sankey_data = macro_to_sankey(liquidity_sources, asset_allocations)
+                liquidity_sources = active_macro["liquidity_sources"]
+                asset_allocations = active_macro["asset_allocations"]
+                sankey_data = active_macro["sankey_data"]
                 fig = plot_macro_sankey(
                     sankey_data,
                     title="Global Liquidity Flow to Risk Assets",
@@ -3376,118 +4001,135 @@ def create_settlement_analysis():
             try:
                 analyzer = SettlementAnalyzer(symbol)
                 analysis = analyzer.get_settlement_analysis(period)
-
-                if 'error' not in analysis:
-                    # Özet Metrikler
-                    st.subheader("📈 Özet Metrikler / Summary Metrics")
-                    summary = analysis['summary']
-
-                    col1, col2, col3, col4 = st.columns(4)
-                    with col1:
-                        st.metric(
-                            "Toplam Hacim / Total Volume",
-                            f"{summary['total_volume']:,.0f}",
-                            delta=None
-                        )
-                    with col2:
-                        st.metric(
-                            "Toplam Değer / Total Value",
-                            f"${summary['total_value']:,.0f}",
-                            delta=None
-                        )
-                    with col3:
-                        st.metric(
-                            "Ort. Günlük Hacim / Avg Daily Vol",
-                            f"{summary['avg_daily_volume']:,.0f}",
-                            delta=None
-                        )
-                    with col4:
-                        st.metric(
-                            "İşlem Günü / Trading Days",
-                            summary['trading_days'],
-                            delta=None
-                        )
-
-                    # Günlük Takas Detayları
-                    st.subheader("📅 Günlük Takas Detayları / Daily Settlement Details")
-                    daily_df = pd.DataFrame(analysis['daily_settlement'])
-                    st.dataframe(daily_df, use_container_width=True)
-
-                    # Hacim Profili
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.subheader("📊 Hacim Profili / Volume Profile")
-                        volume_profile = analysis['volume_profile']
-                        st.json(volume_profile)
-
-                    with col2:
-                        st.subheader("💹 Fiyat Etkisi / Price Impact")
-                        price_impact = analysis['price_impact']
-                        st.json(price_impact)
-
-                    # Likidite Metrikleri
-                    st.subheader("💧 Likidite Metrikleri / Liquidity Metrics")
-                    liquidity = analysis['liquidity_metrics']
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("Günlük Ciro / Daily Turnover", f"${liquidity['avg_daily_turnover']:,.0f}")
-                    with col2:
-                        st.metric("Spread Tahmini / Est. Spread", f"{liquidity['estimated_spread_pct']:.2f}%")
-                    with col3:
-                        st.metric("Sıfır Hacim Günler / Zero Vol Days", liquidity['zero_volume_days'])
-
-                    # Trend Analizi
-                    st.subheader("📈 Trend Analizi / Trend Analysis")
-                    trends = analysis['settlement_trends']
-
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        trend_emoji = "📈" if trends['trend'] == "increasing" else "📉" if trends['trend'] == "decreasing" else "➡️"
-                        st.metric("Trend", f"{trend_emoji} {trends['trend'].upper()}")
-                    with col2:
-                        st.metric("Değişim / Change", f"{trends.get('change_pct', 0):.2f}%")
-                    with col3:
-                        momentum_emoji = "🟢" if trends.get('momentum') == 'bullish' else "🔴"
-                        st.metric("Momentum", f"{momentum_emoji} {trends.get('momentum', 'N/A').upper()}")
-
-                    # Verimlilik Skoru
-                    st.subheader("⚡ Takas Verimliliği / Settlement Efficiency")
-                    efficiency = analysis['settlement_efficiency']
-
-                    col1, col2, col3, col4 = st.columns(4)
-                    with col1:
-                        st.metric("Hacim Tutarlılığı", f"{efficiency['volume_consistency']*100:.1f}%")
-                    with col2:
-                        st.metric("Fiyat İstikrarı", f"{efficiency['price_stability']*100:.1f}%")
-                    with col3:
-                        st.metric("Verimlilik Skoru", f"{efficiency['efficiency_score']:.1f}%")
-                    with col4:
-                        rating_emoji = "🏆" if efficiency['rating'] == 'excellent' else "✅" if efficiency['rating'] == 'good' else "⚠️"
-                        st.metric("Değerlendirme", f"{rating_emoji} {efficiency['rating'].upper()}")
-
-                    # Anomaliler
-                    if analysis.get('anomalies'):
-                        st.subheader("⚠️ Olağandışı Aktiviteler / Anomalies")
-                        anomalies_df = pd.DataFrame(analysis['anomalies'])
-                        st.dataframe(anomalies_df, use_container_width=True)
-
-                    # BIST Özel Metrikler
-                    if 'bist_specific' in analysis and analysis['bist_specific']:
-                        st.subheader("🇹🇷 BIST Özel Metrikler / BIST Specific Metrics")
-                        bist_metrics = analysis['bist_specific']
-                        col1, col2 = st.columns(2)
-                        with col1:
-                            st.metric("Piyasa Değeri (TRY)", f"₺{bist_metrics.get('market_cap_try', 0):,.0f}")
-                            st.metric("Halka Açıklık", f"{bist_metrics.get('free_float_pct', 0):.2f}%")
-                        with col2:
-                            st.metric("Ort. Günlük TRY Hacmi", f"₺{bist_metrics.get('avg_daily_try_volume', 0):,.0f}")
-                            st.metric("Likidite Sırası", bist_metrics.get('bist_liquidity_rank', 'N/A').upper())
-
-                else:
-                    st.error(f"❌ Hata: {analysis['error']}")
-
             except Exception as e:
                 st.error(f"❌ Analiz hatası: {str(e)}")
+                analysis = None
+        st.session_state["settlement_analysis_run"] = {
+            "market_type": market_type,
+            "period": period,
+            "symbol": symbol,
+            "analysis": analysis,
+        }
+
+    active_settlement = st.session_state.get("settlement_analysis_run")
+    if active_settlement and active_settlement.get("market_type") == market_type and active_settlement.get("period") == period and active_settlement.get("symbol") == symbol:
+        st.caption("Showing last settlement analysis for the current selection.")
+        try:
+            analysis = active_settlement.get("analysis")
+            if analysis is None:
+                st.warning("No cached settlement analysis available for this selection.")
+                return
+
+            if 'error' not in analysis:
+                # Özet Metrikler
+                st.subheader("📈 Özet Metrikler / Summary Metrics")
+                summary = analysis['summary']
+
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric(
+                        "Toplam Hacim / Total Volume",
+                        f"{summary['total_volume']:,.0f}",
+                        delta=None
+                    )
+                with col2:
+                    st.metric(
+                        "Toplam Değer / Total Value",
+                        f"${summary['total_value']:,.0f}",
+                        delta=None
+                    )
+                with col3:
+                    st.metric(
+                        "Ort. Günlük Hacim / Avg Daily Vol",
+                        f"{summary['avg_daily_volume']:,.0f}",
+                        delta=None
+                    )
+                with col4:
+                    st.metric(
+                        "İşlem Günü / Trading Days",
+                        summary['trading_days'],
+                        delta=None
+                    )
+
+                # Günlük Takas Detayları
+                st.subheader("📅 Günlük Takas Detayları / Daily Settlement Details")
+                daily_df = pd.DataFrame(analysis['daily_settlement'])
+                st.dataframe(daily_df, use_container_width=True)
+
+                # Hacim Profili
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.subheader("📊 Hacim Profili / Volume Profile")
+                    volume_profile = analysis['volume_profile']
+                    st.json(volume_profile)
+
+                with col2:
+                    st.subheader("💹 Fiyat Etkisi / Price Impact")
+                    price_impact = analysis['price_impact']
+                    st.json(price_impact)
+
+                # Likidite Metrikleri
+                st.subheader("💧 Likidite Metrikleri / Liquidity Metrics")
+                liquidity = analysis['liquidity_metrics']
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Günlük Ciro / Daily Turnover", f"${liquidity['avg_daily_turnover']:,.0f}")
+                with col2:
+                    st.metric("Spread Tahmini / Est. Spread", f"{liquidity['estimated_spread_pct']:.2f}%")
+                with col3:
+                    st.metric("Sıfır Hacim Günler / Zero Vol Days", liquidity['zero_volume_days'])
+
+                # Trend Analizi
+                st.subheader("📈 Trend Analizi / Trend Analysis")
+                trends = analysis['settlement_trends']
+
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    trend_emoji = "📈" if trends['trend'] == "increasing" else "📉" if trends['trend'] == "decreasing" else "➡️"
+                    st.metric("Trend", f"{trend_emoji} {trends['trend'].upper()}")
+                with col2:
+                    st.metric("Değişim / Change", f"{trends.get('change_pct', 0):.2f}%")
+                with col3:
+                    momentum_emoji = "🟢" if trends.get('momentum') == 'bullish' else "🔴"
+                    st.metric("Momentum", f"{momentum_emoji} {trends.get('momentum', 'N/A').upper()}")
+
+                # Verimlilik Skoru
+                st.subheader("⚡ Takas Verimliliği / Settlement Efficiency")
+                efficiency = analysis['settlement_efficiency']
+
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric("Hacim Tutarlılığı", f"{efficiency['volume_consistency']*100:.1f}%")
+                with col2:
+                    st.metric("Fiyat İstikrarı", f"{efficiency['price_stability']*100:.1f}%")
+                with col3:
+                    st.metric("Verimlilik Skoru", f"{efficiency['efficiency_score']:.1f}%")
+                with col4:
+                    rating_emoji = "🏆" if efficiency['rating'] == 'excellent' else "✅" if efficiency['rating'] == 'good' else "⚠️"
+                    st.metric("Değerlendirme", f"{rating_emoji} {efficiency['rating'].upper()}")
+
+                # Anomaliler
+                if analysis.get('anomalies'):
+                    st.subheader("⚠️ Olağandışı Aktiviteler / Anomalies")
+                    anomalies_df = pd.DataFrame(analysis['anomalies'])
+                    st.dataframe(anomalies_df, use_container_width=True)
+
+                # BIST Özel Metrikler
+                if 'bist_specific' in analysis and analysis['bist_specific']:
+                    st.subheader("🇹🇷 BIST Özel Metrikler / BIST Specific Metrics")
+                    bist_metrics = analysis['bist_specific']
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric("Piyasa Değeri (TRY)", f"₺{bist_metrics.get('market_cap_try', 0):,.0f}")
+                        st.metric("Halka Açıklık", f"{bist_metrics.get('free_float_pct', 0):.2f}%")
+                    with col2:
+                        st.metric("Ort. Günlük TRY Hacmi", f"₺{bist_metrics.get('avg_daily_try_volume', 0):,.0f}")
+                        st.metric("Likidite Sırası", bist_metrics.get('bist_liquidity_rank', 'N/A').upper())
+            else:
+                st.error(f"❌ Hata: {analysis['error']}")
+
+        except Exception as e:
+            st.error(f"❌ Analiz hatası: {str(e)}")
 
     # En yüksek takas hacimleri
     st.markdown("---")
@@ -3561,8 +4203,16 @@ def create_comprehensive_stock_research():
         st.info("👆 Enter a stock symbol to begin analysis")
         return
 
-    # Analysis tabs
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+    is_bist_market = "BIST" in market
+    display_symbol = symbol.strip().upper()
+    analysis_symbol = display_symbol
+    if is_bist_market and analysis_symbol and not analysis_symbol.endswith(".IS"):
+        analysis_symbol = f"{analysis_symbol}.IS"
+    if analysis_symbol != display_symbol:
+        st.caption(f"Normalized symbol: `{analysis_symbol}`")
+    market_currency_symbol = "₺" if is_bist_market else "$"
+
+    research_views = [
         "📊 Overview",
         "📈 Technical",
         "🤖 AI Predictions",
@@ -3571,15 +4221,22 @@ def create_comprehensive_stock_research():
         "🏭 Sector",
         "💱 Settlement",
         "📄 Fundamentals"
-    ])
+    ]
+    active_research_view = st.radio(
+        "Research View",
+        research_views,
+        horizontal=True,
+        key="comprehensive_stock_research_view",
+    )
+    st.caption("Only the active research view is rendered. This reduces hidden chart overhead and mobile browser noise.")
 
-    with tab1:
+    if active_research_view == "📊 Overview":
         # Overview - Quick metrics
         st.subheader("📊 Stock Overview")
         try:
             def _safe_float(val, default=0.0):
                 try:
-                    if val is None:
+                    if val is None or val == "":
                         return default
                     if isinstance(val, (float, int)):
                         return float(val)
@@ -3587,9 +4244,39 @@ def create_comprehensive_stock_research():
                 except Exception:
                     return default
 
+            def _currency_symbol(currency_code: str) -> str:
+                code = (currency_code or "").upper()
+                if code == "TRY":
+                    return "₺"
+                if code == "USD":
+                    return "$"
+                if code == "EUR":
+                    return "€"
+                if code == "GBP":
+                    return "£"
+                return f"{code} " if code else ""
+
+            def _format_price(value: float, currency_code: str) -> str:
+                numeric = _safe_float(value, default=None)
+                if numeric is None:
+                    return "N/A"
+                return f"{_currency_symbol(currency_code)}{numeric:,.2f}"
+
+            def _format_market_cap(value: float, currency_code: str) -> str:
+                numeric = _safe_float(value, default=None)
+                if numeric is None or numeric <= 0:
+                    return "N/A"
+                return f"{_currency_symbol(currency_code)}{numeric/1e9:,.2f}B"
+
+            def _format_ratio(value: float) -> str:
+                numeric = _safe_float(value, default=None)
+                if numeric is None or numeric <= 0:
+                    return "N/A"
+                return f"{numeric:.2f}"
+
             fetcher = get_market_fetcher()
             hist, info, quality = fetcher.get_stock_data_with_meta(
-                symbol,
+                analysis_symbol,
                 period="1y",
                 interval="1d",
                 source_preference="auto",
@@ -3599,42 +4286,28 @@ def create_comprehensive_stock_research():
                 st.markdown(format_quality_badge(quality), unsafe_allow_html=True)
 
             if not hist.empty:
+                currency_code = str(info.get("currency") or ("TRY" if is_bist_market else "USD")).upper()
                 col1, col2, col3, col4, col5 = st.columns(5)
 
                 with col1:
                     current_price = info.get('currentPrice', hist['Close'].iloc[-1])
-                    st.metric("Price", f"${_safe_float(current_price):.2f}")
+                    st.metric("Price", _format_price(current_price, currency_code))
                 with col2:
                     change = ((hist['Close'].iloc[-1] - hist['Close'].iloc[0]) / hist['Close'].iloc[0] * 100)
                     st.metric("1Y Return", f"{change:+.2f}%")
                 with col3:
                     market_cap = _safe_float(info.get('marketCap', 0.0))
-                    st.metric("Market Cap", f"${market_cap/1e9:.2f}B")
+                    st.metric("Market Cap", _format_market_cap(market_cap, currency_code))
                 with col4:
                     pe = _safe_float(info.get('trailingPE', 0.0))
-                    st.metric("P/E Ratio", f"{pe:.2f}")
+                    st.metric("P/E Ratio", _format_ratio(pe))
                 with col5:
-                    dy = _safe_float(info.get('dividendYield', 0.0)) * 100
-                    st.metric("Div Yield", f"{dy:.2f}%")
+                    dy = info.get('dividendYield')
+                    dy_numeric = _safe_float(dy, default=None)
+                    st.metric("Div Yield", f"{dy_numeric * 100:.2f}%" if dy_numeric is not None else "N/A")
 
-                # Price chart
-                fig = go.Figure()
-                fig.add_trace(go.Candlestick(
-                    x=hist.index,
-                    open=hist['Open'],
-                    high=hist['High'],
-                    low=hist['Low'],
-                    close=hist['Close'],
-                    name=symbol
-                ))
-                fig.update_layout(
-                    title=f"{symbol} - 1 Year Price Chart",
-                    template="plotly_dark",
-                    height=400,
-                    xaxis_title="Date",
-                    yaxis_title="Price"
-                )
-                st.plotly_chart(fig, use_container_width=True)
+                st.markdown(f"### {analysis_symbol} - 1 Year Price Trend")
+                st.line_chart(hist[["Close"]], use_container_width=True)
 
                 # Company info
                 st.markdown("### Company Information")
@@ -3664,8 +4337,8 @@ def create_comprehensive_stock_research():
 
                 try:
                     market_engine = MarketDataEngine()
-                    news_items = market_engine.get_news(symbol)
-                    sentiment = market_engine.get_sentiment(symbol)
+                    news_items = market_engine.get_news(analysis_symbol)
+                    sentiment = market_engine.get_sentiment(analysis_symbol)
 
                     if sentiment:
                         reddit = sentiment.get("reddit", [])
@@ -3693,7 +4366,7 @@ def create_comprehensive_stock_research():
                 if not news_items:
                     av_api = st.session_state.get("alpha_vantage_api") or AlphaVantageAPI()
                     if av_api.api_key and av_api.api_key.lower() != "demo":
-                        av_data = av_api.get_news_sentiment(symbol, limit=5)
+                        av_data = av_api.get_news_sentiment(analysis_symbol, limit=5)
                         if av_data:
                             news_items = [
                                 {
@@ -3710,7 +4383,7 @@ def create_comprehensive_stock_research():
                 # yfinance fallback
                 if not news_items:
                     try:
-                        yf_news = normalize_yfinance_news(yf.Ticker(symbol).news or [])
+                        yf_news = normalize_yfinance_news(yf.Ticker(analysis_symbol).news or [])
                         news_items = [
                             {
                                 "headline": item.get("title", ""),
@@ -3748,7 +4421,7 @@ def create_comprehensive_stock_research():
         except Exception as e:
             st.error(f"Error loading overview: {str(e)}")
 
-    with tab2:
+    elif active_research_view == "📈 Technical":
         # Technical Analysis
         st.subheader("📈 Advanced Technical Analysis")
 
@@ -3757,8 +4430,7 @@ def create_comprehensive_stock_research():
         else:
             try:
                 with st.spinner("Analyzing technical indicators..."):
-                    analyzer = AdvancedTechnicalAnalyzer(symbol, period=period)
-                    analysis = analyzer.get_complete_technical_analysis()
+                    analysis = get_cached_stock_technical_analysis(analysis_symbol, period)
 
                 if 'error' not in analysis:
                     # Trading signals
@@ -3788,9 +4460,9 @@ def create_comprehensive_stock_research():
                         st.markdown("### 📊 Trend Indicators")
                         trend = analysis['trend_indicators']
                         st.json({
-                            "Current Price": f"${trend['current_price']:.2f}",
-                            "SMA 20": f"${trend['sma_20']:.2f}",
-                            "SMA 50": f"${trend['sma_50']:.2f}",
+                            "Current Price": f"{market_currency_symbol}{trend['current_price']:.2f}",
+                            "SMA 20": f"{market_currency_symbol}{trend['sma_20']:.2f}",
+                            "SMA 50": f"{market_currency_symbol}{trend['sma_50']:.2f}",
                             "MACD": f"{trend['macd']:.2f}",
                             "Trend": trend['trend']
                         })
@@ -3811,14 +4483,14 @@ def create_comprehensive_stock_research():
                     col1, col2, col3 = st.columns(3)
 
                     with col1:
-                        st.metric("Current Price", f"${sr['current_price']:.2f}")
+                        st.metric("Current Price", f"{market_currency_symbol}{sr['current_price']:.2f}")
                     with col2:
                         if sr['immediate_resistance']:
-                            st.metric("Resistance", f"${sr['immediate_resistance']:.2f}",
+                            st.metric("Resistance", f"{market_currency_symbol}{sr['immediate_resistance']:.2f}",
                                     f"+{sr['distance_to_resistance']:.2f}%")
                     with col3:
                         if sr['immediate_support']:
-                            st.metric("Support", f"${sr['immediate_support']:.2f}",
+                            st.metric("Support", f"{market_currency_symbol}{sr['immediate_support']:.2f}",
                                     f"-{sr['distance_to_support']:.2f}%")
 
                     # Chart patterns
@@ -3835,12 +4507,12 @@ def create_comprehensive_stock_research():
             except Exception as e:
                 st.error(f"Technical analysis error: {str(e)}")
 
-    with tab3:
+    elif active_research_view == "🤖 AI Predictions":
         # AI Predictions
         from utils.ai_predictions_ui import display_ai_predictions
-        display_ai_predictions(symbol)
+        display_ai_predictions(analysis_symbol)
 
-    with tab4:
+    elif active_research_view == "💰 Dividend":
         # Dividend Analysis
         st.subheader("💰 Dividend Analysis")
 
@@ -3849,8 +4521,7 @@ def create_comprehensive_stock_research():
         else:
             try:
                 with st.spinner("Analyzing dividends..."):
-                    div_analyzer = DividendAnalyzer(symbol)
-                    div_analysis = div_analyzer.get_comprehensive_dividend_analysis()
+                    div_analysis = get_cached_dividend_analysis(analysis_symbol)
 
                 if 'error' not in div_analysis:
                     # Dividend score
@@ -3913,15 +4584,15 @@ def create_comprehensive_stock_research():
             except Exception as e:
                 st.error(f"Dividend analysis error: {str(e)}")
 
-    with tab5:
+    elif active_research_view == "🏦 Holdings":
         # Institutional Holdings
         from utils.institutional_holdings import display_institutional_holdings
         try:
-            display_institutional_holdings(symbol)
+            display_institutional_holdings(analysis_symbol)
         except Exception as e:
             st.error(f"Holdings analysis error: {str(e)}")
 
-    with tab6:
+    elif active_research_view == "🏭 Sector":
         # Sector Analysis
         st.subheader("🏭 Sector Analysis")
 
@@ -3930,8 +4601,7 @@ def create_comprehensive_stock_research():
         else:
             try:
                 with st.spinner("Analyzing sector position..."):
-                    sector_analyzer = SectorAnalyzer(symbol)
-                    sector_analysis = sector_analyzer.get_comprehensive_sector_analysis()
+                    sector_analysis = get_cached_sector_analysis(analysis_symbol)
 
                 if 'error' not in sector_analysis:
                     # Sector recommendation
@@ -3993,7 +4663,7 @@ def create_comprehensive_stock_research():
             except Exception as e:
                 st.error(f"Sector analysis error: {str(e)}")
 
-    with tab7:
+    elif active_research_view == "💱 Settlement":
         # Settlement Analysis
         st.subheader("💱 Settlement & Volume Analysis")
 
@@ -4002,8 +4672,7 @@ def create_comprehensive_stock_research():
         else:
             try:
                 with st.spinner("Analyzing settlement data..."):
-                    settlement_analyzer = SettlementAnalyzer(symbol)
-                    settlement = settlement_analyzer.get_settlement_analysis(period=period)
+                    settlement = get_cached_research_settlement_analysis(analysis_symbol, period)
 
                 if 'error' not in settlement:
                     # Summary metrics
@@ -4013,7 +4682,7 @@ def create_comprehensive_stock_research():
                     with col1:
                         st.metric("Avg Daily Volume", f"{summary['avg_daily_volume']:,.0f}")
                     with col2:
-                        st.metric("Avg Daily Value", f"${summary['avg_daily_value']:,.0f}")
+                        st.metric("Avg Daily Value", f"{market_currency_symbol}{summary['avg_daily_value']:,.0f}")
                     with col3:
                         st.metric("Trading Days", summary['trading_days'])
                     with col4:
@@ -4026,7 +4695,7 @@ def create_comprehensive_stock_research():
                     col1, col2, col3 = st.columns(3)
 
                     with col1:
-                        st.metric("Daily Turnover", f"${liquidity['avg_daily_turnover']:,.0f}")
+                        st.metric("Daily Turnover", f"{market_currency_symbol}{liquidity['avg_daily_turnover']:,.0f}")
                     with col2:
                         st.metric("Estimated Spread", f"{liquidity['estimated_spread_pct']:.2f}%")
                     with col3:
@@ -4049,50 +4718,61 @@ def create_comprehensive_stock_research():
             except Exception as e:
                 st.error(f"Settlement analysis error: {str(e)}")
 
-    with tab8:
+    elif active_research_view == "📄 Fundamentals":
         # Fundamentals
         st.subheader("📄 Fundamental Analysis")
         try:
-            stock = yf.Ticker(symbol)
+            stock = yf.Ticker(analysis_symbol)
             info = stock.info
+
+            def _fundamental_metric(value, *, multiplier=1.0, suffix="", allow_zero=False):
+                try:
+                    if value is None or value == "":
+                        return "N/A"
+                    numeric = float(value) * multiplier
+                    if not allow_zero and numeric == 0:
+                        return "N/A"
+                    return f"{numeric:.2f}{suffix}"
+                except Exception:
+                    return "N/A"
 
             col1, col2 = st.columns(2)
 
             with col1:
                 st.markdown("### 💵 Valuation Metrics")
-                st.metric("P/E Ratio", f"{info.get('trailingPE', 0):.2f}")
-                st.metric("Forward P/E", f"{info.get('forwardPE', 0):.2f}")
-                st.metric("PEG Ratio", f"{info.get('pegRatio', 0):.2f}")
-                st.metric("P/B Ratio", f"{info.get('priceToBook', 0):.2f}")
-                st.metric("P/S Ratio", f"{info.get('priceToSalesTrailing12Months', 0):.2f}")
+                st.metric("P/E Ratio", _fundamental_metric(info.get('trailingPE')))
+                st.metric("Forward P/E", _fundamental_metric(info.get('forwardPE')))
+                st.metric("PEG Ratio", _fundamental_metric(info.get('pegRatio')))
+                st.metric("P/B Ratio", _fundamental_metric(info.get('priceToBook')))
+                st.metric("P/S Ratio", _fundamental_metric(info.get('priceToSalesTrailing12Months')))
 
             with col2:
                 st.markdown("### 📊 Profitability")
-                st.metric("Profit Margin", f"{info.get('profitMargins', 0)*100:.2f}%")
-                st.metric("Operating Margin", f"{info.get('operatingMargins', 0)*100:.2f}%")
-                st.metric("ROE", f"{info.get('returnOnEquity', 0)*100:.2f}%")
-                st.metric("ROA", f"{info.get('returnOnAssets', 0)*100:.2f}%")
-                st.metric("Revenue Growth", f"{info.get('revenueGrowth', 0)*100:.2f}%")
+                st.metric("Profit Margin", _fundamental_metric(info.get('profitMargins'), multiplier=100, suffix="%"))
+                st.metric("Operating Margin", _fundamental_metric(info.get('operatingMargins'), multiplier=100, suffix="%"))
+                st.metric("ROE", _fundamental_metric(info.get('returnOnEquity'), multiplier=100, suffix="%"))
+                st.metric("ROA", _fundamental_metric(info.get('returnOnAssets'), multiplier=100, suffix="%"))
+                st.metric("Revenue Growth", _fundamental_metric(info.get('revenueGrowth'), multiplier=100, suffix="%"))
 
             st.markdown("### 💰 Financial Health")
             col1, col2, col3 = st.columns(3)
 
             with col1:
-                st.metric("Current Ratio", f"{info.get('currentRatio', 0):.2f}")
+                st.metric("Current Ratio", _fundamental_metric(info.get('currentRatio')))
             with col2:
-                st.metric("Debt/Equity", f"{info.get('debtToEquity', 0):.2f}")
+                st.metric("Debt/Equity", _fundamental_metric(info.get('debtToEquity')))
             with col3:
-                st.metric("Quick Ratio", f"{info.get('quickRatio', 0):.2f}")
+                st.metric("Quick Ratio", _fundamental_metric(info.get('quickRatio')))
 
             # Add Balance Sheet Sankey Chart
             st.markdown("---")
             from utils.balance_sheet_sankey import display_balance_sheet_sankey
-            display_balance_sheet_sankey(symbol)
+            display_balance_sheet_sankey(analysis_symbol)
 
             # Add Income Statement Sankey Chart
             st.markdown("---")
             from utils.income_statement_sankey import display_income_statement_sankey
-            display_income_statement_sankey(symbol)
+            display_income_statement_sankey(analysis_symbol)
 
         except Exception as e:
             st.error(f"Fundamentals error: {str(e)}")
@@ -4159,10 +4839,6 @@ def create_stock_screener_ui():
                 ['market_cap', 'price_change', 'dividend_yield', 'pe_ratio', 'volume'])
 
         run_screen = st.button("🔍 Run Screen", type="primary", use_container_width=True)
-
-    with col2:
-        st.subheader("📊 Results")
-
         if run_screen:
             with st.spinner("Screening stocks..."):
                 # Get symbols based on market
@@ -4170,65 +4846,70 @@ def create_stock_screener_ui():
                 if market == "🌍 S&P 500":
                     symbols = get_sp500_sample()
                 elif market == "🇺🇸 NASDAQ 100":
-                    # Top NASDAQ stocks
                     symbols = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "AVGO", "COST", "ASML",
                                "NFLX", "AMD", "PEP", "ADBE", "CSCO", "CMCSA", "INTC", "QCOM", "TXN", "INTU"]
                 elif market == "🇺🇸 Dow Jones 30":
-                    # Dow Jones 30 components
                     symbols = ["AAPL", "MSFT", "UNH", "GS", "HD", "CAT", "MCD", "AMGN", "V", "AXP",
                                "BA", "TRV", "JPM", "IBM", "JNJ", "WMT", "DIS", "MMM", "NKE", "KO",
                                "PG", "CVX", "MRK", "CSCO", "VZ", "INTC", "WBA", "DOW", "HON", "CRM"]
                 elif market == "🇪🇺 FTSE 100":
-                    # Major FTSE 100 stocks
                     symbols = ["SHEL.L", "AZN.L", "HSBA.L", "BP.L", "ULVR.L", "GSK.L", "DGE.L", "RIO.L",
                                "BARC.L", "LLOY.L", "VOD.L", "BATS.L", "NG.L", "REL.L", "LSEG.L"]
                 elif market == "🇩🇪 DAX 40":
-                    # Major DAX stocks
                     symbols = ["SAP.DE", "SIE.DE", "ALV.DE", "DTE.DE", "AIR.DE", "VOW3.DE", "BAS.DE",
                                "MBG.DE", "BMW.DE", "MUV2.DE", "BAYN.DE", "ADS.DE", "HEN3.DE", "DB1.DE"]
                 elif market == "🇯🇵 Nikkei 225":
-                    # Major Japanese stocks
                     symbols = ["7203.T", "6758.T", "9984.T", "6861.T", "9433.T", "8306.T", "8035.T",
                                "6902.T", "4502.T", "4503.T", "6501.T", "7267.T", "9432.T", "7974.T"]
                 elif market == "🇨🇳 Shanghai Composite":
-                    # Major Chinese stocks (accessible symbols)
                     symbols = ["BABA", "JD", "PDD", "BIDU", "NIO", "XPEV", "LI", "BILI", "TME", "IQ"]
                 elif market == "🇹🇷 BIST 100":
                     symbols = get_bist_stocks()
                 else:
                     symbols = get_sp500_sample()
 
-                # Run screener
                 screener = StockScreener()
                 results = screener.screen_stocks(symbols, criteria)
+                st.session_state["strategy_screener_run"] = {
+                    "market": market,
+                    "criteria": criteria.copy(),
+                    "results": results,
+                }
 
-                if results:
-                    st.success(f"✅ Found {len(results)} stocks matching criteria")
+    with col2:
+        st.subheader("📊 Results")
 
-                    # Display results
-                    results_df = pd.DataFrame(results)
+        active_screen = st.session_state.get("strategy_screener_run")
+        if active_screen and active_screen.get("market") == market and active_screen.get("criteria") == criteria:
+            st.caption("Showing last stock screen for the current criteria.")
+            results = active_screen.get("results")
 
-                    # Format columns
-                    if 'market_cap' in results_df.columns:
-                        results_df['market_cap'] = results_df['market_cap'].apply(
-                            lambda x: f"${x/1e9:.2f}B" if x > 0 else "N/A")
+            if results:
+                st.success(f"✅ Found {len(results)} stocks matching criteria")
 
-                    display_cols = ['symbol', 'name', 'market_cap', 'pe_ratio',
-                                  'dividend_yield', 'price_change_3m', 'rsi']
-                    available_cols = [col for col in display_cols if col in results_df.columns]
+                # Display results
+                results_df = pd.DataFrame(results)
 
-                    st.dataframe(results_df[available_cols], use_container_width=True, hide_index=True)
+                # Format columns
+                if 'market_cap' in results_df.columns:
+                    results_df['market_cap'] = results_df['market_cap'].apply(
+                        lambda x: f"${x/1e9:.2f}B" if x > 0 else "N/A")
 
-                    # Export
-                    csv = results_df.to_csv(index=False)
-                    st.download_button(
-                        label="📥 Download Results (CSV)",
-                        data=csv,
-                        file_name=f"screener_results_{datetime.now().strftime('%Y%m%d')}.csv",
-                        mime="text/csv"
-                    )
-                else:
-                    st.warning("No stocks found matching criteria. Try adjusting filters.")
+                display_cols = ['symbol', 'name', 'market_cap', 'pe_ratio',
+                              'dividend_yield', 'price_change_3m', 'rsi']
+                available_cols = [col for col in display_cols if col in results_df.columns]
+
+                st.dataframe(results_df[available_cols], use_container_width=True, hide_index=True)
+
+                csv = results_df.to_csv(index=False)
+                st.download_button(
+                    label="📥 Download Results (CSV)",
+                    data=csv,
+                    file_name=f"screener_results_{datetime.now().strftime('%Y%m%d')}.csv",
+                    mime="text/csv"
+                )
+            else:
+                st.warning("No stocks found matching criteria. Try adjusting filters.")
         else:
             st.info("👆 Configure filters and click 'Run Screen' to find stocks")
 
@@ -4283,22 +4964,15 @@ def _render_backtest_lab():
             params['std_dev'] = st.slider("Std Deviation", 1.0, 3.0, 2.0, 0.5, key="bt_bb_std")
 
         run_backtest = st.button("🚀 Run Backtest", type="primary", use_container_width=True, key="bt_run")
-
-    with col2:
-        st.subheader("📊 Results")
-
         if run_backtest:
-            with st.spinner("Running backtest..."):
-                try:
-                    # Initialize engine
+            try:
+                with st.spinner("Running backtest..."):
                     engine = BacktestEngine(
                         symbol,
                         start_date.strftime('%Y-%m-%d'),
                         end_date.strftime('%Y-%m-%d'),
                         initial_capital
                     )
-
-                    # Map strategy names
                     strategy_map = {
                         "Buy and Hold": "buy_hold",
                         "SMA Crossover": "sma_crossover",
@@ -4306,71 +4980,88 @@ def _render_backtest_lab():
                         "MACD Strategy": "macd",
                         "Bollinger Bands": "bollinger"
                     }
-
                     result = engine.backtest_strategy(strategy_map[strategy], **params)
+                    st.session_state["strategy_backtest_run"] = {
+                        "symbol": symbol,
+                        "start_date": start_date,
+                        "end_date": end_date,
+                        "initial_capital": initial_capital,
+                        "strategy": strategy,
+                        "params": params.copy(),
+                        "result": result,
+                    }
+            except Exception as e:
+                st.error(f"Backtest error: {str(e)}")
 
-                    if 'error' not in result:
-                        # Performance metrics
-                        perf = result.get('performance', {})
+    with col2:
+        st.subheader("📊 Results")
 
-                        if 'error' in perf:
-                            st.error(f"⚠️ {perf['error']}")
-                        else:
-                            col1, col2, col3, col4 = st.columns(4)
-                            with col1:
-                                st.metric("Total Return", f"{perf.get('total_return', 0):.2f}%")
-                            with col2:
-                                total_profit = perf.get('total_profit', 0)
-                                st.metric("Total Profit", f"${total_profit:,.2f}")
-                            with col3:
-                                st.metric("Win Rate", f"{perf.get('win_rate', 0):.1f}%")
-                            with col4:
-                                st.metric("Max Drawdown", f"{perf.get('max_drawdown', 0):.2f}%")
+        active_backtest = st.session_state.get("strategy_backtest_run")
+        if active_backtest and active_backtest.get("symbol") == symbol and active_backtest.get("start_date") == start_date and active_backtest.get("end_date") == end_date and active_backtest.get("initial_capital") == initial_capital and active_backtest.get("strategy") == strategy and active_backtest.get("params") == params:
+            st.caption("Showing last backtest for the current configuration.")
+            try:
+                result = active_backtest.get("result")
+                if 'error' not in result:
+                    # Performance metrics
+                    perf = result.get('performance', {})
 
-                            # Additional metrics
-                            col1, col2, col3 = st.columns(3)
-                            with col1:
-                                st.metric("Trades", perf.get('number_of_trades', 0))
-                            with col2:
-                                st.metric("Sharpe Ratio", f"{perf.get('sharpe_ratio', 0):.2f}")
-                            with col3:
-                                st.metric("Avg Profit/Trade", f"${perf.get('avg_profit_per_trade', 0):,.2f}")
-
-                        # Equity curve
-                        if result.get('equity_curve'):
-                            st.markdown("### 📈 Equity Curve")
-                            equity_df = pd.DataFrame(result['equity_curve'])
-                            equity_df['date'] = pd.to_datetime(equity_df['date'])
-
-                            fig = go.Figure()
-                            fig.add_trace(go.Scatter(
-                                x=equity_df['date'],
-                                y=equity_df['equity'],
-                                mode='lines',
-                                name='Portfolio Value',
-                                fill='tozeroy'
-                            ))
-                            fig.add_hline(y=initial_capital, line_dash="dash",
-                                        annotation_text="Initial Capital")
-                            fig.update_layout(
-                                template="plotly_dark",
-                                height=400,
-                                xaxis_title="Date",
-                                yaxis_title="Portfolio Value ($)"
-                            )
-                            st.plotly_chart(fig, use_container_width=True)
-
-                        # Trade history
-                        if result.get('trades'):
-                            with st.expander("📋 Trade History"):
-                                trades_df = pd.DataFrame(result['trades'])
-                                st.dataframe(trades_df, use_container_width=True, hide_index=True)
-
+                    if 'error' in perf:
+                        st.error(f"⚠️ {perf['error']}")
                     else:
-                        st.error(result['error'])
+                        col1, col2, col3, col4 = st.columns(4)
+                        with col1:
+                            st.metric("Total Return", f"{perf.get('total_return', 0):.2f}%")
+                        with col2:
+                            total_profit = perf.get('total_profit', 0)
+                            st.metric("Total Profit", f"${total_profit:,.2f}")
+                        with col3:
+                            st.metric("Win Rate", f"{perf.get('win_rate', 0):.1f}%")
+                        with col4:
+                            st.metric("Max Drawdown", f"{perf.get('max_drawdown', 0):.2f}%")
 
-                except Exception as e:
-                    st.error(f"Backtest error: {str(e)}")
+                        # Additional metrics
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("Trades", perf.get('number_of_trades', 0))
+                        with col2:
+                            st.metric("Sharpe Ratio", f"{perf.get('sharpe_ratio', 0):.2f}")
+                        with col3:
+                            st.metric("Avg Profit/Trade", f"${perf.get('avg_profit_per_trade', 0):,.2f}")
+
+                    # Equity curve
+                    if result.get('equity_curve'):
+                        st.markdown("### 📈 Equity Curve")
+                        equity_df = pd.DataFrame(result['equity_curve'])
+                        equity_df['date'] = pd.to_datetime(equity_df['date'])
+
+                        fig = go.Figure()
+                        fig.add_trace(go.Scatter(
+                            x=equity_df['date'],
+                            y=equity_df['equity'],
+                            mode='lines',
+                            name='Portfolio Value',
+                            fill='tozeroy'
+                        ))
+                        fig.add_hline(y=initial_capital, line_dash="dash",
+                                    annotation_text="Initial Capital")
+                        fig.update_layout(
+                            template="plotly_dark",
+                            height=400,
+                            xaxis_title="Date",
+                            yaxis_title="Portfolio Value ($)"
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+
+                    # Trade history
+                    if result.get('trades'):
+                        with st.expander("📋 Trade History"):
+                            trades_df = pd.DataFrame(result['trades'])
+                            st.dataframe(trades_df, use_container_width=True, hide_index=True)
+
+                else:
+                    st.error(result['error'])
+            except Exception as e:
+                st.error(f"Backtest error: {str(e)}")
         else:
             st.info("👆 Configure strategy and click 'Run Backtest' to begin")
 
@@ -4384,26 +5075,42 @@ def create_strategy_lab():
     Compare multiple strategies and optimize parameters.
     """)
 
-    lab_tabs = st.tabs([
+    lab_views = [
         "📈 Backtesting",
         "🧭 Indicator Lab",
         "🧩 TradingView Tools"
-    ])
+    ]
+    st.markdown('<div class="fp-nav-label">Strategy Tool</div>', unsafe_allow_html=True)
+    active_lab_view = st.radio(
+        "Strategy Tool",
+        lab_views,
+        key="strategy_lab_view_nav",
+        horizontal=True,
+        label_visibility="collapsed",
+    )
 
-    with lab_tabs[0]:
+    if active_lab_view == "📈 Backtesting":
         _render_backtest_lab()
 
-    with lab_tabs[1]:
+    elif active_lab_view == "🧭 Indicator Lab":
         from app.ui.indicator_lab import render_indicator_lab
         render_indicator_lab()
 
-    with lab_tabs[2]:
+    elif active_lab_view == "🧩 TradingView Tools":
         from app.ui.tradingview_tools import render_tradingview_tools
         render_tradingview_tools()
 
 def create_turkish_markets():
     """Turkish Markets Analysis"""
     st.header("🇹🇷 Turkish Markets (BIST)")
+
+    try:
+        from modules.tr_funds_launchpad_ui import render_tr_funds_launchpad
+
+        render_tr_funds_launchpad()
+        st.markdown("---")
+    except Exception as exc:
+        st.info(f"TR Funds Launchpad yuklenemedi: {exc}")
 
     # BIST indices
     turkish_indices = ['XU100.IS', 'XU030.IS', 'XU050.IS']
@@ -4448,19 +5155,27 @@ def create_turkish_markets():
     st.markdown("---")
     st.subheader("📊 TEFAS Fon Portföy Analizi")
 
-    if PHASE_3_4_MODULES.get('tefas_portfolio_analysis_ui') is True:
+    tefas_module = load_phase_3_4_module("tefas_portfolio_analysis_ui")
+    if tefas_module:
         try:
-            create_tefas_portfolio_analysis_ui()
+            tefas_module()
         except Exception as e:
             st.error(f"⚠️ TEFAS portföy analizi yüklenirken hata oluştu: {e}")
     else:
+        status_store = _get_phase_3_4_status_store()
         st.info("⚠️ TEFAS portföy analizi modülü yüklenemedi.")
+        st.caption(str(status_store.get("tefas_portfolio_analysis_ui", "unknown error")))
 
 def create_game_changer_tab():
     """🤖 AI Tools - Advanced Analytics with Artificial Intelligence"""
+    from app.analytics.social_features import SocialFeatures
+    from app.analytics.visualization_tools import VisualizationTools
+    from app.analytics.ai_lite_tools import AILiteTools
+    from app.ui.export_tools import ExportTools
+
     st.markdown(
         f"""
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem; text-align: center; color: white;">
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 55%, #0f766e 100%); padding: 1.5rem; border-radius: 18px; margin-bottom: 1.25rem; text-align: center; color: white;">
         <h1>🤖 AI Tools - Advanced Analytics</h1>
         <p style="font-size: 1.1rem; margin-top: 0.5rem;">
             AI Narrative Engine (Mixtral-8x7B) + Social, Visualization & AI-Lite Tools
@@ -4474,7 +5189,10 @@ def create_game_changer_tab():
     try:
         from modules.ai_narrative import render_narrative_panel
         lang = st.session_state.get("lang", "en")
-        with st.expander("🤖 AI Narrative Engine — Executive Summary & Risk Memo", expanded=True):
+        with st.expander(
+            "🤖 AI Narrative Engine — Executive Summary & Risk Memo",
+            expanded=not st.session_state.get("fp_performance_mode", False),
+        ):
             render_narrative_panel(
                 market_data={},      # populated dynamically when user clicks
                 risk_signals=[],
@@ -4496,49 +5214,63 @@ def create_game_changer_tab():
             st.error(f"⚠️ {label} yüklenirken hata oluştu.")
             st.caption("Lütfen tekrar deneyin veya System Status bölümünden logları kontrol edin.")
 
-    # Feature navigation
-    feature_tabs = st.tabs([
+    feature_sections = [
         "📸 Social Features",
         "🎨 Advanced Visualizations",
         "🤖 AI Tools",
         "📤 Export & Share",
-    ])
+    ]
+    st.markdown('<div class="fp-nav-label">AI Tools Section</div>', unsafe_allow_html=True)
+    active_feature_section = st.radio(
+        "AI Tools Section",
+        feature_sections,
+        key="ai_tools_section_nav",
+        horizontal=True,
+        label_visibility="collapsed",
+    )
 
-    # Tab 1: Social Features
-    with feature_tabs[0]:
+    if active_feature_section == "📸 Social Features":
         social = SocialFeatures()
-
-        social_subtabs = st.tabs([
+        social_views = [
             "📸 Portfolio Snapshots",
             "📋 Public Watchlists",
             "📝 Ticker Notes",
             "🏆 Leaderboard",
-        ])
+        ]
+        social_view = st.radio(
+            "Social View",
+            social_views,
+            key="ai_tools_social_view_nav",
+            horizontal=True,
+            label_visibility="collapsed",
+        )
 
-        with social_subtabs[0]:
+        if social_view == "📸 Portfolio Snapshots":
             _safe_render("Portfolio Snapshots", social.portfolio_snapshot_ui)
-
-        with social_subtabs[1]:
+        elif social_view == "📋 Public Watchlists":
             _safe_render("Public Watchlists", social.public_watchlists_ui)
-
-        with social_subtabs[2]:
+        elif social_view == "📝 Ticker Notes":
             _safe_render("Ticker Notes", social.ticker_notes_ui)
-
-        with social_subtabs[3]:
+        elif social_view == "🏆 Leaderboard":
             _safe_render("Leaderboard", social.leaderboard_ui)
 
-    # Tab 2: Advanced Visualizations
-    with feature_tabs[1]:
+    elif active_feature_section == "🎨 Advanced Visualizations":
         viz = VisualizationTools()
-
-        viz_subtabs = st.tabs([
+        viz_views = [
             "📅 Calendar Heatmap",
             "🔄 Sector Rotation",
             "😱 Fear & Greed",
             "📊 3D Portfolio",
-        ])
+        ]
+        viz_view = st.radio(
+            "Visualization View",
+            viz_views,
+            key="ai_tools_visualization_view_nav",
+            horizontal=True,
+            label_visibility="collapsed",
+        )
 
-        with viz_subtabs[0]:
+        if viz_view == "📅 Calendar Heatmap":
             ticker = st.text_input("Enter Ticker Symbol", "SPY", key="heatmap_ticker")
             period = st.selectbox("Select Period", ["1y", "2y", "3y", "5y"], key="heatmap_period")
             if st.button("Generate Heatmap", type="primary"):
@@ -4546,28 +5278,30 @@ def create_game_changer_tab():
                     "Calendar Heatmap",
                     lambda: viz.create_returns_heatmap_calendar(ticker.upper(), period)
                 )
-
-        with viz_subtabs[1]:
+        elif viz_view == "🔄 Sector Rotation":
             _safe_render("Sector Rotation", viz.create_sector_rotation_wheel)
-
-        with viz_subtabs[2]:
+        elif viz_view == "😱 Fear & Greed":
             _safe_render("Fear & Greed", viz.create_fear_greed_gauge)
-
-        with viz_subtabs[3]:
+        elif viz_view == "📊 3D Portfolio":
             _safe_render("3D Portfolio", viz.create_3d_portfolio_allocation)
 
-    # Tab 3: AI Tools
-    with feature_tabs[2]:
+    elif active_feature_section == "🤖 AI Tools":
         ai = AILiteTools()
-
-        ai_subtabs = st.tabs([
+        ai_views = [
             "🎲 Monte Carlo",
             "⚡ Backtesting",
             "🎯 Chart Annotation",
             "📰 News Sentiment",
-        ])
+        ]
+        ai_view = st.radio(
+            "AI Feature View",
+            ai_views,
+            key="ai_tools_feature_view_nav",
+            horizontal=True,
+            label_visibility="collapsed",
+        )
 
-        with ai_subtabs[0]:
+        if ai_view == "🎲 Monte Carlo":
             ticker = st.text_input("Enter Ticker", "AAPL", key="mc_ticker")
             col1, col2 = st.columns(2)
             with col1:
@@ -4580,8 +5314,7 @@ def create_game_changer_tab():
                     "Monte Carlo",
                     lambda: ai.monte_carlo_simulation(ticker.upper(), investment, 10000, days)
                 )
-
-        with ai_subtabs[1]:
+        elif ai_view == "⚡ Backtesting":
             ticker = st.text_input("Enter Ticker", "SPY", key="bt_ticker")
             strategy = st.selectbox("Select Strategy", ["SMA_Crossover", "RSI", "MACD"])
             period = st.selectbox("Backtest Period", ["1y", "2y", "3y", "5y"], key="bt_period")
@@ -4591,8 +5324,7 @@ def create_game_changer_tab():
                     "Backtesting",
                     lambda: ai.backtest_strategy(ticker.upper(), strategy, period)
                 )
-
-        with ai_subtabs[2]:
+        elif ai_view == "🎯 Chart Annotation":
             ticker = st.text_input("Enter Ticker", "TSLA", key="chart_ticker")
             period = st.selectbox("Chart Period", ["3mo", "6mo", "1y", "2y"], key="chart_period")
 
@@ -4601,8 +5333,7 @@ def create_game_changer_tab():
                     "Chart Annotation",
                     lambda: ai.auto_annotate_chart(ticker.upper(), period)
                 )
-
-        with ai_subtabs[3]:
+        elif ai_view == "📰 News Sentiment":
             ticker = st.text_input("Enter Ticker", "NVDA", key="news_ticker")
 
             if st.button("Analyze News", type="primary", key="analyze_news"):
@@ -4611,17 +5342,22 @@ def create_game_changer_tab():
                     lambda: ai.news_sentiment_analysis(ticker.upper())
                 )
 
-    # Tab 4: Export & Share
-    with feature_tabs[3]:
+    elif active_feature_section == "📤 Export & Share":
         export = ExportTools()
-
-        export_subtabs = st.tabs([
+        export_views = [
             "📄 PDF Export",
             "📊 Excel Export",
             "📱 QR Code",
-        ])
+        ]
+        export_view = st.radio(
+            "Export View",
+            export_views,
+            key="ai_tools_export_view_nav",
+            horizontal=True,
+            label_visibility="collapsed",
+        )
 
-        with export_subtabs[0]:
+        if export_view == "📄 PDF Export":
             st.markdown("### Export Report to PDF")
 
             # Sample data for PDF export
@@ -4642,8 +5378,7 @@ def create_game_changer_tab():
                     "PDF Export",
                     lambda: export.export_to_pdf("Portfolio Report", sample_data)
                 )
-
-        with export_subtabs[1]:
+        elif export_view == "📊 Excel Export":
             st.markdown("### Export Data to Excel")
 
             sample_sheets = {
@@ -4659,12 +5394,11 @@ def create_game_changer_tab():
                     "Excel Export",
                     lambda: export.export_to_excel(sample_sheets, "portfolio_data")
                 )
-
-        with export_subtabs[2]:
+        elif export_view == "📱 QR Code":
             st.markdown("### Generate QR Code for Dashboard")
 
-            url = st.text_input("Enter Dashboard URL", "https://financeiq.streamlit.app", key="qr_url")
-            description = st.text_input("Description", "FinanceIQ Dashboard", key="qr_desc")
+            url = st.text_input("Enter Dashboard URL", PUBLIC_APP_URL, key="qr_url")
+            description = st.text_input("Description", f"{APP_DISPLAY_NAME} Dashboard", key="qr_desc")
 
             if st.button("Generate QR Code", type="primary", key="gen_qr"):
                 _safe_render(
@@ -4688,7 +5422,7 @@ def create_education_tab():
 
     st.markdown("**Seviye Rehberi:** Beginner / Intermediate / Advanced")
 
-    edu_tabs = st.tabs([
+    education_views = [
         "🚀 Baslangic",
         "📚 Temel & Teknik Analiz",
         "🏭 Sektor Analizi",
@@ -4698,7 +5432,15 @@ def create_education_tab():
         "⚡ Kisa Vade & Trader",
         "🛡️ Risk & Psikoloji",
         "🧾 Sozluk",
-    ])
+    ]
+    st.markdown('<div class="fp-nav-label">Education Section</div>', unsafe_allow_html=True)
+    active_education_view = st.radio(
+        "Education Section",
+        education_views,
+        key="education_section_nav",
+        horizontal=True,
+        label_visibility="collapsed",
+    )
 
     def _education_compute_rsi(series, period=14):
         delta = series.diff()
@@ -4840,7 +5582,7 @@ def create_education_tab():
         fig.update_layout(template="plotly_dark", height=600, title=title, margin=dict(l=20, r=20, t=40, b=20))
         return fig
 
-    with edu_tabs[0]:
+    if active_education_view == "🚀 Baslangic":
         st.markdown("### Beginner")
         st.subheader("Finansal Piyasalar 101")
         st.markdown(
@@ -4872,20 +5614,27 @@ def create_education_tab():
 """
             )
 
-    with edu_tabs[1]:
+    elif active_education_view == "📚 Temel & Teknik Analiz":
         st.markdown("### Intermediate")
         st.subheader("Temel & Teknik Analiz")
         st.caption("Asagidaki ornek grafikler egitim amaclidir ve sentetik veri kullanir.")
 
-        sub_tabs = st.tabs([
+        technical_education_views = [
             "Temel Analiz",
             "Teknik Analiz",
             "Indikatorler",
             "En Uyumlu 2'li",
             "En Uyumlu 3'lu",
-        ])
+        ]
+        technical_education_view = st.radio(
+            "Technical Education View",
+            technical_education_views,
+            key="education_technical_view_nav",
+            horizontal=True,
+            label_visibility="collapsed",
+        )
 
-        with sub_tabs[0]:
+        if technical_education_view == "Temel Analiz":
             st.markdown(
                 """
 **Temel Analiz Neyi Inceler?**
@@ -4903,7 +5652,7 @@ def create_education_tab():
 """
             )
 
-        with sub_tabs[1]:
+        elif technical_education_view == "Teknik Analiz":
             st.markdown(
                 """
 **Teknik Analiz Neyi Inceler?**
@@ -4921,7 +5670,7 @@ def create_education_tab():
 """
             )
 
-        with sub_tabs[2]:
+        elif technical_education_view == "Indikatorler":
             st.markdown(
                 """
 **Yaygin Indikatorler ve Anlamlari**
@@ -4944,7 +5693,7 @@ def create_education_tab():
             )
             st.plotly_chart(fig, use_container_width=True)
 
-        with sub_tabs[3]:
+        elif technical_education_view == "En Uyumlu 2'li":
             df = _education_sample_data()
 
             st.markdown(
@@ -4971,7 +5720,7 @@ def create_education_tab():
             )
             st.plotly_chart(_plot_combo_macd_volume(df, "MACD + Volume (Momentum Confirmation)"), use_container_width=True)
 
-        with sub_tabs[4]:
+        elif technical_education_view == "En Uyumlu 3'lu":
             df = _education_sample_data()
 
             st.markdown(
@@ -4998,7 +5747,7 @@ def create_education_tab():
             )
             st.plotly_chart(_plot_combo_bollinger_rsi_volume(df, "Bollinger + RSI + Volume"), use_container_width=True)
 
-    with edu_tabs[2]:
+    elif active_education_view == "🏭 Sektor Analizi":
         st.markdown("### Intermediate")
         st.subheader("Sektorlere Gore Analiz Nasil Yapilir?")
         st.markdown(
@@ -5024,7 +5773,7 @@ def create_education_tab():
 """
         )
 
-    with edu_tabs[3]:
+    elif active_education_view == "🔄 Piyasa Donguleri":
         st.markdown("### Intermediate")
         st.subheader("Piyasa Donguleri ve Beklentiler")
         st.markdown(
@@ -5166,7 +5915,7 @@ Donguler tekrarlasa da birebir ayni olmaz. Bu nedenle sinyaller tek basina degil
             else:
                 st.info("FRED verisi icin FRED_API_KEY gereklidir.")
 
-    with edu_tabs[4]:
+    elif active_education_view == "📊 ETF & Fonlar":
         st.markdown("### Beginner")
         st.subheader("ETF ve Fonlar Nedir?")
         st.markdown(
@@ -5196,7 +5945,7 @@ Donguler tekrarlasa da birebir ayni olmaz. Bu nedenle sinyaller tek basina degil
 """
         )
 
-    with edu_tabs[5]:
+    elif active_education_view == "🧭 Uzun Vade Yatirimci":
         st.markdown("### Intermediate")
         st.subheader("Uzun Vade Yatirimci Neler Bilmelidir?")
         st.markdown(
@@ -5215,7 +5964,7 @@ Donguler tekrarlasa da birebir ayni olmaz. Bu nedenle sinyaller tek basina degil
 """
         )
 
-    with edu_tabs[6]:
+    elif active_education_view == "⚡ Kisa Vade & Trader":
         st.markdown("### Advanced")
         st.subheader("Kisa Vade Yatirimci ve Trader")
         st.markdown(
@@ -5238,7 +5987,7 @@ Donguler tekrarlasa da birebir ayni olmaz. Bu nedenle sinyaller tek basina degil
 """
         )
 
-    with edu_tabs[7]:
+    elif active_education_view == "🛡️ Risk & Psikoloji":
         st.markdown("### Advanced")
         st.subheader("Risk Yonetimi ve Psikoloji")
         st.markdown(
@@ -5260,7 +6009,7 @@ Pozisyon Adedi = Risk Butcesi / (Giris Fiyati - Stop Fiyati)
 """
         )
 
-    with edu_tabs[8]:
+    elif active_education_view == "🧾 Sozluk":
         st.markdown("### Beginner")
         st.subheader("Mini Sozluk")
         st.markdown(
@@ -5318,6 +6067,8 @@ def main():
         with st.expander("⚙️ System Status", expanded=False):
             st.write(f"Environment: `{APP_CONFIG.env}`")
             st.write(f"Auth: `{ 'enabled' if APP_CONFIG.require_auth else 'disabled' }`")
+            st.write(f"Public URL: `{PUBLIC_APP_URL}`")
+            st.write(f"Support: `{SUPPORT_EMAIL}`")
             try:
                 from utils.tradingview_bridge import TradingViewBridge
                 tv_available = TradingViewBridge().available()
@@ -5333,59 +6084,53 @@ def main():
             st.write(f"Alpha Vantage Key: `{ 'set' if av_key else 'missing' }`")
             st.write(f"FMP Key: `{ 'set' if fmp_key else 'missing' }`")
 
-    # Main navigation tabs - Professional workflow organization
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11, tab12, tab13, tab14, tab15, tab16, tab17 = st.tabs([
-        "🎯 Dashboard",
-        "🔍 Stock Research",
-        "📡 Screener",
-        "🧪 Strategy Lab",
-        "📊 ETFs & Funds",
-        "🏛️ Institutional",
-        "🇹🇷 Turkish Markets",
-        "🤖 AI Tools",
-        "🎓 Education",
-        "🐋 Whale Intelligence",
-        "🎲 Entropy Analysis",
-        "📊 Crypto Dominance",
-        "🌀 Cycle Intelligence",
-        "💼 Portfolio",
-        "👁️ Watchlist",
-        "🔔 Alerts",
-        "🔒 Privacy"
-    ])
+    active_workspace = render_primary_navigation()
 
-    with tab1:
+    if active_workspace == "🎯 Dashboard":
         create_executive_dashboard()
 
-    with tab2:
+    elif active_workspace == "🔍 Stock Research":
         create_comprehensive_stock_research()
 
-    with tab3:
+    elif active_workspace == "📡 Screener":
         create_stock_screener_ui()
 
-    with tab4:
+    elif active_workspace == "🧪 Strategy Lab":
         create_strategy_lab()
 
-    with tab5:
+    elif active_workspace == "📊 ETFs & Funds":
         create_etfs_and_funds()
 
-    with tab6:
+    elif active_workspace == "🏛️ Institutional":
         create_institutional_investors()
 
-    with tab7:
+    elif active_workspace == "🇹🇷 Turkish Markets":
         create_turkish_markets()
 
-    with tab8:
-        # Game Changer Features - Phase 1
+    elif active_workspace == "🤖 AI Tools":
         create_game_changer_tab()
 
-    with tab9:
+    elif active_workspace == "🎓 Education":
         create_education_tab()
 
-    with tab10:
+    elif active_workspace == "🐋 Whale Intelligence":
         # TEST: Make sure this tab renders
         st.title("🐋 Whale Intelligence - Institutional Analytics")
         st.success("✅ Whale Intelligence tab is loading!")
+
+        whale_module_keys = [
+            "portfolio_health_ui",
+            "etf_weight_tracker_ui",
+            "scenario_sandbox_ui",
+            "fund_flow_radar_ui",
+            "whale_investor_analytics_ui",
+            "whale_correlation_ui",
+            "whale_momentum_tracker_ui",
+            "etf_whale_linkage_ui",
+            "hedge_fund_activity_radar_ui",
+            "institutional_event_reaction_lab_ui",
+        ]
+        whale_modules, whale_available, whale_error, whale_status = load_phase_3_4_modules(whale_module_keys)
 
         # Whale Intelligence: Advanced Institutional Analytics
         st.markdown("""
@@ -5402,20 +6147,20 @@ def main():
 
         col1, col2 = st.columns([1, 3])
         with col1:
-            if PHASE_3_4_AVAILABLE:
+            if whale_available:
                 st.success("✅ All Loaded")
             else:
                 st.error("❌ Load Failed")
 
         with col2:
-            if not PHASE_3_4_AVAILABLE and PHASE_3_4_ERROR:
+            if not whale_available and whale_error:
                 with st.expander("🐛 Show Error Details", expanded=True):
-                    st.code(PHASE_3_4_ERROR)
+                    st.code(whale_error)
                     st.info("💡 This usually means missing dependencies. Check Streamlit Cloud logs.")
 
         # Show per-module status
         with st.expander("📦 Module-by-Module Status"):
-            for module_name, status in PHASE_3_4_MODULES.items():
+            for module_name, status in whale_status.items():
                 if status is True:
                     st.success(f"✅ {module_name}")
                 else:
@@ -5423,9 +6168,8 @@ def main():
 
         st.markdown("---")
 
-        if PHASE_3_4_AVAILABLE:
-            # Sub-tabs for Phase 3-4 modules
-            pro_tab1, pro_tab2, pro_tab3, pro_tab4, pro_tab5, pro_tab6, pro_tab7, pro_tab8, pro_tab9, pro_tab10 = st.tabs([
+        if whale_available:
+            whale_views = [
                 "📊 Portfolio Health",
                 "📈 ETF Weight Tracker",
                 "🧪 Scenario Sandbox",
@@ -5435,57 +6179,56 @@ def main():
                 "📈 Whale Momentum ⭐",
                 "🔗 ETF-Whale Linkage ⭐",
                 "📡 Hedge Fund Radar ⭐",
-                "📅 Event Reaction Lab ⭐"
-            ])
+                "📅 Event Reaction Lab ⭐",
+            ]
+            st.markdown('<div class="fp-nav-label">Whale Module</div>', unsafe_allow_html=True)
+            active_whale_view = st.radio(
+                "Whale Module",
+                whale_views,
+                key="whale_module_nav",
+                horizontal=True,
+                label_visibility="collapsed",
+            )
 
-            with pro_tab1:
-                health_ui = PortfolioHealthUI()
+            if active_whale_view == "📊 Portfolio Health":
+                health_ui = whale_modules["portfolio_health_ui"]()
                 health_ui.render()
-
-            with pro_tab2:
-                tracker_ui = ETFWeightTrackerUI()
+            elif active_whale_view == "📈 ETF Weight Tracker":
+                tracker_ui = whale_modules["etf_weight_tracker_ui"]()
                 tracker_ui.render()
-
-            with pro_tab3:
-                scenario_ui = ScenarioSandboxUI()
+            elif active_whale_view == "🧪 Scenario Sandbox":
+                scenario_ui = whale_modules["scenario_sandbox_ui"]()
                 scenario_ui.render()
-
-            with pro_tab4:
-                flow_ui = FundFlowRadarUI()
+            elif active_whale_view == "📡 Fund Flow Radar":
+                flow_ui = whale_modules["fund_flow_radar_ui"]()
                 flow_ui.render()
-
-            with pro_tab5:
-                whale_ui = WhaleInvestorAnalyticsUI()
+            elif active_whale_view == "🐋 Whale Investors":
+                whale_ui = whale_modules["whale_investor_analytics_ui"]()
                 whale_ui.render()
-
-            with pro_tab6:
-                correlation_ui = WhaleCorrelationUI()
+            elif active_whale_view == "🔗 Whale Correlation":
+                correlation_ui = whale_modules["whale_correlation_ui"]()
                 correlation_ui.render()
-
-            with pro_tab7:
+            elif active_whale_view == "📈 Whale Momentum ⭐":
                 st.info("**NEW in v1.7!** Track institutional consensus in real-time.")
-                momentum_ui = WhaleMomentumTrackerUI()
+                momentum_ui = whale_modules["whale_momentum_tracker_ui"]()
                 momentum_ui.render()
-
-            with pro_tab8:
+            elif active_whale_view == "🔗 ETF-Whale Linkage ⭐":
                 st.info("**NEW in v1.7!** Understand your passive vs active exposure.")
-                etf_whale_ui = ETFWhaleLinkageUI()
+                etf_whale_ui = whale_modules["etf_whale_linkage_ui"]()
                 etf_whale_ui.render()
-
-            with pro_tab9:
+            elif active_whale_view == "📡 Hedge Fund Radar ⭐":
                 st.info("**NEW in v1.7!** Multi-source institutional activity tracking.")
-                hedge_fund_ui = HedgeFundActivityRadarUI()
+                hedge_fund_ui = whale_modules["hedge_fund_activity_radar_ui"]()
                 hedge_fund_ui.render()
-
-            with pro_tab10:
+            elif active_whale_view == "📅 Event Reaction Lab ⭐":
                 st.info("**NEW in v1.7!** Track how whales react to FOMC, CPI, Jobs Reports.")
-                event_lab_ui = InstitutionalEventReactionLabUI()
+                event_lab_ui = whale_modules["institutional_event_reaction_lab_ui"]()
                 event_lab_ui.render()
         else:
             # Modules not available - show what's included
             st.warning("⚠️ **Whale Intelligence modules are loading...**")
 
-            st.markdown("""
+            st.markdown(f"""
             ### 🐋 Advanced Institutional Intelligence Features
 
             **10 Whale Terminal-Level Analytics Modules:**
@@ -5506,10 +6249,10 @@ def main():
             **If you see this message:**
             - Modules are still loading on Streamlit Cloud
             - Check error details above to see what's missing
-            - Contact support@financeiq.com if issue persists
+            - Contact {SUPPORT_EMAIL} if issue persists
             """)
 
-    with tab11:
+    elif active_workspace == "🎲 Entropy Analysis":
         st.title("🎲 Entropy Analysis - Market Intelligence")
         try:
             from dashboard.pages.entropy_analysis import render_entropy_dashboard
@@ -5518,7 +6261,7 @@ def main():
             st.error(f"Failed to load Entropy Analysis: {e}")
             st.info("This feature requires additional dependencies. Please check the logs.")
 
-    with tab12:
+    elif active_workspace == "📊 Crypto Dominance":
         st.title("📊 Crypto Market Dominance & Forecasting")
         try:
             from dashboard.pages.crypto_market_dominance import render_crypto_dominance_dashboard
@@ -5527,10 +6270,12 @@ def main():
             st.error(f"Failed to load Crypto Dominance Analysis: {e}")
             st.info("This feature requires CoinGecko API access. Please check the logs.")
 
-    with tab13:
+    elif active_workspace == "🌀 Cycle Intelligence":
         # Cycle Intelligence Engine
         try:
-            if PHASE_3_4_MODULES.get('cycle_analysis_ui') is True:
+            cycle_intelligence_ui = load_phase_3_4_module("cycle_analysis_ui")
+            cycle_status = _get_phase_3_4_status_store()
+            if cycle_intelligence_ui:
                 fred_api_instance = None
                 alpha_vantage_api_instance = None
 
@@ -5541,28 +6286,28 @@ def main():
                 except:
                     pass
 
-                create_cycle_intelligence_ui(fred_api_instance, alpha_vantage_api_instance)
+                cycle_intelligence_ui(fred_api_instance, alpha_vantage_api_instance)
             else:
-                st.error(f"🌀 Cycle Intelligence module failed to load: {PHASE_3_4_MODULES.get('cycle_analysis_ui', 'Unknown error')}")
+                st.error(f"🌀 Cycle Intelligence module failed to load: {cycle_status.get('cycle_analysis_ui', 'Unknown error')}")
                 st.info("Please check the module imports and try restarting the application.")
         except Exception as e:
             st.error(f"Error loading Cycle Intelligence: {e}")
             import traceback
             st.code(traceback.format_exc())
 
-    with tab14:
+    elif active_workspace == "💼 Portfolio":
         create_portfolio_management()
 
-    with tab15:
+    elif active_workspace == "👁️ Watchlist":
         create_watchlist_management()
 
-    with tab16:
+    elif active_workspace == "🔔 Alerts":
         if user:
             create_price_alerts_ui(user['id'])
         else:
             st.info("🔔 Price alerts available - no login required")
 
-    with tab17:
+    elif active_workspace == "🔒 Privacy":
         if user:
             from utils.privacy_ui import display_privacy_settings
             display_privacy_settings(user['id'])
@@ -5570,12 +6315,7 @@ def main():
             st.info("🔒 Privacy settings available - no login required")
 
     st.markdown("---")
-    st.markdown("""
-    <div style='text-align: center; color: #666; padding: 20px;'>
-        🧠 FinanceIQ | AI-Powered Financial Analysis Platform<br>
-        Real-time market data with AI predictions and institutional tracking
-    </div>
-    """, unsafe_allow_html=True)
+    render_footer()
 
 def get_supply_chain_disruption_data(symbol):
     """📦 Supply Chain Disruption Early Warning System - REVOLUTIONARY FEATURE"""
