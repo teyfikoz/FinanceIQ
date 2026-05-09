@@ -384,7 +384,7 @@ def get_market_data_safe(symbols, retries=3, delay=1):
     try:
         # Use batch download for better performance
         if len(symbols) > 1:
-            hist_data = yf.download(symbols, period='1d', interval='1m', group_by='ticker', threads=True, progress=False)
+            hist_data = yf.download(symbols, period='1d', interval='1m', group_by='ticker', threads=False, progress=False)
 
             for symbol in symbols:
                 try:
@@ -466,7 +466,8 @@ def get_mock_data(symbol):
     }
 
     base_price = base_prices.get(symbol, 100.0)
-    # Add some realistic volatility
+    # Seed with symbol hash so mock values are stable across reruns
+    np.random.seed(abs(hash(symbol)) % 2**31)
     price_change = np.random.normal(0, 0.02)  # 2% volatility
     current_price = base_price * (1 + price_change)
     change_percent = np.random.normal(0, 1.5)  # Random daily change
@@ -1927,6 +1928,14 @@ def create_global_overview():
 
     with st.spinner("Loading global market data..."):
         market_data = get_market_data_safe(indices)
+
+    mock_symbols = [s for s, d in market_data.items() if d.get("status") == "mock"]
+    if mock_symbols:
+        st.warning(
+            f"**DEMO VERİ** — Gerçek piyasa verisi alınamadı: {', '.join(mock_symbols)}. "
+            "Gösterilen değerler tahminidir, yatırım kararı için kullanmayın.",
+            icon="⚠️",
+        )
 
     # Display major indices in cards
     cols = st.columns(3)

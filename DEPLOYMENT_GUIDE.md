@@ -55,8 +55,14 @@ python3 -m py_compile modules/*.py
 rsync -az main.py root@46.62.164.198:/opt/fundpilot/app/main.py
 rsync -az modules/ root@46.62.164.198:/opt/fundpilot/app/modules/
 rsync -az utils/ root@46.62.164.198:/opt/fundpilot/app/utils/
-rsync -az app/ root@46.62.164.198:/opt/fundpilot/app/app/
+rsync -az app root@46.62.164.198:/opt/fundpilot/app/
 ```
+
+> **CRITICAL — `app` vs `app/`**
+> Use `app` (no trailing slash). `app/` would expand the directory contents
+> directly into `/opt/fundpilot/app/`, overwriting the Streamlit `main.py`
+> with `app/main.py` (FastAPI) and crashing the service with
+> `ModuleNotFoundError: No module named 'fastapi'`.
 
 ### 3. Restart service
 
