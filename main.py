@@ -376,9 +376,18 @@ def load_phase_3_4_modules(module_keys):
     return loaded_modules, available, error, status_store.copy()
 
 # Global data cache with rate limiting protection
-@st.cache_data(ttl=300)  # 5-minute cache to reduce API calls
 def get_market_data_safe(symbols, retries=3, delay=1):
     """Safely fetch market data with batch downloading and fallback"""
+    from app.services.cache import get_cache
+    import hashlib
+    
+    # Sort symbols to ensure consistent cache key
+    sorted_symbols = tuple(sorted(symbols))
+    cache_key = f"market_data_safe_{hashlib.md5(str(sorted_symbols).encode()).hexdigest()}"
+    cached = get_cache().get(cache_key)
+    if cached is not None:
+        return cached
+
     results = {}
 
     try:
@@ -449,6 +458,7 @@ def get_market_data_safe(symbols, retries=3, delay=1):
         for symbol in symbols:
             results[symbol] = get_mock_data(symbol)
 
+    get_cache().set(cache_key, results, ttl=300)
     return results
 
 def get_mock_data(symbol):

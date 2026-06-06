@@ -10,9 +10,11 @@ import numpy as np
 from datetime import datetime, timedelta
 import time
 import logging
+import hashlib
 
 from utils.data_quality import DataQuality
 from utils.unified_api_manager import api_manager
+from app.services.cache import get_cache
 
 try:
     from utils.tradingview_bridge import TradingViewBridge
@@ -53,8 +55,6 @@ class MarketDataFetcher:
     def __init__(self, cache_duration=300):
         """Initialize with cache duration in seconds (default 5 minutes)"""
         self.cache_duration = cache_duration
-        self.cache = {}
-        self.cache_meta = {}
         self.last_api_call = {}
         self.min_api_interval = 2  # Minimum 2 seconds between API calls
         self.tv_bridge = TradingViewBridge() if _TV_BRIDGE_AVAILABLE else None
@@ -74,11 +74,10 @@ class MarketDataFetcher:
         # Check cache first
         interval_key = interval or "1d"
         cache_key = f"{symbol}_{period}_{interval_key}"
-        if cache_key in self.cache:
-            cached_time, cached_data = self.cache[cache_key]
-            if time.time() - cached_time < self.cache_duration:
-                logger.info(f"Using cached data for {symbol}")
-                return cached_data + ("cache",)
+        cached_payload = get_cache().get(cache_key)
+        if cached_payload is not None:
+            logger.info(f"Using cached data for {symbol}")
+            return cached_payload["data"] + ("cache",)
 
         # Rate limiting: wait if needed
         if symbol in self.last_api_call:
@@ -100,11 +99,11 @@ class MarketDataFetcher:
 
                 # Cache the result
                 fetched_ts = time.time()
-                self.cache[cache_key] = (fetched_ts, (hist, info))
-                self.cache_meta[cache_key] = {
-                    "provider": "yfinance",
+                get_cache().set(cache_key, {
                     "fetched_at": fetched_ts,
-                }
+                    "provider": "yfinance",
+                    "data": (hist, info)
+                }, ttl=self.cache_duration)
                 logger.info(f"Successfully fetched real data for {symbol}")
                 return hist, info, "yfinance"
 
@@ -117,11 +116,11 @@ class MarketDataFetcher:
             if td_hist is not None and not td_hist.empty:
                 info = self._get_fallback_info(symbol)
                 fetched_ts = time.time()
-                self.cache[cache_key] = (fetched_ts, (td_hist, info))
-                self.cache_meta[cache_key] = {
-                    "provider": "twelvedata",
+                get_cache().set(cache_key, {
                     "fetched_at": fetched_ts,
-                }
+                    "provider": "twelvedata",
+                    "data": (td_hist, info)
+                }, ttl=self.cache_duration)
                 logger.info(f"Successfully fetched TwelveData for {symbol}")
                 return td_hist, info, "twelvedata"
         except Exception as e:
@@ -171,7 +170,9 @@ class MarketDataFetcher:
             base_price = baseline['price']
         elif symbol_upper.endswith(".IS"):
             # Keep BIST fallback prices in a realistic TL band.
-            base_price = 20.0 + (abs(hash(symbol_upper)) % 1800) / 10.0
+            # Using deterministic hash to avoid process-lifetime dependency
+            det_hash = int(hashlib.sha256(symbol_upper.encode('utf-8')).hexdigest()[:8], 16)
+            base_price = 20.0 + (det_hash % 1800) / 10.0
         else:
             base_price = 100.0
 
@@ -191,7 +192,8 @@ class MarketDataFetcher:
         dates = pd.date_range(end=end_date, periods=days, freq='D')
 
         # Generate realistic price movement
-        np.random.seed(hash(symbol) % 2**32)
+        det_hash_seed = int(hashlib.sha256(symbol.encode('utf-8')).hexdigest()[:8], 16)
+        np.random.seed(det_hash_seed % 2**32)
         returns = np.random.normal(0.001, 0.02, days)  # 0.1% daily return, 2% volatility
         prices = base_price * np.cumprod(1 + returns)
 
@@ -344,18 +346,19 @@ class MarketDataFetcher:
         cache_key = f"{symbol}_{period}_{interval_key}"
 
         # Cache check
-        if cache_key in self.cache:
-            cached_time, cached_data = self.cache[cache_key]
-            if time.time() - cached_time < self.cache_duration:
-                provider = self.cache_meta.get(cache_key, {}).get("provider", "unknown")
-                quality = self._make_quality(
-                    status="cache",
-                    provider=provider,
-                    fetched_ts=cached_time,
-                    cache_age=time.time() - cached_time,
-                    note="served from in-memory cache",
-                )
-                return cached_data[0], cached_data[1], quality
+        cached_payload = get_cache().get(cache_key)
+        if cached_payload is not None:
+            provider = cached_payload.get("provider", "unknown")
+            cached_time = cached_payload.get("fetched_at", time.time())
+            cached_data = cached_payload["data"]
+            quality = self._make_quality(
+                status="cache",
+                provider=provider,
+                fetched_ts=cached_time,
+                cache_age=time.time() - cached_time,
+                note="served from cache",
+            )
+            return cached_data[0], cached_data[1], quality
 
         # Optional TradingView bridge
         if source_preference in ("auto", "tradingview") and self.tv_bridge and self.tv_bridge.available():
@@ -364,11 +367,11 @@ class MarketDataFetcher:
                 if tv_df is not None and not tv_df.empty:
                     info = self._get_fallback_info(symbol)
                     fetched_ts = time.time()
-                    self.cache[cache_key] = (fetched_ts, (tv_df, info))
-                    self.cache_meta[cache_key] = {
-                        "provider": "tradingview",
+                    get_cache().set(cache_key, {
                         "fetched_at": fetched_ts,
-                    }
+                        "provider": "tradingview",
+                        "data": (tv_df, info)
+                    }, ttl=self.cache_duration)
                     quality = self._make_quality("real", "tradingview", fetched_ts)
                     return tv_df, info, quality
             except Exception as e:
@@ -381,9 +384,9 @@ class MarketDataFetcher:
         if source == "yfinance":
             quality = self._make_quality("real", "yfinance", fetched_ts)
         elif source == "cache":
-            provider = self.cache_meta.get(cache_key, {}).get("provider", "yfinance")
-            cache_time = self.cache.get(cache_key, (fetched_ts,))[0] if cache_key in self.cache else fetched_ts
-            quality = self._make_quality("cache", provider, cache_time, cache_age=time.time() - cache_time)
+            # This case shouldn't be hit directly if get_stock_data falls back to cache,
+            # as it returns "cache" but the cache check above intercepts it.
+            quality = self._make_quality("cache", "unknown", fetched_ts)
         else:
             quality = self._make_quality("fallback", "synthetic", fetched_ts, note="synthetic baseline data")
 
@@ -403,7 +406,7 @@ class MarketDataFetcher:
 
     def clear_cache(self):
         """Clear the data cache"""
-        self.cache.clear()
+        get_cache().clear()
         logger.info("Cache cleared")
 
 # Global instance

@@ -14,6 +14,7 @@ import hashlib
 from collections import defaultdict
 import threading
 from .secret_utils import get_secret
+from app.services.cache import get_cache
 
 
 class RateLimiter:
@@ -56,54 +57,12 @@ class RateLimiter:
         return False
 
 
-class APICache:
-    """Simple in-memory cache for API responses"""
-
-    def __init__(self):
-        self.cache: Dict[str, Dict[str, Any]] = {}
-        self.lock = threading.Lock()
-
-    def get(self, key: str, max_age: int = 300) -> Optional[Any]:
-        """Get cached value if not expired"""
-        with self.lock:
-            if key in self.cache:
-                data, timestamp = self.cache[key]['data'], self.cache[key]['timestamp']
-                if time.time() - timestamp < max_age:
-                    return data
-                else:
-                    # Expired, remove from cache
-                    del self.cache[key]
-            return None
-
-    def set(self, key: str, value: Any):
-        """Set cache value"""
-        with self.lock:
-            self.cache[key] = {
-                'data': value,
-                'timestamp': time.time()
-            }
-
-    def clear(self):
-        """Clear all cache"""
-        with self.lock:
-            self.cache.clear()
-
-    def get_cache_key(self, api_name: str, endpoint: str, params: Dict = None) -> str:
-        """Generate unique cache key"""
-        param_str = json.dumps(params, sort_keys=True) if params else ""
-        raw_key = f"{api_name}:{endpoint}:{param_str}"
-        return hashlib.md5(raw_key.encode()).hexdigest()
-
-
-class UnifiedAPIManager:
-    """
     Unified API Manager for all data sources
     Handles rate limiting, caching, and fallback strategies
     """
 
     def __init__(self):
         self.rate_limiter = RateLimiter()
-        self.cache = APICache()
         self.api_keys = self._load_api_keys()
 
         self.tefas_session = requests.Session()
@@ -177,6 +136,12 @@ class UnifiedAPIManager:
 
         return keys
 
+    def get_cache_key(self, api_name: str, endpoint: str, params: Dict = None) -> str:
+        """Generate unique cache key"""
+        param_str = json.dumps(params, sort_keys=True) if params else ""
+        raw_key = f"{api_name}:{endpoint}:{param_str}"
+        return hashlib.md5(raw_key.encode()).hexdigest()
+
     def _make_request(self, api_name: str, url: str, params: Dict = None,
                      headers: Dict = None, data_type: str = 'stock_price') -> Optional[Any]:
         """
@@ -190,10 +155,10 @@ class UnifiedAPIManager:
             data_type: Type of data for cache duration
         """
         # Generate cache key
-        cache_key = self.cache.get_cache_key(api_name, url, params)
+        cache_key = self.get_cache_key(api_name, url, params)
 
         # Check cache first
-        cached_data = self.cache.get(cache_key, self.cache_durations.get(data_type, 300))
+        cached_data = get_cache().get(cache_key)
         if cached_data is not None:
             return cached_data
 
@@ -212,7 +177,7 @@ class UnifiedAPIManager:
             data = response.json()
 
             # Cache the result
-            self.cache.set(cache_key, data)
+            get_cache().set(cache_key, data, ttl=self.cache_durations.get(data_type, 300))
 
             return data
 
@@ -425,8 +390,8 @@ class UnifiedAPIManager:
             end_date = datetime.now().strftime("%Y-%m-%d")
 
         # Check cache first
-        cache_key = self.cache.get_cache_key('tefas', fund_code, {'start': start_date, 'end': end_date})
-        cached = self.cache.get(cache_key, self.cache_durations['funds'])
+        cache_key = self.get_cache_key('tefas', fund_code, {'start': start_date, 'end': end_date})
+        cached = get_cache().get(cache_key)
         if cached is not None:
             return cached
 
@@ -466,7 +431,7 @@ class UnifiedAPIManager:
                     })
 
                 # Cache result
-                self.cache.set(cache_key, formatted_data)
+                get_cache().set(cache_key, formatted_data, ttl=self.cache_durations.get('funds', 3600))
                 return formatted_data
 
             return None
