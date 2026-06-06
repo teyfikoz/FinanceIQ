@@ -119,7 +119,7 @@ if APP_CONFIG.require_auth:
 else:
     print("🚀 Direct access mode - no authentication required")
 
-# Global FundPilot design system styling
+# Global FundPortal design system styling
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
@@ -476,8 +476,9 @@ def get_mock_data(symbol):
     }
 
     base_price = base_prices.get(symbol, 100.0)
+    import hashlib
     # Seed with symbol hash so mock values are stable across reruns
-    np.random.seed(abs(hash(symbol)) % 2**31)
+    np.random.seed(int(hashlib.sha256(symbol.encode()).hexdigest(), 16) % 2**31)
     price_change = np.random.normal(0, 0.02)  # 2% volatility
     current_price = base_price * (1 + price_change)
     change_percent = np.random.normal(0, 1.5)  # Random daily change

@@ -55,8 +55,8 @@ class RateLimiter:
                 return True
             time.sleep(0.5)
         return False
-
-
+class UnifiedAPIManager:
+    """
     Unified API Manager for all data sources
     Handles rate limiting, caching, and fallback strategies
     """
