@@ -1,5 +1,5 @@
 [Unit]
-Description=FundPilot Streamlit Application
+Description=FundPilot FastAPI Web Application
 After=network.target
 
 [Service]
@@ -10,7 +10,9 @@ WorkingDirectory=/opt/fundpilot/app
 EnvironmentFile=/etc/fundpilot/fundpilot.env
 Environment=HOME=/opt/fundpilot
 Environment=PYTHONPATH=/opt/fundpilot/app
-ExecStart=/opt/fundpilot/venv/bin/streamlit run /opt/fundpilot/app/main.py --server.port=8501 --server.address=127.0.0.1 --server.headless=true --browser.gatherUsageStats=false
+Environment=ENVIRONMENT=production
+Environment=ENABLE_API_DOCS=false
+ExecStart=/opt/fundpilot/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8004 --workers 1 --proxy-headers --forwarded-allow-ips=*
 Restart=always
 RestartSec=5
 TimeoutStopSec=20

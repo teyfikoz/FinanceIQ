@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Turkish Funds{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">TR Funds Intelligence</p>
+        <h1>TEFAS momentum without the dashboard sprawl.</h1>
+        <p class="hero-text">
+            This board is a public, read-only view of the Turkish funds surface: peer ranking,
+            allocation drift, investor momentum, and a cleaner morning workflow.
+        </p>
+    </div>
+    {% if top_pick %}
+    <div class="hero-aside">
+        <p class="eyebrow">Top pick</p>
+        <div class="hero-score">{{ top_pick.fund_code }}</div>
+        <p class="hero-metric">{{ top_pick.signal_band }} · score {{ top_pick.signal_score }}</p>
+        <p class="hero-metric">{{ top_pick.fund_family }} · {{ top_pick.local_factor }}</p>
+        <p class="hero-metric">Investor growth {{ "%.1f"|format(top_pick.investor_growth_pct) }}%</p>
+        <p class="hero-metric">{{ top_pick.quality_tier }} · board {{ top_pick.board_score }}</p>
+    </div>
+    {% else %}
+    <div class="hero-aside">
+        <p class="eyebrow">Board status</p>
+        <div class="hero-score">Refreshing</div>
+        <p class="hero-metric">The TEFAS cache is rebuilding.</p>
+        <p class="hero-metric">No user data is involved.</p>
+        <p class="hero-metric">Try again shortly.</p>
+    </div>
+    {% endif %}
+</section>
+
+<section class="section-block">
+    <form class="query-form query-form-wide" method="get" action="/turkish-funds">
+        <label>
+            <span>Fund code</span>
+            <input type="text" name="fund" value="{{ fund_workspace.fund_code or 'TCD' }}" placeholder="TCD">
+        </label>
+        <label>
+            <span>Months</span>
+            <input type="number" name="months" min="3" max="18" value="{{ fund_workspace.selected_months or 3 }}">
+        </label>
+        <button type="submit" class="button button-primary">Refresh fund workbench</button>
+    </form>
+    <div class="hero-actions">
+        <a href="/compare?kind=tr-funds&left={{ fund_workspace.fund_code or 'TCD' }}&right=GAH&months={{ fund_workspace.selected_months or 3 }}" class="button button-secondary">Compare</a>
+        <a href="/catalyst-calendar" class="button button-secondary">Catalyst Calendar</a>
+    </div>
+    <div class="chip-row">
+        {% for code in fund_workspace.featured_funds %}
+        <a href="/turkish-funds?fund={{ code }}&months={{ fund_workspace.selected_months or 3 }}" class="signal-chip">{{ code }}</a>
+        {% endfor %}
+    </div>
+</section>
+
+{% if fund_workspace.fallback_notice %}
+<section class="section-block">
+    <article class="editorial-card">
+        <p class="card-kicker">Fallback Routing</p>
+        <h3>{{ fund_workspace.resolved_fund_code or fund_workspace.fund_code }} is the closest live TEFAS workspace.</h3>
+        <p>{{ fund_workspace.fallback_notice }}</p>
+    </article>
+</section>
+{% endif %}
+
+{% if fund_workspace.error %}
+<section class="section-block">
+    <article class="editorial-card empty-state">
+        <h3>Selected fund could not be loaded.</h3>
+        <p>{{ fund_workspace.error }}</p>
+    </article>
+</section>
+{% else %}
+{% if fund_workspace.what_changed %}
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">What Changed</p>
+                <h2>Where sponsorship is actually shifting</h2>
+            </div>
+            <p class="section-note">A short memo from TEFAS data, not a generic fund description.</p>
+        </div>
+        <div class="card-stack">
+            {% for item in fund_workspace.what_changed %}
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ item.impact }} impact</p>
+                <h3>{{ item.label }} · {{ item.value }}</h3>
+                <p>{{ item.reason }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Data Confidence</p>
+        <h2>{{ fund_workspace.data_confidence.label if fund_workspace.data_confidence else "Refreshing" }}</h2>
+        <p>{{ fund_workspace.data_confidence.detail if fund_workspace.data_confidence else "No confidence note is available yet." }}</p>
+        <p class="trust-note">Security-level holdings are not public in TEFAS. Bucket evolution is the honest proxy.</p>
+    </aside>
+</section>
+{% endif %}
+
+<section class="section-block two-column">
+    <article class="trust-card">
+        <p class="eyebrow">Selected fund</p>
+        <h2>{{ fund_workspace.overview.fund_name }}</h2>
+        <p>{{ fund_workspace.signal_card.regime_note }}</p>
+        <div class="chip-row">
+            <span class="signal-chip">{{ fund_workspace.signal_card.signal_band }} · {{ fund_workspace.signal_card.signal_score }}</span>
+            <span class="signal-chip">{{ fund_workspace.signal_card.board_band }} · {{ fund_workspace.signal_card.board_score }}</span>
+            <span class="signal-chip">{{ fund_workspace.signal_card.regime }}</span>
+            <span class="signal-chip">{{ fund_workspace.signal_card.dominant_asset }} · {{ fund_workspace.signal_card.dominant_weight }}</span>
+            <span class="signal-chip">{{ fund_workspace.signal_card.local_factor }}</span>
+            <span class="signal-chip">{{ fund_workspace.signal_card.quality_tier }}</span>
+        </div>
+    </article>
+    <div class="card-grid card-grid-3">
+        <article class="market-card">
+            <p class="feature-label">Portfolio Value</p>
+            <h3>{{ fund_workspace.overview.latest_portfolio_value }}</h3>
+            <p>{{ fund_workspace.overview.portfolio_value_growth_pct }} over the selected window.</p>
+        </article>
+        <article class="market-card">
+            <p class="feature-label">Investors</p>
+            <h3>{{ fund_workspace.overview.latest_num_investors }}</h3>
+            <p>{{ fund_workspace.overview.investor_growth_pct }} investor growth.</p>
+        </article>
+        <article class="market-card">
+            <p class="feature-label">Category Rank</p>
+            <h3>{{ fund_workspace.overview.category_rank }}/{{ fund_workspace.overview.category_count }}</h3>
+            <p>{{ fund_workspace.overview.category }} · percentile {{ fund_workspace.overview.category_percentile }}</p>
+        </article>
+        <article class="market-card">
+            <p class="feature-label">Fund Family</p>
+            <h3>{{ fund_workspace.overview.fund_family }}</h3>
+            <p>Market share {{ fund_workspace.overview.market_share }} · local lens {{ fund_workspace.signal_card.local_factor }}</p>
+        </article>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Allocation Mix</p>
+                <h2>Current vs start of window</h2>
+            </div>
+            <p class="section-note">Built from TEFAS allocation buckets, not browser scraping.</p>
+        </div>
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Asset</th>
+                        <th>Current</th>
+                        <th>Initial</th>
+                        <th>Change</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in fund_workspace.allocation_rows %}
+                    <tr>
+                        <td>{{ row.asset }}</td>
+                        <td>{{ row.current_weight }}</td>
+                        <td>{{ row.initial_weight }}</td>
+                        <td>{{ row.change }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Monthly Drift</p>
+                <h2>What changed most recently?</h2>
+            </div>
+            <p class="section-note">Primary shift highlights the biggest bucket move each month.</p>
+        </div>
+        {% if fund_workspace.monthly_rows %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Primary Shift</th>
+                        <th>Stocks</th>
+                        <th>Bonds</th>
+                        <th>Repo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in fund_workspace.monthly_rows %}
+                    <tr>
+                        <td>{{ row.month }}</td>
+                        <td>{{ row.primary_shift }}</td>
+                        <td>{{ row.stocks_change }}</td>
+                        <td>{{ row.bonds_change }}</td>
+                        <td>{{ row.repo_change }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>Monthly drift history is still building.</h3>
+            <p>The fund loaded correctly, but no multi-month change rows were returned for this window.</p>
+        </article>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Bucket Evolution</p>
+            <h2>Top allocation buckets over time</h2>
+        </div>
+        <p class="section-note">Security-level holdings are not public on current TEFAS API; bucket evolution is the honest proxy.</p>
+    </div>
+    {% if fund_workspace.evolution_rows %}
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Rank</th>
+                    <th>Bucket</th>
+                    <th>Weight</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in fund_workspace.evolution_rows %}
+                <tr>
+                    <td>{{ row.month }}</td>
+                    <td>{{ row.rank }}</td>
+                    <td>{{ row.security_name }}</td>
+                    <td>{{ row.weight }}</td>
+                    <td>{{ row.value }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <article class="editorial-card empty-state">
+        <h3>No bucket evolution rows were returned.</h3>
+        <p>That usually means the selected window is too short or upstream allocation history was sparse.</p>
+    </article>
+    {% endif %}
+</section>
+{% endif %}
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Signal Board</p>
+            <h2>Featured peer universe</h2>
+        </div>
+        <p class="section-note">Server-side TEFAS fetch. No browser-side third-party calls.</p>
+    </div>
+    {% if peer_board %}
+    <label class="search-box" for="fund-filter">
+        <span>Filter funds</span>
+        <input id="fund-filter" type="search" placeholder="Type fund code or fund name">
+    </label>
+    <div class="table-wrap">
+        <table class="signal-table" data-filterable="true" data-filter-input="fund-filter">
+            <thead>
+                <tr>
+                    <th>Fund</th>
+                    <th>Score</th>
+                    <th>Band</th>
+                    <th>Board</th>
+                    <th>Family</th>
+                    <th>Factor</th>
+                    <th>Regime</th>
+                    <th>Investor Growth</th>
+                    <th>Value Growth</th>
+                    <th>Drift</th>
+                    <th>Quality</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in peer_board %}
+                <tr>
+                    <td>
+                        <strong>{{ row.fund_code }}</strong>
+                        <span>{{ row.fund_name_short }}</span>
+                    </td>
+                    <td>{{ row.signal_score }}</td>
+                    <td>{{ row.signal_band }}</td>
+                    <td>{{ row.board_score|default("0.0", true) }}<span>{{ row.board_band|default("Monitor", true) }}</span></td>
+                    <td>{{ row.fund_family|default("Unknown", true) }}</td>
+                    <td>{{ row.local_factor|default("Mixed Exposure", true) }}</td>
+                    <td>{{ row.regime }}</td>
+                    <td>{{ "%.1f"|format(row.investor_growth_pct) }}%</td>
+                    <td>{{ "%.1f"|format(row.value_growth_pct) }}%</td>
+                    <td>{{ "%.1f"|format(row.allocation_drift) }}</td>
+                    <td>{{ row.quality_tier|default("Emerging", true) }}<span>{{ "%.1f"|format(row.category_percentile|default(50.0, true)) }} pct</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <article class="editorial-card empty-state">
+        <h3>Signal board is temporarily empty.</h3>
+        <p>The page rendered correctly, but the current TEFAS snapshot has not been cached yet. Refresh soon and the board will repopulate automatically.</p>
+    </article>
+    {% endif %}
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Fund Family Breadth</p>
+                <h2>Which houses are actually leading?</h2>
+            </div>
+            <p class="section-note">Manager quality is not just one fund. This table shows which product families have repeatable strength.</p>
+        </div>
+        {% if leadership.family_rows %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Family</th>
+                        <th>House view</th>
+                        <th>Funds</th>
+                        <th>Avg board</th>
+                        <th>Avg signal</th>
+                        <th>Lead fund</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in leadership.family_rows %}
+                    <tr>
+                        <td><strong>{{ row.fund_family }}</strong></td>
+                        <td>{{ row.house_view }}</td>
+                        <td>{{ row.funds_count }}</td>
+                        <td>{{ row.avg_board_score }}</td>
+                        <td>{{ row.avg_signal_score }}</td>
+                        <td>{{ row.top_fund }}<span>{{ "%.1f"|format(row.avg_category_percentile) }} pct</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>Family breadth is still warming.</h3>
+            <p>Once the TEFAS peer board cache fills, FundPilot will rank manager houses as well as single funds.</p>
+        </article>
+        {% endif %}
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Local Factor Breadth</p>
+                <h2>What theme is broadening?</h2>
+            </div>
+            <p class="section-note">This is the local-market lens Google Finance will never give you: factor breadth across TEFAS products.</p>
+        </div>
+        {% if leadership.factor_rows %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Factor</th>
+                        <th>Breadth</th>
+                        <th>Funds</th>
+                        <th>Avg board</th>
+                        <th>Investor flow</th>
+                        <th>Lead fund</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in leadership.factor_rows %}
+                    <tr>
+                        <td><strong>{{ row.local_factor }}</strong></td>
+                        <td>{{ row.breadth }}</td>
+                        <td>{{ row.funds_count }}</td>
+                        <td>{{ row.avg_board_score }}</td>
+                        <td>{{ "%.1f"|format(row.avg_investor_growth_pct) }}%</td>
+                        <td>{{ row.lead_fund }}<span>{{ "%.1f"|format(row.avg_value_growth_pct) }}% value</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>Factor breadth is still warming.</h3>
+            <p>The local factor map appears automatically once there is enough cached TEFAS breadth to rank themes honestly.</p>
+        </article>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <aside class="trust-card">
+        <p class="eyebrow">Monetization Model</p>
+        <h2>Use this page for sponsor-safe placements, not third-party ad scripts.</h2>
+        <p>
+            The cleanest public model here is contextual sponsor inventory around the signal board,
+            plus affiliate links that are disclosed clearly and rendered directly by your own app.
+        </p>
+    </aside>
+    <div class="card-stack">
+        <article class="editorial-card">
+            <h3>Why this page matters</h3>
+            <p>TR funds are your clearest public differentiation. This is the surface worth polishing first.</p>
+        </article>
+        <article class="editorial-card">
+            <h3>What was removed</h3>
+            <p>No login wall, no user watchlists, no alert persistence, and no Streamlit widget state failure mode.</p>
+        </article>
+        <article class="editorial-card">
+            <h3>Operational note</h3>
+            <p>If TEFAS is slow, the page still renders gracefully because the board is built behind cached server-side services.</p>
+        </article>
+    </div>
+</section>
+{% endblock %}

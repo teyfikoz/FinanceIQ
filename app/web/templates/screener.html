@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Screener{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Curated Screener</p>
+        <h1>Scan faster. Stay inside liquid universes.</h1>
+        <p class="hero-text">
+            Curated screens are back without the old runtime risk. This public version focuses on
+            predefined momentum, value, dividend, quality, and catalyst-aware scans across liquid
+            sample universes in the US, Europe, Japan, Korea, China, Hong Kong, and Turkey instead
+            of pretending to cover every ticker on earth.
+        </p>
+    </div>
+    <div class="hero-aside">
+        <p class="eyebrow">Current screen</p>
+        <div class="hero-score">{{ workspace.match_count }}</div>
+        <p class="hero-metric">{{ workspace.screen_name }}</p>
+        <p class="hero-metric">{{ workspace.universe_label }} · {{ workspace.universe_size }} names</p>
+        <p class="hero-metric">Hit rate {{ workspace.match_rate }}%</p>
+    </div>
+</section>
+
+<section class="section-block">
+    <form class="query-form query-form-wide" method="get" action="/screener">
+        <label>
+            <span>Universe</span>
+            <select name="universe">
+                {% for option in workspace.universe_options %}
+                <option value="{{ option.key }}" {% if option.key == workspace.selected_universe %}selected{% endif %}>{{ option.label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <span>Screen</span>
+            <select name="screen">
+                {% for option in workspace.screen_options %}
+                <option value="{{ option.key }}" {% if option.key == workspace.selected_screen %}selected{% endif %}>{{ option.label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <span>Rows</span>
+            <input type="number" name="limit" min="8" max="30" value="{{ workspace.rows|length or 18 }}">
+        </label>
+        <button type="submit" class="button button-primary">Run screen</button>
+    </form>
+</section>
+
+<section class="section-block two-column">
+    <article class="trust-card">
+        <p class="eyebrow">Why this matters</p>
+        <h2>{{ workspace.screen_name }}</h2>
+        <p>{{ workspace.screen_description }}</p>
+        <div class="chip-row">
+            {% for item in workspace.criteria_summary %}
+            <span class="signal-chip">{{ item }}</span>
+            {% endfor %}
+        </div>
+        {% if workspace.top_match and workspace.top_match.entropy_note %}
+        <p class="trust-note">Why entropy: {{ workspace.top_match.entropy_note }}</p>
+        {% endif %}
+    </article>
+    <div class="card-grid card-grid-3">
+        <article class="market-card">
+            <p class="feature-label">Universe</p>
+            <h3>{{ workspace.universe_label }}</h3>
+            <p>{{ workspace.universe_description }}</p>
+        </article>
+        <article class="market-card">
+            <p class="feature-label">Average 3M Change</p>
+            <h3>{{ workspace.average_3m_change }}</h3>
+            <p>Across matched names.</p>
+        </article>
+        <article class="market-card">
+            <p class="feature-label">Average RSI</p>
+            <h3>{{ workspace.average_rsi }}</h3>
+            <p>Public momentum posture.</p>
+        </article>
+        <article class="market-card">
+            <p class="feature-label">Fundamental Score</p>
+            <h3>{{ workspace.average_fundamental_score }}</h3>
+            <p>Average across displayed rows.</p>
+        </article>
+        <article class="market-card">
+            <p class="feature-label">13F Crowd</p>
+            <h3>{{ workspace.crowded_count }}</h3>
+            <p>Displayed rows with 2+ curated managers.</p>
+        </article>
+        <article class="market-card">
+            <p class="feature-label">Trend-confirmed</p>
+            <h3>{{ workspace.trend_confirmed_count }}</h3>
+            <p>Rows where entropy and persistence are supportive.</p>
+        </article>
+        <article class="market-card">
+            <p class="feature-label">Capital-Strong</p>
+            <h3>{{ workspace.capital_strong_count }}</h3>
+            <p>Rows with healthy capital conversion.</p>
+        </article>
+        <article class="market-card">
+            <p class="feature-label">KAP Active</p>
+            <h3>{{ workspace.disclosure_active_count }}</h3>
+            <p>Rows with visible disclosure momentum.</p>
+        </article>
+        <article class="market-card">
+            <p class="feature-label">Avg Predictability</p>
+            <h3>{{ workspace.average_predictability }}</h3>
+            <p>How orderly the displayed tape is on average.</p>
+        </article>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Matches</p>
+            <h2>Screen results</h2>
+        </div>
+        <p class="section-note">Curated universe coverage keeps public latency in check.</p>
+    </div>
+    {% if workspace.rows %}
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Sector</th>
+                    <th>Price</th>
+                    <th>3M Change</th>
+                    <th>P/E</th>
+                    <th>Dividend</th>
+                    <th>RSI</th>
+                    <th>ROE</th>
+                    <th>Fundamental</th>
+                    <th>Trend Lens</th>
+                    <th>KAP Flow</th>
+                    <th>Curated 13F</th>
+                    <th>Managers</th>
+                    <th>Market Cap</th>
+                    <th>Why Passed</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.rows %}
+                <tr>
+                    <td>
+                        <strong>{{ row.symbol }}</strong>
+                        <span>{{ row.name }}</span>
+                        {% if row.data_confidence %}
+                        <span>{{ row.data_confidence.label }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ row.sector }}</td>
+                    <td>{{ row.current_price }}</td>
+                    <td>{{ row.price_change_3m }}</td>
+                    <td>{{ row.pe_ratio }}</td>
+                    <td>{{ row.dividend_yield }}</td>
+                    <td>{{ row.rsi }}</td>
+                    <td>{{ row.roe }}</td>
+                    <td><strong>{{ row.fundamental_rating }}</strong><span>{{ row.fundamental_score }} · {{ row.capital_profile }}</span></td>
+                    <td><strong>{{ row.trend_label }}</strong><span>{{ row.predictability_score }} · {{ row.entropy_regime }}</span></td>
+                    <td><strong>{{ row.disclosure_momentum_score }}</strong><span>{{ row.material_disclosures_90d }} material · {{ row.contract_mentions_365d }} contract</span></td>
+                    <td><strong>{{ row.curated_13f_signal }}</strong><span>{{ row.curated_13f_weight }}</span></td>
+                    <td>{{ row.curated_13f_holders }}<span>{{ row.curated_13f_top_holder }}</span></td>
+                    <td>{{ row.market_cap }}</td>
+                    <td>{{ row.why_passed }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <article class="editorial-card empty-state">
+        <h3>No matches in the selected public universe.</h3>
+        <p>That is still a useful signal. Try a broader universe or a less restrictive screen.</p>
+    </article>
+    {% endif %}
+</section>
+{% endblock %}

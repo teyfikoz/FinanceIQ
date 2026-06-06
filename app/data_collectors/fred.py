@@ -15,6 +15,28 @@ class FredCollector(BaseCollector):
         self.base_url = "https://api.stlouisfed.org/fred"
         self.api_key = settings.FRED_API_KEY
         self.rate_limit_delay = 0.1  # FRED is generous with rate limits
+        self.liquidity_series = {
+            "WALCL": {
+                "name": "Fed Balance Sheet",
+                "currency_code": "USD",
+                "unit_scale": 1_000_000,
+            },
+            "M2SL": {
+                "name": "M2 Money Supply",
+                "currency_code": "USD",
+                "unit_scale": 1_000_000_000,
+            },
+            "ECBASSETSW": {
+                "name": "ECB Balance Sheet",
+                "currency_code": "EUR",
+                "unit_scale": 1_000_000,
+            },
+            "JPNASSETS": {
+                "name": "BoJ Balance Sheet",
+                "currency_code": "JPY",
+                "unit_scale": 100_000_000,
+            },
+        }
 
         # Key economic indicators to track
         self.default_series = {
@@ -217,16 +239,9 @@ class FredCollector(BaseCollector):
 
     def get_liquidity_indicators(self) -> Dict[str, Any]:
         """Get key liquidity indicators from FRED."""
-        liquidity_series = {
-            "WALCL": "Fed Balance Sheet",
-            "M2SL": "M2 Money Supply",
-            "ECBASSETSW": "ECB Balance Sheet",
-            "JPNASSETS": "BoJ Balance Sheet"
-        }
-
         liquidity_data = {}
 
-        for series_id, name in liquidity_series.items():
+        for series_id, meta in self.liquidity_series.items():
             try:
                 # Get latest value
                 observations = self._get_series_observations(series_id, limit=2)
@@ -240,11 +255,15 @@ class FredCollector(BaseCollector):
                         change = ((current_val - previous_val) / previous_val) * 100
 
                         liquidity_data[series_id] = {
-                            "name": name,
+                            "name": meta["name"],
                             "current_value": current_val,
                             "previous_value": previous_val,
+                            "display_value": current_val * meta["unit_scale"],
+                            "display_previous_value": previous_val * meta["unit_scale"],
                             "change_percent": change,
-                            "date": current["date"]
+                            "date": current["date"],
+                            "currency_code": meta["currency_code"],
+                            "unit_scale": meta["unit_scale"],
                         }
 
             except Exception as e:

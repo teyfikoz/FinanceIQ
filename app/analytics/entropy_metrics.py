@@ -11,6 +11,7 @@ This module provides advanced entropy-based metrics for:
 - Anomaly detection and risk assessment
 """
 
+import math
 import pandas as pd
 import numpy as np
 from typing import Dict, Any, List, Optional, Tuple, Union
@@ -69,8 +70,12 @@ class EntropyCalculator:
             if data.max() > 10:  # Likely prices
                 data = data.pct_change().dropna()
 
-            # Create histogram
-            hist, _ = np.histogram(data.dropna(), bins=bins, density=True)
+            # Create discrete probabilities instead of density values.
+            hist, _ = np.histogram(data.dropna(), bins=bins, density=False)
+            total = hist.sum()
+            if total <= 0:
+                return np.nan
+            hist = hist / total
             hist = hist[hist > 0]  # Remove zero bins
 
             # Calculate Shannon entropy
@@ -245,7 +250,7 @@ class EntropyCalculator:
 
             # Normalize
             if normalize:
-                h_max = np.log2(np.math.factorial(order))
+                h_max = np.log2(math.factorial(order))
                 h = h / h_max if h_max > 0 else 0
 
             self.logger.debug(f"Permutation entropy (order={order}): {h:.4f}")

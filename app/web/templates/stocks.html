@@ -1,0 +1,799 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Stocks{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Stocks Workspace</p>
+        <h1>Single-name analysis without the old UI sprawl.</h1>
+        <p class="hero-text">
+            Public stock research is back in a narrower format: return signals, technical posture,
+            support-resistance, and a deeper fundamental lens for the symbol you care about.
+        </p>
+        <form class="query-form" method="get" action="/stocks">
+            <label>
+                <span>Symbol</span>
+                <input type="search" name="symbol" value="{{ workspace.requested_symbol or workspace.symbol }}" placeholder="AAPL, NVDA, THYAO.IS">
+            </label>
+            <button type="submit" class="button button-primary">Analyze</button>
+        </form>
+        <div class="hero-actions">
+            <a href="{{ workspace.compare_cta_path|default('/compare?kind=stocks&left=' ~ (workspace.overview.symbol or workspace.symbol) ~ '&right=NVDA') }}" class="button button-secondary">Compare</a>
+            <a href="/catalyst-calendar" class="button button-secondary">Catalyst Calendar</a>
+        </div>
+        <div class="chip-row">
+            {% for item in workspace.featured_symbols %}
+            <a href="/stocks?symbol={{ item }}" class="signal-chip">{{ item }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="hero-aside">
+        {% if workspace.error %}
+        <p class="eyebrow">Status</p>
+        <div class="hero-score">Unavailable</div>
+        <p class="hero-metric">{{ workspace.error }}</p>
+        {% else %}
+        <p class="eyebrow">Current symbol</p>
+        <div class="hero-score">{{ workspace.overview.symbol }}</div>
+        <p class="hero-metric">{{ workspace.overview.name }}</p>
+        <p class="hero-metric">Price {{ workspace.overview.current_price }}</p>
+        <p class="hero-metric">Daily move {{ workspace.overview.price_change_percent }}</p>
+        {% if workspace.data_confidence %}
+        <p class="hero-metric">Confidence {{ workspace.data_confidence.label }}</p>
+        <p class="hero-metric">{{ workspace.data_confidence.detail }}</p>
+        {% endif %}
+        {% if workspace.snapshot_saved_at %}
+        <p class="hero-metric">Snapshot {{ workspace.snapshot_saved_at }}</p>
+        {% endif %}
+        {% if workspace.stale_notice %}
+        <p class="trust-note">{{ workspace.stale_notice }}</p>
+        {% endif %}
+        {% endif %}
+    </div>
+</section>
+
+{% if not workspace.error %}
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Market Lens</p>
+                <h2>{{ workspace.market_profile.market_label if workspace.market_profile else "Regional coverage" }}</h2>
+            </div>
+            <p class="section-note">{{ workspace.market_profile.exchange if workspace.market_profile else "Exchange-aware routing is active." }}</p>
+        </div>
+        <article class="trust-card">
+            <p>{{ workspace.market_profile.description if workspace.market_profile else "FundPilot now routes global stocks through region-aware presets instead of defaulting every compare flow to US tech." }}</p>
+            <div class="hero-actions">
+                {% if workspace.market_profile %}
+                <a href="/screener?universe={{ 'sp500' if workspace.market_profile.market_key == 'us' else workspace.market_profile.market_key }}&screen=momentum_stocks&limit=8" class="button button-secondary">Open {{ workspace.market_profile.market_label }}</a>
+                <a href="/idea-radar?universe={{ 'global' if workspace.market_profile.market_key == 'us' else workspace.market_profile.market_key }}&limit=8" class="button button-secondary">Radar This Market</a>
+                {% endif %}
+            </div>
+        </article>
+        {% if workspace.compare_suggestions|default([]) %}
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Compare Presets</p>
+                <h2>Exchange-aware pairings</h2>
+            </div>
+        </div>
+        <div class="card-stack">
+            {% for item in workspace.compare_suggestions|default([]) %}
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Preset {{ loop.index }}</p>
+                <h3>{{ item.label }}</h3>
+                <p>{{ item.reason }}</p>
+                <p><a href="{{ item.path }}" class="text-link">Open compare sheet</a></p>
+            </article>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Regional Quick Picks</p>
+                <h2>Jump markets without changing tools</h2>
+            </div>
+            <p class="section-note">The product surface is now multi-market, not just multi-ticker.</p>
+        </div>
+        <div class="card-grid card-grid-2">
+            {% for group in workspace.regional_groups|default([]) %}
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ group.exchange }}</p>
+                <h3>{{ group.label }}</h3>
+                <div class="chip-row">
+                    {% for item in group.symbols %}
+                    <a href="/stocks?symbol={{ item }}" class="signal-chip">{{ item }}</a>
+                    {% endfor %}
+                </div>
+                <p><a href="{{ group.screener_path }}" class="text-link">Open screener</a> | <a href="{{ group.radar_path }}" class="text-link">Open radar</a></p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if workspace.fundamental_lens and workspace.fundamental_lens.available %}
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Fundamental Lens</p>
+            <h2>What the market is paying for</h2>
+        </div>
+        <p class="section-note">{{ workspace.fundamental_lens.coverage_note }}</p>
+    </div>
+    <div class="card-grid card-grid-4">
+        {% for card in workspace.fundamental_lens.summary_cards %}
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">{{ card.label }}</p>
+            <h3>{{ card.value }}</h3>
+            <p>{{ card.detail }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Multiples</p>
+                <h2>Valuation stack</h2>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                        <th>Read</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.fundamental_lens.valuation_rows %}
+                    <tr>
+                        <td><strong>{{ row.metric }}</strong></td>
+                        <td>{{ row.value }}</td>
+                        <td>{{ row.detail }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Quality</p>
+                <h2>Cash, margins, and balance sheet</h2>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                        <th>Read</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.fundamental_lens.quality_rows %}
+                    <tr>
+                        <td><strong>{{ row.metric }}</strong></td>
+                        <td>{{ row.value }}</td>
+                        <td>{{ row.detail }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Capital Efficiency</p>
+                <h2>Paid-in capital and operating conversion</h2>
+            </div>
+            <p class="section-note">Especially useful on BIST names where nominal capital matters.</p>
+        </div>
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                        <th>Read</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.fundamental_lens.capital_rows %}
+                    <tr>
+                        <td><strong>{{ row.metric }}</strong></td>
+                        <td>{{ row.value }}</td>
+                        <td>{{ row.detail }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Growth Profile</p>
+                <h2>Internal engine room</h2>
+            </div>
+        </div>
+        <div class="card-grid card-grid-3">
+            <article class="market-card">
+                <p class="card-kicker">Revenue growth</p>
+                <h3>{{ workspace.fundamental_lens.growth_profile.revenue_growth }}</h3>
+            </article>
+            <article class="market-card">
+                <p class="card-kicker">Earnings growth</p>
+                <h3>{{ workspace.fundamental_lens.growth_profile.earnings_growth }}</h3>
+            </article>
+            <article class="market-card">
+                <p class="card-kicker">Free float</p>
+                <h3>{{ workspace.fundamental_lens.growth_profile.free_float_pct }}</h3>
+            </article>
+            <article class="market-card">
+                <p class="card-kicker">Mcap / book</p>
+                <h3>{{ workspace.fundamental_lens.growth_profile.market_cap_to_book }}</h3>
+            </article>
+            <article class="market-card">
+                <p class="card-kicker">Book value / share</p>
+                <h3>{{ workspace.fundamental_lens.growth_profile.book_value_per_share }}</h3>
+            </article>
+            <article class="market-card">
+                <p class="card-kicker">Enterprise value</p>
+                <h3>{{ workspace.fundamental_lens.growth_profile.enterprise_value }}</h3>
+            </article>
+        </div>
+        <div class="card-grid card-grid-2">
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">What supports the case</p>
+                {% if workspace.fundamental_lens.strengths %}
+                <p>{{ workspace.fundamental_lens.strengths | join(" ") }}</p>
+                {% else %}
+                <p>No standout strength cleared the threshold on this snapshot.</p>
+                {% endif %}
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">What deserves pressure testing</p>
+                {% if workspace.fundamental_lens.concerns %}
+                <p>{{ workspace.fundamental_lens.concerns | join(" ") }}</p>
+                {% else %}
+                <p>No major red flag cleared the threshold on this snapshot.</p>
+                {% endif %}
+            </article>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if workspace.error %}
+<section class="section-block">
+    <article class="editorial-card empty-state">
+        <h3>Stock snapshot could not be built.</h3>
+        <p>The page shell is healthy, but the symbol request failed upstream. Try a featured ticker or retry shortly.</p>
+    </article>
+</section>
+{% else %}
+{% if workspace.what_changed %}
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">What Changed</p>
+                <h2>Yesterday is not the same page</h2>
+            </div>
+            <p class="section-note">Deterministic memo, not a black-box narrative.</p>
+        </div>
+        <div class="card-stack">
+            {% for item in workspace.what_changed %}
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ item.impact }} impact</p>
+                <h3>{{ item.label }} · {{ item.value }}</h3>
+                <p>{{ item.reason }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Data Confidence</p>
+        <h2>{{ workspace.data_confidence.label if workspace.data_confidence else "Refreshing" }}</h2>
+        <p>{{ workspace.data_confidence.detail if workspace.data_confidence else "No confidence note is available yet." }}</p>
+        <p class="trust-note">FundPilot should say whether a metric is live, snapshot-backed, or degraded before you lean on it.</p>
+    </aside>
+</section>
+{% endif %}
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Overview</p>
+            <h2>{{ workspace.overview.name }}</h2>
+        </div>
+        <p class="section-note">{{ workspace.overview.sector }} · {{ workspace.overview.industry }}</p>
+    </div>
+    <div class="card-grid card-grid-4">
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Market cap</p>
+            <h3>{{ workspace.overview.market_cap }}</h3>
+            <p>P/E {{ workspace.overview.pe_ratio }}</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Beta</p>
+            <h3>{{ workspace.overview.beta }}</h3>
+            <p>Volume {{ workspace.overview.volume }}</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">52-week high</p>
+            <h3>{{ workspace.overview.week_52_high }}</h3>
+            <p>Range high</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">52-week low</p>
+            <h3>{{ workspace.overview.week_52_low }}</h3>
+            <p>Range low</p>
+        </article>
+    </div>
+</section>
+
+{% if workspace.signal_history %}
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Signal History</p>
+            <h2>How the regime evolved month by month</h2>
+        </div>
+        <p class="section-note">This is where a good current score proves it was improving, not just noisy.</p>
+    </div>
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Close</th>
+                    <th>1M Return</th>
+                    <th>Range</th>
+                    <th>Volume</th>
+                    <th>Volatility</th>
+                    <th>Posture</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.signal_history %}
+                <tr>
+                    <td>{{ row.month }}</td>
+                    <td>{{ row.close }}</td>
+                    <td>{{ row.return_1m }}</td>
+                    <td>{{ row.range }}</td>
+                    <td>{{ row.volume }}</td>
+                    <td>{{ row.volatility }}</td>
+                    <td><strong>{{ row.posture }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{% if workspace.forecast_lens %}
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Forecast Lens</p>
+                <h2>Mini trend map inside the stock workspace</h2>
+            </div>
+            <p class="section-note">This is the same validated forecast stack, compressed so you do not have to leave the symbol page.</p>
+        </div>
+        <article class="editorial-card">
+            {% if workspace.forecast_lens.chart_svg %}
+            {{ workspace.forecast_lens.chart_svg|safe }}
+            {% else %}
+            <p>{{ workspace.forecast_lens.detail|default("Forecast lens is warming.") }}</p>
+            {% endif %}
+            <div class="hero-actions">
+                <a href="{{ workspace.forecast_cta_path|default('/forecasts?symbol=' ~ workspace.overview.symbol ~ '&days=21') }}" class="button button-secondary">Open Full Forecast</a>
+            </div>
+        </article>
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Trend Persistence</p>
+                <h2>{{ workspace.forecast_lens.trend_persistence.label if workspace.forecast_lens.trend_persistence else "Warming" }}</h2>
+            </div>
+            <p class="section-note">{{ workspace.forecast_lens.trend_persistence.detail if workspace.forecast_lens.trend_persistence else workspace.forecast_lens.detail }}</p>
+        </div>
+        <div class="card-grid card-grid-2">
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Consensus</p>
+                <h3>{{ workspace.forecast_lens.consensus_price|default("N/A") }}</h3>
+                <p>Delta {{ workspace.forecast_lens.consensus_delta|default("N/A") }} · Bias {{ workspace.forecast_lens.trend_bias|default("Mixed") }}</p>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Validation</p>
+                <h3>{{ workspace.forecast_lens.validation_summary.state if workspace.forecast_lens.validation_summary else "Warming" }}</h3>
+                <p>{{ workspace.forecast_lens.validation_summary.detail if workspace.forecast_lens.validation_summary else "Forecast validation layer is warming." }}</p>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Entropy Regime</p>
+                <h3>{{ workspace.forecast_lens.entropy_signal.regime if workspace.forecast_lens.entropy_signal else "Warming" }}</h3>
+                <p>Predictability {{ workspace.forecast_lens.entropy_signal.predictability_score if workspace.forecast_lens.entropy_signal and workspace.forecast_lens.entropy_signal.predictability_score is not none else "N/A" }} · 20d {{ workspace.forecast_lens.entropy_signal.change_20d_label if workspace.forecast_lens.entropy_signal and workspace.forecast_lens.entropy_signal.change_20d_label else "N/A" }}</p>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Why entropy</p>
+                <p>{{ workspace.forecast_lens.entropy_signal.note if workspace.forecast_lens.entropy_signal else "Entropy helps judge whether return patterns are ordered enough to trust trend-following models." }}</p>
+            </article>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Return Signals</p>
+                <h2>Multi-horizon read</h2>
+            </div>
+        </div>
+        <div class="card-grid card-grid-4">
+            {% for item in workspace.return_signals %}
+            <article class="market-card">
+                <p class="card-kicker">{{ item.label }}</p>
+                <h3>{{ item.value }}</h3>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Trend Summary</p>
+        <h2>{{ workspace.trend_summary.trend }}</h2>
+        <p>{{ workspace.trend_summary.recommendation }}</p>
+        <p class="trust-note">Confidence {{ workspace.trend_summary.confidence }} · Bullish {{ workspace.trend_summary.bullish_signals }} / Bearish {{ workspace.trend_summary.bearish_signals }}</p>
+    </aside>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Technical Posture</p>
+                <h2>Public indicator snapshot</h2>
+            </div>
+        </div>
+        <div class="card-grid card-grid-4">
+            <article class="market-card">
+                <p class="card-kicker">RSI</p>
+                <h3>{{ workspace.technical_snapshot.rsi }}</h3>
+            </article>
+            <article class="market-card">
+                <p class="card-kicker">Volatility</p>
+                <h3>{{ workspace.technical_snapshot.volatility }}</h3>
+            </article>
+            <article class="market-card">
+                <p class="card-kicker">Bollinger</p>
+                <h3>{{ workspace.technical_snapshot.bollinger_position }}</h3>
+            </article>
+            <article class="market-card">
+                <p class="card-kicker">Volume ratio</p>
+                <h3>{{ workspace.technical_snapshot.volume_ratio }}</h3>
+            </article>
+        </div>
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Levels</p>
+                <h2>Support and resistance</h2>
+            </div>
+        </div>
+        <div class="card-grid">
+            <article class="editorial-card">
+                <p class="card-kicker">Support</p>
+                <h3>{{ workspace.support_resistance.support }}</h3>
+            </article>
+            <article class="editorial-card">
+                <p class="card-kicker">Resistance</p>
+                <h3>{{ workspace.support_resistance.resistance }}</h3>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Sector Context</p>
+                <h2>Position inside the group</h2>
+            </div>
+        </div>
+        {% if workspace.sector_context and workspace.sector_context.available %}
+        <div class="card-grid card-grid-4">
+            <article class="market-card">
+                <p class="card-kicker">Sector vs stock</p>
+                <h3>{{ workspace.sector_context.summary.stock_rank }}</h3>
+                <p>{{ workspace.sector_context.summary.sector }} · {{ workspace.sector_context.summary.sector_etf }}</p>
+            </article>
+            <article class="market-card">
+                <p class="card-kicker">1Y stock return</p>
+                <h3>{{ workspace.sector_context.summary.stock_return }}</h3>
+                <p>Sector {{ workspace.sector_context.summary.sector_return }}</p>
+            </article>
+            <article class="market-card">
+                <p class="card-kicker">Relative strength</p>
+                <h3>{{ workspace.sector_context.relative_strength.rs_change }}</h3>
+                <p>{{ workspace.sector_context.relative_strength.rs_trend }}</p>
+            </article>
+            <article class="market-card">
+                <p class="card-kicker">Peer percentile</p>
+                <h3>{{ workspace.sector_context.percentile_rank }}</h3>
+                <p>Top-down ranking score</p>
+            </article>
+        </div>
+        <div class="card-grid card-grid-3">
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Recommendation</p>
+                <h3>{{ workspace.sector_context.recommendation.label }}</h3>
+                <p>{{ workspace.sector_context.recommendation.explanation }}</p>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Trend</p>
+                <h3>{{ workspace.sector_context.trend.trend }}</h3>
+                <p>{{ workspace.sector_context.trend.momentum }}</p>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Valuation delta</p>
+                <h3>P/E {{ workspace.sector_context.valuation.pe_vs_sector }}</h3>
+                <p>ROE {{ workspace.sector_context.valuation.roe_vs_sector }} · Margin {{ workspace.sector_context.valuation.margin_vs_sector }}</p>
+            </article>
+        </div>
+        {% if workspace.sector_context.comparison_rows %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Peer</th>
+                        <th>1Y</th>
+                        <th>ROE</th>
+                        <th>Margin</th>
+                        <th>P/E</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.sector_context.comparison_rows %}
+                    <tr>
+                        <td><strong>{{ row.symbol }}</strong><span>{{ row.name }}</span></td>
+                        <td>{{ row.price_change_1y }}</td>
+                        <td>{{ row.roe }}</td>
+                        <td>{{ row.profit_margin }}</td>
+                        <td>{{ row.pe_ratio }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>Sector-relative context is not available for this symbol.</h3>
+            <p>Single-name analytics still work here; the missing piece is market-specific sector peer depth for this listing.</p>
+        </article>
+        {% endif %}
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Institutional</p>
+                <h2>Holder map</h2>
+            </div>
+        </div>
+        {% if workspace.institutional and workspace.institutional.available %}
+        <div class="card-grid">
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Institutional holders</p>
+                <h3>{{ workspace.institutional.summary.institutional_count }}</h3>
+                <p>{{ workspace.institutional.summary.top_institutional_holder }}</p>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Mutual fund holders</p>
+                <h3>{{ workspace.institutional.summary.mutual_fund_count }}</h3>
+                <p>{{ workspace.institutional.summary.top_mutual_fund_holder }}</p>
+            </article>
+        </div>
+        {% if workspace.institutional.institutional_rows %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Institution</th>
+                        <th>Shares</th>
+                        <th>Value</th>
+                        <th>% Out</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.institutional.institutional_rows %}
+                    <tr>
+                        <td><strong>{{ row.holder }}</strong><span>{{ row.reported_at }}</span></td>
+                        <td>{{ row.shares }}</td>
+                        <td>{{ row.value }}</td>
+                        <td>{{ row.ownership_pct }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        {% if workspace.institutional.mutual_fund_rows %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Fund</th>
+                        <th>Shares</th>
+                        <th>Value</th>
+                        <th>% Out</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.institutional.mutual_fund_rows %}
+                    <tr>
+                        <td><strong>{{ row.holder }}</strong><span>{{ row.reported_at }}</span></td>
+                        <td>{{ row.shares }}</td>
+                        <td>{{ row.value }}</td>
+                        <td>{{ row.ownership_pct }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>Holder data is thin for this symbol.</h3>
+            <p>This is common on smaller names and some non-US listings. The page stays truthful instead of filling gaps with fake data.</p>
+        </article>
+        {% endif %}
+        {% if workspace.curated_13f %}
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Curated 13F</p>
+                <h2>Manager positioning</h2>
+            </div>
+        </div>
+        <div class="card-grid">
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Signal</p>
+                <h3>{{ workspace.curated_13f.signal }}</h3>
+                <p>{{ workspace.curated_13f.coverage }}</p>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Managers holding it</p>
+                <h3>{{ workspace.curated_13f.summary.holder_count }}</h3>
+                <p>Top holder {{ workspace.curated_13f.summary.top_holder }}</p>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Combined weight</p>
+                <h3>{{ workspace.curated_13f.summary.total_weight }}</h3>
+                <p>Bullish {{ workspace.curated_13f.summary.bullish_managers }} · Bearish {{ workspace.curated_13f.summary.bearish_managers }}</p>
+            </article>
+        </div>
+        {% if workspace.curated_13f.manager_rows %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Manager</th>
+                        <th>Signal</th>
+                        <th>Weight</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.curated_13f.manager_rows %}
+                    <tr>
+                        <td><strong>{{ row.manager }}</strong><span>{{ row.manager_label }} · {{ row.filing_date }}</span></td>
+                        <td>{{ row.signal }}<span>{{ row.weight_change }}</span></td>
+                        <td>{{ row.portfolio_weight }}</td>
+                        <td>{{ row.current_value }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        {% if workspace.curated_13f.exited_rows %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Recent exits</th>
+                        <th>Signal</th>
+                        <th>Weight change</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.curated_13f.exited_rows %}
+                    <tr>
+                        <td><strong>{{ row.manager }}</strong><span>{{ row.manager_label }} · {{ row.filing_date }}</span></td>
+                        <td>{{ row.signal }}</td>
+                        <td>{{ row.weight_change }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Pattern Read</p>
+                <h2>Recent formations</h2>
+            </div>
+        </div>
+        {% if workspace.patterns %}
+        <div class="card-stack">
+            {% for item in workspace.patterns %}
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ item.type.replace('_', ' ') }}</p>
+                <h3>{{ item.signal.replace('_', ' ') }}</h3>
+                <p>Strength {{ item.strength }}</p>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>No strong chart pattern in the current snapshot.</h3>
+            <p>The symbol can still have a valid trend without a clean classical pattern.</p>
+        </article>
+        {% endif %}
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Breakouts</p>
+                <h2>Recent trigger check</h2>
+            </div>
+        </div>
+        {% if workspace.breakouts %}
+        <div class="card-stack">
+            {% for item in workspace.breakouts %}
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ item.type.replace('_', ' ') }}</p>
+                <h3>{{ item.strength.title() }}</h3>
+                <p>Level {{ item.level }} · price {{ item.current_price }}</p>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>No confirmed breakout in this pass.</h3>
+            <p>This is useful: the trend can still be constructive while the breakout setup is pending.</p>
+        </article>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

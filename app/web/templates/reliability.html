@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Reliability Center{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Reliability Center</p>
+        <h1>See where the data spine is strong, stale, or warming.</h1>
+        <p class="hero-text">
+            This page exists so FundPilot never hides its operating posture. If a source is degraded,
+            you should see it here before trusting any downstream screen.
+        </p>
+        <div class="hero-actions">
+            <a href="/dashboard" class="button button-primary">Back to Dashboard</a>
+            <a href="/institutional-pulse" class="button button-secondary">Open Institutional Pulse</a>
+            <a href="/stocks?symbol=ASELS" class="button button-secondary">Open BIST Catalyst View</a>
+        </div>
+    </div>
+    <div class="hero-aside">
+        <p class="eyebrow">Snapshot time</p>
+        <div class="hero-score">{{ workspace.generated_at }}</div>
+        <p class="hero-metric">Public build only</p>
+        <p class="hero-metric">Batch-first enrichment</p>
+        <p class="hero-metric">No hidden request-time scraping</p>
+    </div>
+</section>
+
+<section class="section-block source-health-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Source Health</p>
+            <h2>Current posture across the main public feeds</h2>
+        </div>
+        <p class="section-note">If a source is degraded here, related downstream pages may be serving persisted snapshots.</p>
+    </div>
+    <div class="card-grid card-grid-4">
+        {% for item in workspace.source_health %}
+        <article class="editorial-card compact-card health-card state-{{ item.state }}">
+            <div class="health-row">
+                <p class="card-kicker">{{ item.label }}</p>
+                <span class="health-pill">{{ item.state_label }}</span>
+            </div>
+            <h3>{{ item.detail }}</h3>
+            <p>Updated: {{ item.updated_at }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">BIST Disclosure Coverage</p>
+            <h2>KAP enrichment monitor</h2>
+        </div>
+        <p class="section-note">This is the part that should keep contract-intensity and disclosure screens honest over time.</p>
+    </div>
+    <div class="card-grid card-grid-4">
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Tracked symbols</p>
+            <h3>{{ workspace.kap_health.summary.symbols_tracked }}</h3>
+            <p>{{ workspace.kap_health.summary.live_count }} live · {{ workspace.kap_health.summary.fallback_count }} fallback</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Unavailable symbols</p>
+            <h3>{{ workspace.kap_health.summary.unavailable_count }}</h3>
+            <p>Names that currently lack structured enrichment.</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Average field coverage</p>
+            <h3>{{ workspace.kap_health.summary.average_field_coverage }}</h3>
+            <p>Average structured KAP fields resolved per symbol.</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Latest disclosure</p>
+            <h3>{{ workspace.kap_health.summary.latest_disclosure_date }}</h3>
+            <p>Freshest structured disclosure across the curated BIST set.</p>
+        </article>
+    </div>
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>State</th>
+                    <th>Coverage</th>
+                    <th>Last Disclosure</th>
+                    <th>Catalyst Signals</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.kap_health.rows %}
+                <tr>
+                    <td><strong>{{ row.symbol }}</strong><span><a href="/stocks?symbol={{ row.symbol }}" class="text-link">Open stock view</a></span></td>
+                    <td>{{ row.source_state }}</td>
+                    <td>{{ row.field_coverage }} fields</td>
+                    <td>{{ row.last_disclosure_date }}</td>
+                    <td>
+                        {% if row.contract_to_sales_ratio_ttm is not none %}
+                        Contracts / sales {{ row.contract_to_sales_ratio_ttm }}
+                        {% else %}
+                        Contracts / sales N/A
+                        {% endif %}
+                        <span>
+                            {% if row.disclosure_momentum_score is not none %}
+                            Momentum {{ row.disclosure_momentum_score }}
+                            {% else %}
+                            Momentum N/A
+                            {% endif %}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Institutional Coverage</p>
+            <h2>Curated 13F manager durability</h2>
+        </div>
+        <p class="section-note">EDGAR-first by design. Third-party mirrors are intentionally not the primary source of truth.</p>
+    </div>
+    <div class="card-grid card-grid-4">
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Managers tracked</p>
+            <h3>{{ workspace.institutional_workspace.coverage_summary.manager_count }}</h3>
+            <p>{{ workspace.institutional_workspace.coverage_summary.live_count }} live · {{ workspace.institutional_workspace.coverage_summary.snapshot_count }} snapshot</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Warming managers</p>
+            <h3>{{ workspace.institutional_workspace.coverage_summary.warming_count }}</h3>
+            <p>Managers still waiting on a clean live refresh.</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Latest filing</p>
+            <h3>{{ workspace.institutional_workspace.coverage_summary.latest_filing }}</h3>
+            <p>Freshest filing in the curated manager set.</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Consensus breadth</p>
+            <h3>{{ workspace.institutional_workspace.consensus_coverage }}</h3>
+            <p>Managers contributing to overlap detection.</p>
+        </article>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">TR Funds Status</p>
+                <h2>TEFAS refresh posture</h2>
+            </div>
+            <p class="section-note">{{ workspace.tr_status.detail }}</p>
+        </div>
+        <div class="card-grid card-grid-3">
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Status</p>
+                <h3>{{ workspace.tr_status.status }}</h3>
+                <p>{{ workspace.tr_status.funds_loaded }} loaded / {{ workspace.tr_status.funds_requested }} requested</p>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Last success</p>
+                <h3>{{ workspace.tr_status.last_success_at or 'N/A' }}</h3>
+                <p>Most recent successful TEFAS refresh.</p>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Error count</p>
+                <h3>{{ workspace.tr_status.error_count }}</h3>
+                <p>Current refresh-cycle errors in the TEFAS lane.</p>
+            </article>
+        </div>
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Design rule</p>
+        <h2>Batch first, render fast</h2>
+        <p>FundPilot should prefer cached and persisted research surfaces over live request-time scraping. That is how this public build stays usable under stress.</p>
+        <p class="trust-note">If a lane is warming or degraded, the right fix is better enrichment and snapshotting, not more brittle frontend retries.</p>
+    </aside>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Durability Outlook</p>
+            <h2>How this stack should age over 6, 12, 24, and 48 months</h2>
+        </div>
+        <p class="section-note">This is not a market forecast. It is an operating-risk view of the product itself.</p>
+    </div>
+    <div class="card-grid card-grid-4">
+        {% for row in workspace.outlook_rows %}
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">{{ row.horizon }}</p>
+            <h3>{{ row.label }}</h3>
+            <p><strong>{{ row.state }}</strong></p>
+            <p>{{ row.detail }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Next Hardening Moves</p>
+            <h2>What should be true before the product grows up</h2>
+        </div>
+        <p class="section-note">These are the upgrades that keep FundPilot from decaying into a fragile quote wrapper.</p>
+    </div>
+    <div class="card-grid card-grid-4">
+        {% for item in workspace.next_moves %}
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Next move</p>
+            <h3>{{ item.title }}</h3>
+            <p>{{ item.detail }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

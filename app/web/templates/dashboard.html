@@ -1,0 +1,604 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Dashboard{% endblock %}
+
+{% block content %}
+{% set bist_catalyst_summary = snapshot.get('bist_catalyst_summary', {}) %}
+{% set bist_catalyst_rows = snapshot.get('bist_catalyst_rows', []) %}
+{% set market_physics = snapshot.get('market_physics', {}) %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Public Intelligence Workspace</p>
+        <h1>Start with the signal, not the noise.</h1>
+        <p class="hero-text">
+            {{ app_name }} condenses market pulse, Turkish fund momentum, and sponsor-safe monetization
+            into one read-only public surface. No account wall. No invasive ad stack.
+        </p>
+        <div class="hero-actions">
+            <a href="/conviction-board" class="button button-primary">Open Conviction Board</a>
+            <a href="/turkish-funds" class="button button-primary">Open TR Signal Board</a>
+            <a href="/reliability" class="button button-secondary">Open Reliability Center</a>
+            <a href="mailto:{{ support_email }}?subject=FundPilot%20Sponsorship" class="button button-secondary">Sponsor a Slot</a>
+        </div>
+    </div>
+    <div class="hero-aside">
+        <p class="eyebrow">Risk Mood</p>
+        <div class="hero-score">{{ snapshot.sentiment.mood }}</div>
+        <p class="hero-metric">Composite score: {{ snapshot.sentiment.score }}</p>
+        <p class="hero-metric">Fear &amp; Greed: {{ snapshot.sentiment.fear_greed_value }} / 100</p>
+        <p class="hero-metric">VIX: {{ snapshot.sentiment.vix_label }}</p>
+        {% if snapshot.entropy_signal and snapshot.entropy_signal.regime %}
+        <p class="hero-metric">Entropy: {{ snapshot.entropy_signal.regime }}</p>
+        {% endif %}
+        {% if market_physics and market_physics.phase_regime %}
+        <p class="hero-metric">Phase: {{ market_physics.phase_regime }}</p>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section-block source-health-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Source Health</p>
+            <h2>Current feed posture</h2>
+        </div>
+        <p class="section-note">Public-facing status for the main read models.</p>
+    </div>
+    <div class="card-grid card-grid-4">
+        {% for item in snapshot.source_health %}
+        <article class="editorial-card compact-card health-card state-{{ item.state }}">
+            <div class="health-row">
+                <p class="card-kicker">{{ item.label }}</p>
+                <span class="health-pill">{{ item.state_label }}</span>
+            </div>
+            <h3>{{ item.detail }}</h3>
+            <p>Updated: {{ item.updated_at }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-block coverage-strip">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Operating Model</p>
+            <h2>What a serious user should know first</h2>
+        </div>
+        <a href="/methodology" class="text-link">Methodology</a>
+    </div>
+    <div class="card-grid card-grid-4">
+        {% for card in snapshot.coverage_cards %}
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">{{ card.label }}</p>
+            <h3>{{ card.value }}</h3>
+            <p>{{ card.detail }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Research Lanes</p>
+            <h2>Bring back the deeper workspaces</h2>
+        </div>
+        <p class="section-note">Single-purpose pages are back without reviving Streamlit.</p>
+    </div>
+    <div class="card-grid card-grid-3">
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Conviction Board</p>
+            <h3>Cross-asset leadership map</h3>
+            <p>See TEFAS winners, ETF crowding, and curated 13F accumulation on one decision surface.</p>
+            <a href="/conviction-board" class="text-link">Open Conviction Board</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Influence Map</p>
+            <h3>Who is actually leading whom</h3>
+            <p>Use transfer entropy to separate macro leaders from reactive assets instead of confusing correlation with directionality.</p>
+            <a href="/influence-map" class="text-link">Open Influence Map</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Stocks</p>
+            <h3>Single-name research</h3>
+            <p>Return signals, technical read, support-resistance, and trend assessment for public symbols.</p>
+            <a href="/stocks" class="text-link">Open Stocks</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Compare</p>
+            <h3>Side-by-side decision sheet</h3>
+            <p>Put two stocks, two ETFs, or two TEFAS funds next to each other and force a winner per metric.</p>
+            <a href="/compare" class="text-link">Open Compare</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Funds & ETFs</p>
+            <h3>Holdings and risk view</h3>
+            <p>ETF and fund performance, fee posture, benchmark context, and holdings concentration.</p>
+            <a href="/funds-etfs" class="text-link">Open Funds & ETFs</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Screener</p>
+            <h3>Curated liquid universes</h3>
+            <p>Momentum, value, dividend, quality, and oversold scans across the US, Europe, Japan, Korea, China, Hong Kong, and BIST sample universes.</p>
+            <a href="/screener" class="text-link">Open Screener</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Ownership</p>
+            <h3>ETF weight tracker</h3>
+            <p>Reverse-lookup which tracked ETFs hold a stock and how concentrated that passive ownership is.</p>
+            <a href="/ownership-lens" class="text-link">Open Ownership Lens</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Overlap Matrix</p>
+            <h3>Where passive crowding overlaps</h3>
+            <p>See which tracked ETFs are quietly clustering into the same names before that concentration bites.</p>
+            <a href="/overlap-matrix" class="text-link">Open Overlap Matrix</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">TR Funds</p>
+            <h3>Allocation drift workbench</h3>
+            <p>TEFAS portfolio value, investor momentum, and asset-mix shifts without the old app sprawl.</p>
+            <a href="/turkish-funds" class="text-link">Open TR Funds</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Rotation</p>
+            <h3>Sector leadership</h3>
+            <p>Risk-on versus risk-off read across major sector ETFs, built for faster top-down positioning.</p>
+            <a href="/sector-rotation" class="text-link">Open Sector Rotation</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Sovereign</p>
+            <h3>Country fund allocations</h3>
+            <p>Wealth fund and pension allocations with country exposure and concentration context.</p>
+            <a href="/sovereign-funds" class="text-link">Open Sovereign</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Forecasts</p>
+            <h3>Model comparison</h3>
+            <p>Multi-model public forecast view with consensus target and trend bias.</p>
+            <a href="/forecasts" class="text-link">Open Forecasts</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Scenario Lab</p>
+            <h3>Portfolio decision surface</h3>
+            <p>Paste positions, score portfolio health, and run macro stress tests without creating an account.</p>
+            <a href="/scenario-lab" class="text-link">Open Scenario Lab</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Idea Radar</p>
+            <h3>Conviction-ranked setups</h3>
+            <p>See which names score best when momentum, quality, sector leadership, and ETF crowding are combined.</p>
+            <a href="/idea-radar" class="text-link">Open Idea Radar</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">BIST Quality Board</p>
+            <h3>Capital efficiency first</h3>
+            <p>Rank local names by fundamental strength, paid-in capital conversion, and disclosure momentum.</p>
+            <a href="/bist-quality-board" class="text-link">Open BIST Board</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Catalyst Calendar</p>
+            <h3>Know when the tape can change</h3>
+            <p>Track KAP disclosures, TEFAS refresh cadence, and the next meaningful 13F update windows.</p>
+            <a href="/catalyst-calendar" class="text-link">Open Catalyst Calendar</a>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Institutional Pulse</p>
+            <h3>Real 13F position changes</h3>
+            <p>Track curated managers through official SEC filings instead of synthetic whale dashboards.</p>
+            <a href="/institutional-pulse" class="text-link">Open Institutional Pulse</a>
+        </article>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">BIST Catalyst Lane</p>
+                <h2>Where local catalysts and clean tape agree</h2>
+            </div>
+            <p class="section-note">{{ bist_catalyst_summary.get('detail', 'BIST catalyst lane is warming.') }}</p>
+        </div>
+        {% if bist_catalyst_rows %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Clean-tape status</th>
+                        <th>Catalyst score</th>
+                        <th>Capital profile</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in bist_catalyst_rows %}
+                    <tr>
+                        <td><strong>{{ row.symbol }}</strong><span>{{ row.name }} · {{ row.sector }}</span></td>
+                        <td><strong>{{ row.catalyst_tape_label }}</strong><span>{{ row.trend_label }} · Predictability {{ row.predictability_score }}</span></td>
+                        <td>{{ row.catalyst_clean_score }}<span>{{ row.disclosure_momentum_score }} momentum · {{ row.contracts_to_sales }} contracts/sales</span></td>
+                        <td>{{ row.capital_profile }}<span><a href="{{ row.detail_path }}" class="text-link">Details</a></span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>BIST catalyst lane is still warming.</h3>
+            <p>KAP-enriched large-cap leaders will populate here as snapshots refresh.</p>
+        </article>
+        {% endif %}
+    </div>
+    <article class="trust-card">
+        <p class="eyebrow">{{ bist_catalyst_summary.get('state_label', 'Refreshing') }}</p>
+        <h2>{% if bist_catalyst_summary.get('leader') %}{{ bist_catalyst_summary.get('leader') }}{% else %}Refreshing{% endif %}</h2>
+        <p>{{ bist_catalyst_summary.get('detail', 'BIST catalyst lane is warming.') }}</p>
+        <p class="hero-metric">Active BIST catalyst names: {{ bist_catalyst_summary.get('active_count', 0) }}</p>
+        {% if bist_catalyst_summary.get('leader_predictability') %}
+        <p class="hero-metric">Leader predictability: {{ bist_catalyst_summary.get('leader_predictability') }}</p>
+        {% endif %}
+        {% if bist_catalyst_summary.get('leader_clean_score') %}
+        <p class="hero-metric">Leader clean-tape score: {{ bist_catalyst_summary.get('leader_clean_score') }}</p>
+        {% endif %}
+        <p class="trust-note">This is where FundPilot should beat generic quote pages: not just price, but catalyst density plus tape cleanliness.</p>
+        <a href="/bist-quality-board" class="text-link">Open BIST Quality Board</a>
+        <a href="/catalyst-calendar" class="text-link">Open Catalyst Calendar</a>
+    </article>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Market Pulse</p>
+            <h2>Cross-market opening view</h2>
+        </div>
+        <p class="section-note">Generated server-side at {{ snapshot.generated_at }} UTC.</p>
+    </div>
+    <div class="card-grid card-grid-6">
+        {% for card in snapshot.market_cards %}
+        <article class="market-card tone-{{ card.tone }}">
+            <p class="card-kicker">{{ card.label }}</p>
+            <h3>{{ card.price }}</h3>
+            <p class="delta">{{ card.change_label }}</p>
+            <p class="card-foot">{{ card.source }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Entropy Lens</p>
+                <h2>How ordered is the tape?</h2>
+            </div>
+            <p class="section-note">{{ snapshot.entropy_signal.window_days }}-day return pattern read.</p>
+        </div>
+        <article class="trust-card">
+            <p class="eyebrow">{{ snapshot.entropy_signal.state_label }}</p>
+            <h2>{{ snapshot.entropy_signal.regime }}</h2>
+            <p>{{ snapshot.entropy_signal.stance }}</p>
+            <div class="chip-row">
+                {% if snapshot.entropy_signal.predictability_score is not none %}
+                <span class="signal-chip">Predictability {{ snapshot.entropy_signal.predictability_score }}</span>
+                {% endif %}
+                {% if snapshot.entropy_signal.complexity_score is not none %}
+                <span class="signal-chip">Complexity {{ snapshot.entropy_signal.complexity_score }}</span>
+                {% endif %}
+                {% if snapshot.entropy_signal.leader_asset %}
+                <span class="signal-chip">Cleanest tape {{ snapshot.entropy_signal.leader_asset }}</span>
+                {% endif %}
+            </div>
+            <p>{{ snapshot.entropy_signal.note }}</p>
+        </article>
+    </div>
+    <div>
+        {% if snapshot.entropy_signal.asset_rows %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Asset</th>
+                        <th>Regime</th>
+                        <th>Posture</th>
+                        <th>Predictability</th>
+                        <th>Complexity</th>
+                        <th>20D</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in snapshot.entropy_signal.asset_rows %}
+                    <tr>
+                        <td><strong>{{ row.label }}</strong><span>{{ row.symbol }}</span></td>
+                        <td>{{ row.regime }}<span>{{ row.risk_level }}</span></td>
+                        <td>{{ row.posture }}</td>
+                        <td>{{ row.predictability_score }}</td>
+                        <td>{{ row.complexity_score }}</td>
+                        <td>{{ row.change_20d_label }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>Entropy lane is still warming.</h3>
+            <p>FundPilot will repopulate this table from persisted history snapshots on the next refresh.</p>
+        </article>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Market Physics</p>
+                <h2>When direction and structure stay in phase</h2>
+            </div>
+            <p class="section-note">Phase alignment compares 5D, 20D, and 60D direction against entropy cleanliness.</p>
+        </div>
+        <article class="trust-card">
+            <p class="eyebrow">{{ market_physics.get('state_label', 'Refreshing') }}</p>
+            <h2>{{ market_physics.get('phase_regime', 'Refreshing') }}</h2>
+            <p>{{ market_physics.get('stance', 'Phase alignment is warming.') }}</p>
+            <div class="chip-row">
+                {% if market_physics.get('average_phase_score') is not none %}
+                <span class="signal-chip">Average phase {{ market_physics.get('average_phase_score') }}</span>
+                {% endif %}
+                {% if market_physics.get('leader_asset') %}
+                <span class="signal-chip">Best aligned {{ market_physics.get('leader_asset') }}</span>
+                {% endif %}
+            </div>
+            <p>{{ market_physics.get('note', 'We use phase alignment to see whether multiple horizons are pulling in the same direction.') }}</p>
+        </article>
+    </div>
+    <div>
+        {% if market_physics.get('rows') %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Asset</th>
+                        <th>Phase</th>
+                        <th>5D</th>
+                        <th>20D</th>
+                        <th>60D</th>
+                        <th>Predictability</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in market_physics.get('rows', []) %}
+                    <tr>
+                        <td><strong>{{ row.label }}</strong><span>{{ row.symbol }}</span></td>
+                        <td>{{ row.phase_label }}<span>{{ row.phase_score }} score · Spectral {{ row.spectral_clarity }}</span></td>
+                        <td>{{ row.change_5d_label }}</td>
+                        <td>{{ row.change_20d_label }}</td>
+                        <td>{{ row.change_60d_label }}</td>
+                        <td>{{ row.predictability_score }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>Phase alignment is still warming.</h3>
+            <p>FundPilot will populate the market physics lane after the next history refresh.</p>
+        </article>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Influence Flow</p>
+                <h2>Which macro streams are actually leading</h2>
+            </div>
+            <p class="section-note">{{ snapshot.influence_summary.get('detail', 'Influence map is warming.') }}</p>
+        </div>
+        {% if snapshot.influence_rows %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Flow</th>
+                        <th>Net influence</th>
+                        <th>Source 20D</th>
+                        <th>Target 20D</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in snapshot.influence_rows %}
+                    <tr>
+                        <td><strong>{{ row.source_label }} → {{ row.target_label }}</strong><span>{{ row.state_label }}</span></td>
+                        <td>{{ row.net_influence }}<span>{{ row.forward_te }} forward · {{ row.reverse_te }} reverse</span></td>
+                        <td>{{ row.source_change_20d }}</td>
+                        <td>{{ row.target_change_20d }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>Influence map is still warming.</h3>
+            <p>Directional lead-lag pairs will repopulate here after the next history refresh.</p>
+        </article>
+        {% endif %}
+    </div>
+    <article class="trust-card">
+        <p class="eyebrow">{{ snapshot.influence_summary.get('label', 'Refreshing') }}</p>
+        <h2>Transfer Entropy</h2>
+        <p>{{ snapshot.influence_summary.get('detail', 'Influence map is warming.') }}</p>
+        <p class="trust-note">Correlation is symmetric. Transfer entropy is directional, which is why it is useful when deciding whether rates, volatility, crypto, or commodities are leading the tape.</p>
+        <a href="/influence-map" class="text-link">Open Influence Map</a>
+    </article>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Macro Context</p>
+                <h2>Liquidity and system pressure</h2>
+            </div>
+        </div>
+        <div class="card-grid">
+            {% for card in snapshot.macro_cards %}
+            <article class="market-card tone-{{ card.tone }}">
+                <p class="card-kicker">{{ card.label }}</p>
+                <h3>{{ card.value }}</h3>
+                <p class="delta">{{ card.delta }}</p>
+                <p class="card-foot">{{ card.source }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Crypto Read</p>
+                <h2>Liquid risk proxy</h2>
+            </div>
+        </div>
+        {% if snapshot.crypto_cards %}
+        <div class="card-grid">
+            {% for card in snapshot.crypto_cards %}
+            <article class="market-card tone-{{ card.tone }}">
+                <p class="card-kicker">{{ card.label }}</p>
+                <h3>{{ card.price }}</h3>
+                <p class="delta">{{ card.change_label }}</p>
+                <p class="card-foot">{{ card.source }}</p>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>Crypto cards are refreshing.</h3>
+            <p>FundPilot keeps the page live even if the crypto feed is temporarily unavailable. Refresh in a minute for a new snapshot.</p>
+        </article>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Turkish Funds</p>
+            <h2>Top TEFAS signal board</h2>
+        </div>
+        <a href="/turkish-funds" class="text-link">Full board</a>
+    </div>
+    {% if snapshot.tr_top_pick %}
+    <div class="feature-strip">
+        <div>
+            <p class="feature-label">Top pick</p>
+            <h3>{{ snapshot.tr_top_pick.fund_code }} · {{ snapshot.tr_top_pick.signal_band }}</h3>
+            <p>{{ snapshot.tr_top_pick.fund_name }}</p>
+        </div>
+        <div>
+            <p class="feature-label">Signal score</p>
+            <strong>{{ snapshot.tr_top_pick.signal_score }}</strong>
+        </div>
+        <div>
+            <p class="feature-label">Investor growth</p>
+            <strong>{{ "%.1f"|format(snapshot.tr_top_pick.investor_growth_pct) }}%</strong>
+        </div>
+        <div>
+            <p class="feature-label">Dominant asset</p>
+            <strong>{{ snapshot.tr_top_pick.dominant_asset }}</strong>
+        </div>
+    </div>
+    {% else %}
+    <article class="editorial-card empty-state">
+        <h3>TR signal cache is warming up.</h3>
+        <p>The Turkish funds board stays public and read-only. If TEFAS is slow, this section will repopulate automatically after the next server refresh.</p>
+    </article>
+    {% endif %}
+    {% if snapshot.tr_peer_board %}
+    <div class="table-wrap">
+        <table class="signal-table" data-filterable="true">
+            <thead>
+                <tr>
+                    <th>Fund</th>
+                    <th>Signal</th>
+                    <th>Regime</th>
+                    <th>Investor Growth</th>
+                    <th>Allocation Drift</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in snapshot.tr_peer_board %}
+                <tr>
+                    <td>
+                        <strong>{{ row.fund_code }}</strong>
+                        <span>{{ row.fund_name_short }}</span>
+                    </td>
+                    <td>{{ row.signal_score }} · {{ row.signal_band }}</td>
+                    <td>{{ row.regime }}</td>
+                    <td>{{ "%.1f"|format(row.investor_growth_pct) }}%</td>
+                    <td>{{ "%.1f"|format(row.allocation_drift) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <article class="editorial-card empty-state">
+        <h3>No TEFAS rows yet.</h3>
+        <p>The server rendered successfully, but the cached peer board is still empty. Check the dedicated TR Funds page shortly for the next refresh.</p>
+    </article>
+    {% endif %}
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Sponsor Surface</p>
+            <h2>Direct monetization slots</h2>
+        </div>
+        <p class="section-note">{{ snapshot.sponsor_disclosure }}</p>
+    </div>
+    <div class="card-grid card-grid-3">
+        {% for slot in snapshot.sponsor_slots %}
+        <article class="sponsor-card">
+            <p class="card-badge">{{ slot.badge }}</p>
+            <h3>{{ slot.title }}</h3>
+            <p>{{ slot.description }}</p>
+            <a href="{{ slot.href }}" rel="nofollow sponsored noopener" class="button button-secondary">{{ slot.label }}</a>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Editorial Direction</p>
+                <h2>What this public build optimizes for</h2>
+            </div>
+        </div>
+        <div class="card-stack">
+            {% for card in snapshot.editorial_cards %}
+            <article class="editorial-card">
+                <h3>{{ card.title }}</h3>
+                <p>{{ card.body }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Privacy Posture</p>
+        <h2>Low-friction and low-retention by design.</h2>
+        <p>{{ snapshot.privacy_promise }}</p>
+        <a href="/privacy" class="text-link">Read the privacy note</a>
+        <p class="trust-note">FundPilot is a research surface. It is not an execution venue, custodian, or portfolio management mandate.</p>
+    </aside>
+</section>
+{% endblock %}

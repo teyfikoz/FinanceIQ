@@ -290,6 +290,7 @@ https://api.worldbank.org/v2/country/all/indicator/NY.GDP.MKTP.CD
 # .env dosyası oluştur:
 ALPHA_VANTAGE_KEY=your_key_here
 FRED_API_KEY=your_key_here
+TCMB_EVDS_API_KEY=your_key_here
 FINNHUB_API_KEY=your_key_here
 BINANCE_API_KEY=your_key_here
 BINANCE_SECRET_KEY=your_secret_here

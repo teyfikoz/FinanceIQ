@@ -54,6 +54,25 @@ class PortfolioHealthScore:
         self.total_score = 0
         self.recommendations = []
 
+    def _resolve_market_data(self, symbol: str):
+        """Resolve the most likely Yahoo ticker for both US and Turkish symbols."""
+        symbol = str(symbol).strip().upper()
+        candidates = [symbol]
+        if "." not in symbol:
+            candidates.append(f"{symbol}.IS")
+
+        for candidate in candidates:
+            try:
+                ticker = yf.Ticker(candidate)
+                info = ticker.info or {}
+                hist = ticker.history(period="6mo")
+                if not hist.empty or info.get("longName") or info.get("quoteType"):
+                    return candidate, ticker, info, hist
+            except Exception:
+                continue
+
+        return symbol, None, {}, pd.DataFrame()
+
     def load_portfolio(self, portfolio_df: pd.DataFrame) -> pd.DataFrame:
         """
         Load and validate portfolio data
@@ -97,13 +116,10 @@ class PortfolioHealthScore:
         for idx, row in enriched.iterrows():
             symbol = row['Symbol']
 
-            # Try Turkish stocks first (add .IS suffix)
-            ticker_symbol = symbol if '.' in symbol else f"{symbol}.IS"
-
             try:
-                ticker = yf.Ticker(ticker_symbol)
-                info = ticker.info
-                hist = ticker.history(period="6mo")
+                ticker_symbol, ticker, info, hist = self._resolve_market_data(symbol)
+                if ticker is None:
+                    raise ValueError(f"No market data resolved for {symbol}")
 
                 # Basic info
                 enriched.at[idx, 'Sector'] = info.get('sector', self._guess_turkish_sector(symbol))

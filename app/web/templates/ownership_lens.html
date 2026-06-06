@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Ownership Lens{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Ownership Lens</p>
+        <h1>See where passive ownership really sits.</h1>
+        <p class="hero-text">
+            ETF weight tracking is back in public form. Instead of another generic quote page, this
+            workspace shows which tracked funds hold a stock, how concentrated that exposure is, and
+            whether repeat snapshots are starting to reveal weight drift.
+        </p>
+    </div>
+    <div class="hero-aside">
+        <p class="eyebrow">Selected symbol</p>
+        <div class="hero-score">{{ workspace.symbol }}</div>
+        <p class="hero-metric">{{ workspace.summary.holding_funds }} tracked funds hold it</p>
+        <p class="hero-metric">{{ workspace.summary.signal }} · confidence {{ workspace.summary.confidence }}</p>
+        <p class="hero-metric">Latest DB update {{ workspace.summary.latest_update }}</p>
+    </div>
+</section>
+
+<section class="section-block">
+    <form class="query-form query-form-wide" method="get" action="/ownership-lens">
+        <label>
+            <span>Symbol</span>
+            <input type="text" name="symbol" value="{{ workspace.symbol }}" placeholder="AAPL">
+        </label>
+        <label>
+            <span>Lens</span>
+            <select name="focus">
+                {% for option in workspace.focus_options %}
+                <option value="{{ option.key }}" {% if option.key == workspace.selected_focus %}selected{% endif %}>{{ option.label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit" class="button button-primary">Refresh lens</button>
+    </form>
+    <div class="chip-row">
+        {% for symbol in workspace.featured_symbols %}
+        <a href="/ownership-lens?symbol={{ symbol }}&focus={{ workspace.selected_focus }}" class="signal-chip">{{ symbol }}</a>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <article class="trust-card">
+        <p class="eyebrow">Focus</p>
+        <h2>{{ workspace.focus_label }}</h2>
+        <p>{{ workspace.focus_description }}</p>
+        <p class="section-note">{{ workspace.summary.details }}</p>
+    </article>
+    <div class="card-grid card-grid-3">
+        <article class="market-card">
+            <p class="feature-label">Tracked ETFs</p>
+            <h3>{{ workspace.tracked_etf_count }}</h3>
+            <p>{{ workspace.successful_fetches }} populated from cache or upstream.</p>
+        </article>
+        <article class="market-card">
+            <p class="feature-label">Total Tracked Weight</p>
+            <h3>{{ workspace.summary.total_weight }}</h3>
+            <p>Aggregate weight across matched funds.</p>
+        </article>
+        <article class="market-card">
+            <p class="feature-label">Largest Holder</p>
+            <h3>{{ workspace.summary.max_weight }}</h3>
+            <p>Highest observed weight in the tracked set.</p>
+        </article>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Fund Exposure</p>
+            <h2>Who owns this name?</h2>
+        </div>
+        <p class="section-note">Holdings are sourced server-side and stored as repeatable snapshots.</p>
+    </div>
+    {% if workspace.exposure_rows %}
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>ETF</th>
+                    <th>Weight</th>
+                    <th>Share of Tracked Exposure</th>
+                    <th>Report Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.exposure_rows %}
+                <tr>
+                    <td>
+                        <strong>{{ row.fund_code }}</strong>
+                        <span>{{ row.fund_name }}</span>
+                    </td>
+                    <td>{{ row.weight_pct }}</td>
+                    <td>{{ row.share_of_tracked_exposure }}</td>
+                    <td>{{ row.report_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <article class="editorial-card empty-state">
+        <h3>No tracked ETF exposure yet.</h3>
+        <p>The symbol may sit outside this lens, or the upstream holdings response did not include it.</p>
+    </article>
+    {% endif %}
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Weight Drift</p>
+            <h2>Historical changes</h2>
+        </div>
+        <p class="section-note">These rows populate only after multiple dated snapshots exist in the local store.</p>
+    </div>
+    {% if workspace.history_rows %}
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>ETF</th>
+                    <th>Previous</th>
+                    <th>Current</th>
+                    <th>Change</th>
+                    <th>Dates</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.history_rows %}
+                <tr>
+                    <td>{{ row.fund_code }}</td>
+                    <td>{{ row.previous_weight }}</td>
+                    <td>{{ row.current_weight }}</td>
+                    <td>{{ row.weight_change }}</td>
+                    <td>{{ row.previous_date }} → {{ row.current_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <article class="editorial-card empty-state">
+        <h3>Historical drift is not populated yet.</h3>
+        <p>That is normal on the first snapshot. Repeat refresh cycles turn this page into a proper weight tracker.</p>
+    </article>
+    {% endif %}
+</section>
+{% endblock %}

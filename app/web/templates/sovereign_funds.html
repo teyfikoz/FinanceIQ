@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Sovereign Funds{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Sovereign Workspace</p>
+        <h1>Country wealth funds and pensions are visible again.</h1>
+        <p class="hero-text">
+            This page restores the static strategic layer that was valuable in the old product:
+            country funds, concentration, and cross-border allocation context.
+        </p>
+        <form class="query-form query-form-wide" method="get" action="/sovereign-funds">
+            <label>
+                <span>Fund</span>
+                <select name="fund">
+                    {% for option in workspace.fund_options %}
+                    <option value="{{ option.key }}" {% if option.key == workspace.selected_fund_key %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                <span>Holding country</span>
+                <select name="country">
+                    {% for option in workspace.country_options %}
+                    <option value="{{ option }}" {% if option == workspace.selected_country %}selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit" class="button button-primary">Apply</button>
+        </form>
+    </div>
+    <div class="hero-aside">
+        <p class="eyebrow">Selected fund</p>
+        <div class="hero-score">{{ workspace.fund.country }}</div>
+        <p class="hero-metric">{{ workspace.fund.display_name }}</p>
+        <p class="hero-metric">AUM {{ workspace.fund.aum_label }}</p>
+        <p class="hero-metric">{{ workspace.fund.country_count }} countries</p>
+        {% if workspace.data_confidence %}
+        <p class="hero-metric">Confidence {{ workspace.data_confidence.label }}</p>
+        {% endif %}
+    </div>
+</section>
+
+{% if workspace.what_changed %}
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">What Changed</p>
+                <h2>Visible sleeve shifts, not just static country flags</h2>
+            </div>
+            <p class="section-note">Deterministic proxy memo built from the public holding sleeve.</p>
+        </div>
+        <div class="card-stack">
+            {% for item in workspace.what_changed %}
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ item.impact }} impact</p>
+                <h3>{{ item.label }} · {{ item.value }}</h3>
+                <p>{{ item.reason }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Data Confidence</p>
+        <h2>{{ workspace.data_confidence.label if workspace.data_confidence else "Refreshing" }}</h2>
+        <p>{{ workspace.data_confidence.detail if workspace.data_confidence else "No confidence note is available yet." }}</p>
+        <p class="trust-note">The monthly tables below describe the visible public sleeve, not a full filed custodian book.</p>
+    </aside>
+</section>
+{% endif %}
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Portfolio Shape</p>
+            <h2>{{ workspace.fund.display_name }}</h2>
+        </div>
+    </div>
+    <div class="feature-strip">
+        <div>
+            <p class="feature-label">Assets</p>
+            <strong>{{ workspace.fund.aum_label }}</strong>
+        </div>
+        <div>
+            <p class="feature-label">Visible holdings</p>
+            <strong>{{ workspace.fund.holdings_count }}</strong>
+        </div>
+        <div>
+            <p class="feature-label">Countries</p>
+            <strong>{{ workspace.fund.country_count }}</strong>
+        </div>
+        <div>
+            <p class="feature-label">Visible sleeve</p>
+            <strong>{{ workspace.fund.visible_sleeve_weight }}</strong>
+        </div>
+        <div>
+            <p class="feature-label">Visible book</p>
+            <strong>{{ workspace.fund.visible_book_value_label }}</strong>
+        </div>
+        <div>
+            <p class="feature-label">Filtered value</p>
+            <strong>{{ workspace.fund.filtered_value_label }}</strong>
+        </div>
+        <div>
+            <p class="feature-label">Filtered share</p>
+            <strong>{{ workspace.fund.filtered_share_label }}</strong>
+        </div>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Country Exposure</p>
+                <h2>Top countries inside the visible sleeve</h2>
+            </div>
+        </div>
+        <div class="card-stack">
+            {% for row in workspace.country_rows %}
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ row.country }}</p>
+                <h3>{{ row.weight }}</h3>
+                <p>Visible share {{ row.visible_share }} · Monthly drift {{ row.monthly_drift }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Interpretation</p>
+        <h2>Use this as strategic context, not full custody reporting.</h2>
+        <p>FundPilot now shows all countries in the visible sleeve, plus a monthly drift table. It still does not claim to reconstruct the undisclosed private portion of the portfolio.</p>
+        <p class="trust-note">The value here is regime framing, country overlap, and monthly concentration drift.</p>
+    </aside>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Country Allocation Table</p>
+            <h2>Full visible country distribution</h2>
+        </div>
+        <p class="section-note">No longer truncated to a few countries.</p>
+    </div>
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Country</th>
+                    <th>Portfolio Weight</th>
+                    <th>Visible Share</th>
+                    <th>Monthly Drift</th>
+                    <th>Holdings</th>
+                    <th>Visible Value</th>
+                    <th>Lead Holding</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.allocation_rows %}
+                <tr>
+                    <td><strong>{{ row.country }}</strong></td>
+                    <td>{{ row.portfolio_weight }}</td>
+                    <td>{{ row.visible_share }}</td>
+                    <td>{{ row.monthly_drift }}</td>
+                    <td>{{ row.holdings_count }}</td>
+                    <td>{{ row.visible_value }}</td>
+                    <td>{{ row.lead_holding }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Monthly Allocation Drift</p>
+            <h2>Month-end portfolio distribution and changes</h2>
+        </div>
+        <p class="section-note">Proxy history built from the current public sleeve.</p>
+    </div>
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Visible Value</th>
+                    <th>Lead Country</th>
+                    <th>Lead Weight</th>
+                    <th>Top-3 Concentration</th>
+                    <th>Largest Shift</th>
+                    <th>Posture</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.monthly_rows %}
+                <tr>
+                    <td><strong>{{ row.month }}</strong></td>
+                    <td>{{ row.visible_value }}</td>
+                    <td>{{ row.lead_country }}</td>
+                    <td>{{ row.lead_weight }}</td>
+                    <td>{{ row.top3_concentration }}</td>
+                    <td>{{ row.largest_shift }}</td>
+                    <td>{{ row.posture }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Top Holding Evolution</p>
+            <h2>How leadership inside the sleeve drifts over time</h2>
+        </div>
+        <p class="section-note">This explains concentration and rotation, not just latest weights.</p>
+    </div>
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Lead Holding</th>
+                    <th>Lead Weight</th>
+                    <th>Top-3 Concentration</th>
+                    <th>Primary Shift</th>
+                    <th>Lead Geography</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.holdings_timeline_rows %}
+                <tr>
+                    <td><strong>{{ row.month }}</strong></td>
+                    <td>{{ row.lead_holding }}</td>
+                    <td>{{ row.lead_weight }}</td>
+                    <td>{{ row.top3_concentration }}</td>
+                    <td>{{ row.primary_shift }}</td>
+                    <td>{{ row.geography }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Holdings</p>
+            <h2>Selected fund positions</h2>
+        </div>
+        <p class="section-note">Filtered by {{ workspace.selected_country }}</p>
+    </div>
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Name</th>
+                    <th>Country</th>
+                    <th>Weight</th>
+                    <th>Monthly Drift</th>
+                    <th>Visible Share</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.holdings %}
+                <tr>
+                    <td><strong>{{ row.symbol }}</strong></td>
+                    <td>{{ row.name }}</td>
+                    <td>{{ row.country }}</td>
+                    <td>{{ row.weight }}</td>
+                    <td>{{ row.monthly_drift }}</td>
+                    <td>{{ row.visible_share }}</td>
+                    <td>{{ row.value }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

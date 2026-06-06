@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{ page_description }}">
+    <meta name="theme-color" content="#111827">
+    <meta property="og:site_name" content="{{ app_name }}">
+    <meta property="og:title" content="{% block og_title %}{{ app_name }}{% endblock %}">
+    <meta property="og:description" content="{{ page_description }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ public_site_url }}{{ canonical_path }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="{{ public_site_url }}{{ canonical_path }}">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <title>{% block title %}{{ app_name }}{% endblock %}</title>
+    <link rel="stylesheet" href="/static/fundpilot.css">
+    <script defer src="/static/fundpilot.js"></script>
+</head>
+<body class="page-{{ active_page }}">
+    <div class="site-shell">
+        <header class="site-header">
+            <div class="site-brand">
+                <a href="/dashboard" class="brand-mark">FundPilot</a>
+                <p class="brand-copy">Open-access market intelligence with no account wall and no ad-tech trackers.</p>
+            </div>
+            <nav class="site-nav" aria-label="Primary">
+                <a href="/dashboard" class="{% if active_page == 'dashboard' %}is-active{% endif %}">Dashboard</a>
+                <a href="/conviction-board" class="{% if active_page == 'conviction-board' %}is-active{% endif %}">Conviction Board</a>
+                <a href="/influence-map" class="{% if active_page == 'influence-map' %}is-active{% endif %}">Influence Map</a>
+                <a href="/compare" class="{% if active_page == 'compare' %}is-active{% endif %}">Compare</a>
+                <a href="/stocks" class="{% if active_page == 'stocks' %}is-active{% endif %}">Stocks</a>
+                <a href="/funds-etfs" class="{% if active_page == 'funds-etfs' %}is-active{% endif %}">Funds & ETFs</a>
+                <a href="/screener" class="{% if active_page == 'screener' %}is-active{% endif %}">Screener</a>
+                <a href="/bist-quality-board" class="{% if active_page == 'bist-quality-board' %}is-active{% endif %}">BIST Board</a>
+                <a href="/ownership-lens" class="{% if active_page == 'ownership-lens' %}is-active{% endif %}">Ownership Lens</a>
+                <a href="/overlap-matrix" class="{% if active_page == 'overlap-matrix' %}is-active{% endif %}">Overlap</a>
+                <a href="/turkish-funds" class="{% if active_page == 'turkish-funds' %}is-active{% endif %}">TR Funds</a>
+                <a href="/sector-rotation" class="{% if active_page == 'sector-rotation' %}is-active{% endif %}">Sector Rotation</a>
+                <a href="/sovereign-funds" class="{% if active_page == 'sovereign-funds' %}is-active{% endif %}">Sovereign</a>
+                <a href="/forecasts" class="{% if active_page == 'forecasts' %}is-active{% endif %}">Forecasts</a>
+                <a href="/scenario-lab" class="{% if active_page == 'scenario-lab' %}is-active{% endif %}">Scenario Lab</a>
+                <a href="/idea-radar" class="{% if active_page == 'idea-radar' %}is-active{% endif %}">Idea Radar</a>
+                <a href="/catalyst-calendar" class="{% if active_page == 'catalyst-calendar' %}is-active{% endif %}">Catalyst</a>
+                <a href="/institutional-pulse" class="{% if active_page == 'institutional-pulse' %}is-active{% endif %}">Institutional Pulse</a>
+                <a href="/reliability" class="{% if active_page == 'reliability' %}is-active{% endif %}">Reliability</a>
+                <a href="/portfolio" class="{% if active_page == 'portfolio' %}is-active{% endif %}">Portfolio Sync</a>
+                <a href="/methodology" class="{% if active_page == 'methodology' %}is-active{% endif %}">Methodology</a>
+                <a href="/privacy" class="{% if active_page == 'privacy' %}is-active{% endif %}">Privacy</a>
+            </nav>
+        </header>
+
+        <div class="signal-ribbon">
+            <span>Read-only public build</span>
+            <span>No signup</span>
+            <span>No third-party analytics</span>
+            <span>No personalized ads</span>
+        </div>
+
+        <main class="site-main">
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="site-footer">
+            <div>
+                <strong>{{ app_name }}</strong>
+                <p>Public market workspace with direct sponsor and affiliate placements instead of third-party ad networks.</p>
+            </div>
+            <div>
+                <p><a href="/reliability">Reliability center</a></p>
+                <p><a href="/methodology">Methodology</a></p>
+                <p><a href="/privacy">Privacy & disclosures</a></p>
+                <p><a href="mailto:{{ support_email }}">Contact sponsorships</a></p>
+            </div>
+            <div>
+                <p>Canonical URL</p>
+                <p><a href="{{ public_site_url }}">{{ public_site_url }}</a></p>
+                <p>&copy; {{ current_year }}</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Portfolio Sync{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Local-First Sync</p>
+        <h1>Your positions stay on your device.</h1>
+        <p class="hero-text">
+            FundPilot doesn't want your portfolio data. Import your positions from CSV or JSON to enable Scenario Lab and portfolio health checks without ever sending data to our servers.
+        </p>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Import</p>
+                <h2>Load JSON or CSV</h2>
+            </div>
+            <p class="section-note">Format: symbol, weight (or shares). e.g., AAPL, 0.4</p>
+        </div>
+        <form class="query-form" id="portfolio-form">
+            <label>
+                <span>Data</span>
+                <textarea id="portfolio-input" rows="8" placeholder='[{"symbol": "AAPL", "weight": 0.4}, {"symbol": "NVDA", "weight": 0.6}]'></textarea>
+            </label>
+            <button type="submit" class="button button-primary">Save Locally</button>
+        </form>
+        
+        <div style="margin-top: 2rem;">
+            <p class="eyebrow">Export</p>
+            <button id="export-btn" class="button">Copy Shareable Link</button>
+            <p class="section-note" id="export-msg"></p>
+        </div>
+    </div>
+    
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Current State</p>
+                <h2>Local Portfolio</h2>
+            </div>
+            <p class="section-note">What your browser currently remembers.</p>
+        </div>
+        <div class="table-wrap">
+            <table class="signal-table" id="portfolio-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Weight / Shares</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="portfolio-body">
+                    <tr><td colspan="3">No data saved locally.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top: 1rem;">
+            <button id="clear-btn" class="button">Clear Local Data</button>
+            <a href="/scenario-lab" class="button button-primary" id="lab-btn" style="display:none;">Open in Scenario Lab</a>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const STORAGE_KEY = 'fundpilot_portfolio';
+    const form = document.getElementById('portfolio-form');
+    const input = document.getElementById('portfolio-input');
+    const tbody = document.getElementById('portfolio-body');
+    const exportBtn = document.getElementById('export-btn');
+    const exportMsg = document.getElementById('export-msg');
+    const clearBtn = document.getElementById('clear-btn');
+    const labBtn = document.getElementById('lab-btn');
+
+    // Load from URL hash if present
+    if (window.location.hash.startsWith('#import=')) {
+        try {
+            const b64 = window.location.hash.replace('#import=', '');
+            const decoded = atob(decodeURIComponent(b64));
+            const data = JSON.parse(decoded);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            window.location.hash = ''; // Clear hash after import
+        } catch (e) {
+            console.error("Failed to parse import hash", e);
+        }
+    }
+
+    function loadData() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+                tbody.innerHTML = '<tr><td colspan="3">No data saved locally.</td></tr>';
+                labBtn.style.display = 'none';
+                return null;
+            }
+            const data = JSON.parse(raw);
+            return data;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function renderData() {
+        const data = loadData();
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3">No data saved locally.</td></tr>';
+            labBtn.style.display = 'none';
+            return;
+        }
+        
+        tbody.innerHTML = '';
+        data.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${item.symbol || 'N/A'}</strong></td>
+                <td>${item.weight || item.shares || 0}</td>
+                <td><button type="button" class="remove-btn" data-index="${index}">Remove</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        
+        // Lab logic
+        labBtn.style.display = 'inline-flex';
+        const positionString = data.map(d => `${d.symbol}:${d.weight || d.shares}`).join(',');
+        labBtn.href = `/scenario-lab?positions=${encodeURIComponent(positionString)}`;
+        
+        document.querySelectorAll('.remove-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = parseInt(e.target.dataset.index);
+                data.splice(idx, 1);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                renderData();
+            });
+        });
+    }
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const raw = input.value.trim();
+        if (!raw) return;
+        
+        let parsed = [];
+        try {
+            // Try JSON
+            if (raw.startsWith('[') || raw.startsWith('{')) {
+                parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed)) parsed = [parsed];
+            } else {
+                // Try CSV
+                const lines = raw.split('\n');
+                parsed = lines.map(line => {
+                    const parts = line.split(',');
+                    return { symbol: parts[0].trim(), weight: parseFloat(parts[1] || 0) };
+                }).filter(i => i.symbol);
+            }
+            
+            // Merge with existing
+            const existing = loadData() || [];
+            const merged = [...existing, ...parsed];
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+            input.value = '';
+            renderData();
+        } catch (err) {
+            alert("Invalid format. Please use JSON array or CSV.");
+        }
+    });
+
+    clearBtn.addEventListener('click', () => {
+        localStorage.removeItem(STORAGE_KEY);
+        renderData();
+    });
+
+    exportBtn.addEventListener('click', () => {
+        const data = loadData();
+        if (!data || data.length === 0) {
+            exportMsg.textContent = "No data to export.";
+            return;
+        }
+        const b64 = encodeURIComponent(btoa(JSON.stringify(data)));
+        const url = window.location.origin + window.location.pathname + '#import=' + b64;
+        navigator.clipboard.writeText(url).then(() => {
+            exportMsg.textContent = "Copied to clipboard!";
+            setTimeout(() => { exportMsg.textContent = ""; }, 3000);
+        });
+    });
+
+    renderData();
+});
+</script>
+{% endblock %}

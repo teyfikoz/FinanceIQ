@@ -1,25 +1,24 @@
-"""
-Simple test to verify tabs work on Streamlit Cloud
-"""
-import streamlit as st
+#!/usr/bin/env python3
+"""Retired Streamlit helper stub."""
 
-st.set_page_config(page_title="Tab Test", layout="wide")
+from pathlib import Path
 
-st.title("🧪 Tab Rendering Test")
 
-tab1, tab2, tab3 = st.tabs(["Tab 1", "Tab 2", "Tab 3"])
+LEGACY_PATH = (
+    Path(__file__).resolve().parent
+    / "archive"
+    / "retired_streamlit_runtime"
+    / "test_tabs_streamlit_legacy.py"
+)
 
-with tab1:
-    st.success("✅ Tab 1 is working!")
-    st.write("If you see this, tabs are rendering correctly.")
 
-with tab2:
-    st.success("✅ Tab 2 is working!")
-    st.write("This tab also works.")
+def main() -> None:
+    raise RuntimeError(
+        "The Streamlit tab test helper has been retired. "
+        f"Legacy code was archived at {LEGACY_PATH}. "
+        "Use the FastAPI runtime and pytest suite instead."
+    )
 
-with tab3:
-    st.success("✅ Tab 3 is working!")
-    st.write("All tabs work correctly.")
 
-st.markdown("---")
-st.info("If all 3 tabs show content, the problem is NOT with tabs themselves.")
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Influence Map{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Market Physics</p>
+        <h1>Who is leading the tape, and who is just reacting?</h1>
+        <p class="hero-text">
+            Influence Map uses transfer entropy to measure directional information flow across curated macro,
+            risk, and defensive assets. The goal is not more noise. It is to separate leaders from passengers.
+        </p>
+        <div class="hero-actions">
+            <a href="/dashboard" class="button button-primary">Back to Dashboard</a>
+            <a href="/conviction-board" class="button button-secondary">Open Conviction Board</a>
+        </div>
+    </div>
+    <div class="hero-aside">
+        <p class="eyebrow">Lead Pair</p>
+        <div class="hero-score">{{ workspace.headline.label }}</div>
+        <p class="hero-metric">{{ workspace.headline.detail }}</p>
+        {% if workspace.summary_cards %}
+        <p class="hero-metric">{{ workspace.summary_cards[0].label }}: {{ workspace.summary_cards[0].value }}</p>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Summary</p>
+            <h2>Directional information flow</h2>
+        </div>
+        <p class="section-note">Generated at {{ workspace.generated_at }} UTC.</p>
+    </div>
+    <div class="card-grid card-grid-3">
+        {% for card in workspace.summary_cards %}
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">{{ card.label }}</p>
+            <h3>{{ card.value }}</h3>
+            <p>{{ card.detail }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Pair Table</p>
+                <h2>Top directed flows</h2>
+            </div>
+            <p class="section-note">Positive net influence means the source is adding more directional information than it receives back.</p>
+        </div>
+        {% if workspace.pair_rows %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Pair</th>
+                        <th>Net influence</th>
+                        <th>Forward</th>
+                        <th>Reverse</th>
+                        <th>20D source</th>
+                        <th>20D target</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.pair_rows %}
+                    <tr>
+                        <td><strong>{{ row.source_label }} → {{ row.target_label }}</strong><span>{{ row.state_label }} · {{ row.source_group }} → {{ row.target_group }}</span></td>
+                        <td>{{ row.net_influence }}</td>
+                        <td>{{ row.forward_te }}</td>
+                        <td>{{ row.reverse_te }}</td>
+                        <td>{{ row.source_change_20d }}</td>
+                        <td>{{ row.target_change_20d }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>Influence pairs are still warming.</h3>
+            <p>FundPilot will repopulate this table when enough stable history is available.</p>
+        </article>
+        {% endif %}
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Why Transfer Entropy</p>
+        <h2>Correlation is symmetric. Leadership is not.</h2>
+        <p>Transfer entropy is useful because it measures directionality. That matters when deciding whether rates, volatility, crypto, or commodities are driving equities and gold, or merely moving with them.</p>
+        <p class="trust-note">This is a regime lens, not a trading trigger. Use it to frame risk leadership before you trust downstream setups.</p>
+    </aside>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Source Leaders</p>
+                <h2>Which streams are acting as leaders</h2>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Source</th>
+                        <th>Lead bias</th>
+                        <th>Leading pairs</th>
+                        <th>Average net</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.source_rows %}
+                    <tr>
+                        <td><strong>{{ row.label }}</strong><span>{{ row.group }}</span></td>
+                        <td>{{ row.lead_bias }}</td>
+                        <td>{{ row.leading_count }}</td>
+                        <td>{{ row.average_net }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Target Pressure</p>
+                <h2>Which assets are most externally driven</h2>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Target</th>
+                        <th>Incoming pressure</th>
+                        <th>Observed pairs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.target_rows %}
+                    <tr>
+                        <td><strong>{{ row.label }}</strong><span>{{ row.group }}</span></td>
+                        <td>{{ row.incoming_pressure }}</td>
+                        <td>{{ row.pairs }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Methodology</p>
+            <h2>How to read this lane</h2>
+        </div>
+    </div>
+    <div class="card-stack">
+        {% for item in workspace.methodology %}
+        <article class="editorial-card">
+            <p>{{ item }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

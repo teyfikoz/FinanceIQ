@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Conviction Board{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Conviction Board</p>
+        <h1>Google Finance shows quotes. This page shows where conviction is clustering.</h1>
+        <p class="hero-text">
+            FundPilot's cross-asset board merges three high-signal lanes: ETF crowding, curated SEC 13F accumulation,
+            entropy-confirmed trend persistence, and TEFAS leadership. The job is not to predict every move. It is to narrow attention to where sponsorship is real.
+        </p>
+        <form class="query-form query-form-wide" method="get" action="/conviction-board">
+            <label>
+                <span>Universe</span>
+                <select name="universe">
+                    {% for option in workspace.universe_options %}
+                    <option value="{{ option.key }}" {% if option.key == workspace.selected_universe %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                <span>TEFAS Window</span>
+                <select name="months">
+                    {% for value in workspace.month_options %}
+                    <option value="{{ value }}" {% if value == workspace.selected_months %}selected{% endif %}>{{ value }} months</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                <span>Rows</span>
+                <input type="number" name="limit" min="4" max="10" value="{{ workspace.limit }}">
+            </label>
+            <button type="submit" class="button button-primary">Refresh Board</button>
+        </form>
+    </div>
+    <div class="hero-aside">
+        <p class="eyebrow">Headline</p>
+        <div class="hero-score">{{ workspace.headline.label }}</div>
+        <p class="hero-metric">{{ workspace.headline.detail }}</p>
+        <p class="hero-metric">Sector posture: {{ workspace.sector_pattern }}</p>
+        <p class="hero-metric">TEFAS health: {{ workspace.tefas_health.status|title }}</p>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="card-grid card-grid-4">
+        {% for card in workspace.scorecards %}
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">{{ card.label }}</p>
+            <h3>{{ card.value }}</h3>
+            <p>{{ card.detail }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <article class="trust-card">
+        <p class="eyebrow">Top Global Setup</p>
+        {% if workspace.top_equity %}
+        <h2>{{ workspace.top_equity.symbol }} · {{ workspace.top_equity.band }}</h2>
+        <p>{{ workspace.top_equity.curated_13f_signal }} · {{ workspace.top_equity.curated_13f_holders }} managers · {{ workspace.top_equity.ownership_count }} ETFs</p>
+        <p>{{ workspace.top_equity.fundamental_rating }} · {{ workspace.top_equity.fundamental_score }} · {{ workspace.top_equity.capital_profile }}</p>
+        <p>{{ workspace.top_equity.trend_label }} · predictability {{ workspace.top_equity.predictability_score }} · {{ workspace.top_equity.entropy_regime }}</p>
+        <p>KAP {{ workspace.top_equity.disclosure_momentum_score }} · {{ workspace.top_equity.contract_mentions_365d }} contract-style notices</p>
+        <p class="trust-note">{{ workspace.top_equity.why_now }}</p>
+        <p class="trust-note">Why entropy: {{ workspace.top_equity.entropy_note }}</p>
+        <a href="{{ workspace.top_equity.detail_path }}" class="text-link">Open stock workspace</a>
+        {% else %}
+        <h2>Equity lane warming</h2>
+        <p>Idea Radar did not return enough ranked names for this universe yet.</p>
+        {% endif %}
+    </article>
+    <article class="trust-card">
+        <p class="eyebrow">Top TEFAS Setup</p>
+        {% if workspace.top_tr_fund %}
+        <h2>{{ workspace.top_tr_fund.fund_code }} · {{ workspace.top_tr_fund.signal_band }}</h2>
+        <p>{{ workspace.top_tr_fund.fund_family }} · {{ workspace.top_tr_fund.local_factor }}</p>
+        <p>{{ workspace.top_tr_fund.board_band }} · board {{ workspace.top_tr_fund.board_score }} · {{ workspace.top_tr_fund.regime }}</p>
+        <p class="trust-note">{{ workspace.top_tr_fund.why_now }}</p>
+        <a href="{{ workspace.top_tr_fund.detail_path }}" class="text-link">Open TR fund workspace</a>
+        {% else %}
+        <h2>TEFAS lane warming</h2>
+        <p>{{ workspace.tefas_health.detail }}</p>
+        {% endif %}
+    </article>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Global Equities</p>
+                <h2>Institutional + passive confirmation</h2>
+            </div>
+            <p class="section-note">The best ideas are not just rising. They are being owned.</p>
+        </div>
+        {% if workspace.equity_rows %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Conviction</th>
+                        <th>Fundamental</th>
+                        <th>KAP Flow</th>
+                        <th>Trend Lens</th>
+                        <th>Curated 13F</th>
+                        <th>ETF crowding</th>
+                        <th>Why now</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.equity_rows %}
+                    <tr>
+                        <td>
+                            <strong>{{ row.symbol }}</strong>
+                            <span>{{ row.name }} · {{ row.sector }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ row.score }}</strong>
+                            <span>{{ row.band }}</span>
+                        </td>
+                        <td><strong>{{ row.fundamental_rating }}</strong><span>{{ row.fundamental_score }} · {{ row.capital_profile }}</span></td>
+                        <td><strong>{{ row.disclosure_momentum_score }}</strong><span>{{ row.material_disclosures_90d }} material · {{ row.contract_mentions_365d }} contract</span></td>
+                        <td><strong>{{ row.trend_label }}</strong><span>{{ row.predictability_score }} · {{ row.entropy_regime }}</span></td>
+                        <td>
+                            <strong>{{ row.curated_13f_signal }}</strong>
+                            <span>{{ row.curated_13f_holders }} managers · {{ row.curated_13f_weight }}</span>
+                        </td>
+                        <td>{{ row.ownership_count }} funds<span>{{ row.ownership_weight }}</span></td>
+                        <td>{{ row.why_now }}<span><a href="{{ row.detail_path }}" class="text-link">Details</a></span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>No global setups met the current conviction threshold.</h3>
+            <p>That is still a valid signal. Leadership may be thinning out.</p>
+        </article>
+        {% endif %}
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Turkish Funds</p>
+                <h2>TEFAS leadership map</h2>
+            </div>
+            <p class="section-note">Use this lane for local beta, allocation drift, and investor sponsorship.</p>
+        </div>
+        {% if workspace.tr_fund_rows %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Fund</th>
+                        <th>Signal</th>
+                        <th>Factor</th>
+                        <th>Investor growth</th>
+                        <th>Allocation drift</th>
+                        <th>Why now</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.tr_fund_rows %}
+                    <tr>
+                        <td>
+                            <strong>{{ row.fund_code }}</strong>
+                            <span>{{ row.fund_name_short }} · {{ row.fund_family }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ row.signal_band }}</strong>
+                            <span>{{ row.board_band }} · {{ row.board_score }}</span>
+                        </td>
+                        <td>{{ row.local_factor }}<span>{{ row.quality_tier }}</span></td>
+                        <td>{{ row.investor_growth_pct }}<span>{{ row.value_growth_pct }} portfolio growth</span></td>
+                        <td>{{ row.allocation_drift }}<span>{{ row.dominant_asset }} · {{ row.regime }}</span></td>
+                        <td>{{ row.why_now }}<span><a href="{{ row.detail_path }}" class="text-link">Details</a></span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>TEFAS cache is still warming.</h3>
+            <p>{{ workspace.tefas_health.detail }}</p>
+        </article>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Method</p>
+            <h2>How to read this board</h2>
+        </div>
+    </div>
+    <div class="chip-row">
+        {% for item in workspace.methodology %}
+        <span class="signal-chip">{{ item }}</span>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

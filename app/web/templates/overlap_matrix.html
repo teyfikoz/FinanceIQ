@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Overlap Matrix{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">ETF / Fund Overlap Matrix</p>
+        <h1>See where passive ownership is quietly crowding the same trades.</h1>
+        <p class="hero-text">
+            Overlap matters because crowded wrappers can turn diversified-looking allocations into the same bet.
+        </p>
+        <form class="query-form" method="get" action="/overlap-matrix">
+            <label>
+                <span>Focus</span>
+                <select name="focus">
+                    {% for option in workspace.focus_options %}
+                    <option value="{{ option.key }}" {% if workspace.selected_focus == option.key %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit" class="button button-primary">Refresh Matrix</button>
+        </form>
+        <div class="chip-row">
+            {% for etf in workspace.etfs %}
+            <span class="signal-chip">{{ etf }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="hero-aside">
+        <p class="eyebrow">Current focus</p>
+        <div class="hero-score">{{ workspace.focus_label }}</div>
+        <p class="hero-metric">{{ workspace.focus_description }}</p>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="card-grid card-grid-3">
+        {% for card in workspace.summary_cards %}
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">{{ card.label }}</p>
+            <h3>{{ card.value }}</h3>
+            <p>{{ card.detail }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Overlap Pairs</p>
+            <h2>Which wrappers are sharing the same underlying book</h2>
+        </div>
+        <p class="section-note">Overlap score is the summed shared minimum weight across common holdings.</p>
+    </div>
+    {% if workspace.pair_rows %}
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Left ETF</th>
+                    <th>Right ETF</th>
+                    <th>Overlap Score</th>
+                    <th>Shared Holdings</th>
+                    <th>Examples</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.pair_rows %}
+                <tr>
+                    <td>{{ row.left }}</td>
+                    <td>{{ row.right }}</td>
+                    <td>{{ row.overlap_score }}</td>
+                    <td>{{ row.shared_count }}</td>
+                    <td>{{ row.shared_names }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <article class="editorial-card empty-state">
+        <h3>No overlap rows were available.</h3>
+        <p>This usually means holdings snapshots are still warming for the selected ETF set.</p>
+    </article>
+    {% endif %}
+</section>
+{% endblock %}

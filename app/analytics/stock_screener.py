@@ -329,3 +329,43 @@ def get_nasdaq_sample() -> List[str]:
         'TXN', 'CMCSA', 'HON', 'INTU', 'AMAT', 'PYPL', 'BKNG', 'SBUX',
         'GILD', 'ADP', 'MDLZ', 'ISRG', 'VRTX', 'FISV', 'ADI', 'REGN'
     ]
+
+
+def get_europe_sample() -> List[str]:
+    """Avrupa örnek hisse listesi"""
+    return [
+        'ASML.AS', 'SAP.DE', 'MC.PA', 'OR.PA', 'AIR.PA', 'SIE.DE',
+        'NOVO-B.CO', 'NESN.SW', 'ROG.SW', 'SU.PA', 'DTE.DE', 'ADS.DE'
+    ]
+
+
+def get_japan_sample() -> List[str]:
+    """Japonya örnek hisse listesi"""
+    return [
+        '7203.T', '6758.T', '9984.T', '7974.T', '8035.T', '6861.T',
+        '9432.T', '8306.T', '6501.T', '8058.T', '6098.T', '4063.T'
+    ]
+
+
+def get_south_korea_sample() -> List[str]:
+    """Güney Kore örnek hisse listesi"""
+    return [
+        '005930.KS', '000660.KS', '035420.KS', '051910.KS', '035720.KS',
+        '005380.KS', '207940.KS', '068270.KS', '012330.KS', '105560.KS'
+    ]
+
+
+def get_china_sample() -> List[str]:
+    """Çin anakarası örnek hisse listesi"""
+    return [
+        '600519.SS', '601318.SS', '600036.SS', '601398.SS', '601288.SS',
+        '601988.SS', '601857.SS', '300750.SZ', '000858.SZ', '002594.SZ'
+    ]
+
+
+def get_hong_kong_sample() -> List[str]:
+    """Hong Kong örnek hisse listesi"""
+    return [
+        '0700.HK', '9988.HK', '0941.HK', '1299.HK', '2318.HK',
+        '3690.HK', '1211.HK', '0005.HK', '1810.HK', '9618.HK'
+    ]

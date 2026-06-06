@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Sector Rotation{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Sector Rotation</p>
+        <h1>Top-down leadership without the terminal tax.</h1>
+        <p class="hero-text">
+            This view brings back one of the most useful old workflow layers: fast sector leadership
+            triage. It tells you whether the tape is behaving more risk-on or risk-off instead of
+            making you infer that from a pile of disconnected quote tiles.
+        </p>
+    </div>
+    <div class="hero-aside">
+        <p class="eyebrow">Current read</p>
+        <div class="hero-score">{{ workspace.pattern }}</div>
+        <p class="hero-metric">Spread {{ workspace.spread }}</p>
+        <p class="hero-metric">Cyclical avg {{ workspace.cyclical_average }}</p>
+        <p class="hero-metric">Defensive avg {{ workspace.defensive_average }}</p>
+    </div>
+</section>
+
+{% if workspace.error %}
+<section class="section-block">
+    <article class="editorial-card empty-state">
+        <h3>Sector rotation is temporarily unavailable.</h3>
+        <p>{{ workspace.error }}</p>
+    </article>
+</section>
+{% else %}
+<section class="section-block two-column">
+    <article class="trust-card">
+        <p class="eyebrow">Interpretation</p>
+        <h2>{{ workspace.pattern }}</h2>
+        <p>{{ workspace.pattern_note }}</p>
+    </article>
+    <div class="card-grid card-grid-3">
+        <article class="market-card">
+            <p class="feature-label">Leader</p>
+            <h3>{{ workspace.leader.sector }}</h3>
+            <p>{{ workspace.leader.change_5d }}</p>
+        </article>
+        <article class="market-card">
+            <p class="feature-label">Laggard</p>
+            <h3>{{ workspace.laggard.sector }}</h3>
+            <p>{{ workspace.laggard.change_5d }}</p>
+        </article>
+        <article class="market-card">
+            <p class="feature-label">Spread</p>
+            <h3>{{ workspace.spread }}</h3>
+            <p>Cyclicals minus defensives.</p>
+        </article>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Leaderboard</p>
+            <h2>5-day sector ranking</h2>
+        </div>
+        <p class="section-note">Major sector ETFs only. This is a positioning aid, not a full factor model.</p>
+    </div>
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Sector</th>
+                    <th>ETF</th>
+                    <th>Price</th>
+                    <th>5D Change</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.rows %}
+                <tr class="tone-{{ row.tone }}">
+                    <td>{{ row.sector }}</td>
+                    <td>{{ row.etf_symbol }}</td>
+                    <td>{{ row.current_price }}</td>
+                    <td>{{ row.change_5d }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

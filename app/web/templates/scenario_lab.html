@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Scenario Lab{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Scenario Lab</p>
+        <h1>Portfolio health and stress testing are back without an account wall.</h1>
+        <p class="hero-text">
+            Paste positions, keep the data stateless, and test how the book reacts to rate shocks,
+            currency stress, equity crashes, or commodity spikes.
+        </p>
+        <form class="query-form query-form-wide scenario-form" method="get" action="/scenario-lab">
+            <label class="textarea-label">
+                <span>Positions</span>
+                <textarea name="positions" rows="8" placeholder="AAPL,12,189&#10;MSFT,7,412&#10;THYAO,20,317">{{ workspace.raw_text }}</textarea>
+            </label>
+            <label>
+                <span>Scenario preset</span>
+                <select name="preset">
+                    {% for option in workspace.preset_options %}
+                    <option value="{{ option.key }}" {% if workspace.preset == option.key %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit" class="button button-primary">Run Lab</button>
+        </form>
+        <div class="hero-actions">
+            {% if workspace.share_url %}
+            <a href="{{ workspace.share_url }}" class="button button-secondary">Open Shareable URL</a>
+            {% endif %}
+            {% if workspace.export_json_uri %}
+            <a href="{{ workspace.export_json_uri }}" download="{{ workspace.export_json_name }}" class="button button-secondary">Export JSON</a>
+            {% endif %}
+            {% if workspace.export_csv_uri %}
+            <a href="{{ workspace.export_csv_uri }}" download="{{ workspace.export_csv_name }}" class="button button-secondary">Export CSV</a>
+            {% endif %}
+        </div>
+        <p class="trust-note">Accepted input: `Symbol,Shares,EntryPrice` lines or JSON arrays. Nothing is stored server-side beyond short-lived cache.</p>
+        {% if workspace.accepted_formats %}
+        <div class="chip-row">
+            {% for item in workspace.accepted_formats %}
+            <span class="signal-chip">{{ item }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    <div class="hero-aside">
+        {% if workspace.error %}
+        <p class="eyebrow">Status</p>
+        <div class="hero-score">Input Error</div>
+        <p class="hero-metric">Fix the lines below and re-run the lab.</p>
+        {% else %}
+        <p class="eyebrow">Selected scenario</p>
+        <div class="hero-score">{{ workspace.preset_label }}</div>
+        <p class="hero-metric">{{ workspace.preset_description }}</p>
+        <p class="hero-metric">Health {{ workspace.portfolio_summary.health_score }} · {{ workspace.portfolio_summary.grade }}</p>
+        {% endif %}
+    </div>
+</section>
+
+{% if workspace.errors %}
+<section class="section-block">
+    <article class="editorial-card empty-state">
+        <h3>Input warnings</h3>
+        {% for item in workspace.errors %}
+        <p>{{ item }}</p>
+        {% endfor %}
+    </article>
+</section>
+{% endif %}
+
+{% if workspace.error %}
+<section class="section-block">
+    <article class="editorial-card empty-state">
+        <h3>Scenario lab could not run.</h3>
+        <p>Use `Symbol,Shares,EntryPrice` lines and retry. Example: `NVDA,6,890`.</p>
+    </article>
+</section>
+{% else %}
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Portfolio Summary</p>
+            <h2>Decision-grade snapshot</h2>
+        </div>
+        <p class="section-note">{{ workspace.portfolio_summary.positions }} positions · {{ workspace.portfolio_summary.sectors }} sectors</p>
+    </div>
+    <div class="card-grid card-grid-4">
+        <article class="market-card">
+            <p class="card-kicker">Health score</p>
+            <h3>{{ workspace.portfolio_summary.health_score }}</h3>
+            <p>{{ workspace.portfolio_summary.grade }}</p>
+        </article>
+        <article class="market-card">
+            <p class="card-kicker">Portfolio value</p>
+            <h3>{{ workspace.portfolio_summary.total_value }}</h3>
+            <p>Avg beta {{ workspace.portfolio_summary.avg_beta }}</p>
+        </article>
+        <article class="market-card">
+            <p class="card-kicker">3M trend</p>
+            <h3>{{ workspace.portfolio_summary.avg_return_3m }}</h3>
+            <p>Weighted basket momentum</p>
+        </article>
+        <article class="market-card">
+            <p class="card-kicker">Scenario impact</p>
+            <h3>{{ workspace.scenario_summary.portfolio_change_pct }}</h3>
+            <p>{{ workspace.scenario_summary.old_value }} → {{ workspace.scenario_summary.new_value }}</p>
+        </article>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Health Model</p>
+                <h2>Score breakdown</h2>
+            </div>
+        </div>
+        <div class="card-grid card-grid-4">
+            {% for item in workspace.metric_scores %}
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ item.label }}</p>
+                <h3>{{ item.value }}</h3>
+            </article>
+            {% endfor %}
+        </div>
+        {% if workspace.recommendations %}
+        <div class="card-stack">
+            {% for item in workspace.recommendations %}
+            <article class="editorial-card compact-card">
+                <h3>Action point</h3>
+                <p>{{ item }}</p>
+            </article>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Model note</p>
+        <h2>{{ workspace.preset_label }}</h2>
+        <p>{{ workspace.preset_description }}</p>
+        <p class="trust-note">This lab uses heuristic factor sensitivities. It is a decision aid, not a promise engine.</p>
+        <div class="card-grid">
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">VaR 95%</p>
+                <h3>{{ workspace.var_summary.var_pct }}</h3>
+                <p>CVaR {{ workspace.var_summary.cvar_pct }}</p>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Sim range</p>
+                <h3>{{ workspace.var_summary.worst_case }}</h3>
+                <p>Best {{ workspace.var_summary.best_case }}</p>
+            </article>
+        </div>
+    </aside>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Holdings</p>
+            <h2>Live-enriched basket</h2>
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Shares</th>
+                    <th>Current</th>
+                    <th>Value</th>
+                    <th>Sector</th>
+                    <th>Beta</th>
+                    <th>3M</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.holdings_rows %}
+                <tr>
+                    <td><strong>{{ row.symbol }}</strong></td>
+                    <td>{{ row.shares }}</td>
+                    <td>{{ row.current_price }}</td>
+                    <td>{{ row.value }}</td>
+                    <td>{{ row.sector }}</td>
+                    <td>{{ row.beta }}</td>
+                    <td>{{ row.return_3m }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Primary Scenario</p>
+                <h2>Position-level impact</h2>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Sector</th>
+                        <th>Expected move</th>
+                        <th>Value delta</th>
+                        <th>New value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.impact_rows %}
+                    <tr>
+                        <td><strong>{{ row.symbol }}</strong></td>
+                        <td>{{ row.sector }}</td>
+                        <td>{{ row.expected_change }}</td>
+                        <td>{{ row.value_change }}</td>
+                        <td>{{ row.new_value }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Stress Grid</p>
+                <h2>Preset outcomes</h2>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Scenario</th>
+                        <th>Portfolio move</th>
+                        <th>Best</th>
+                        <th>Worst</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.stress_rows %}
+                    <tr>
+                        <td><strong>{{ row.label }}</strong></td>
+                        <td>{{ row.portfolio_change_pct }}</td>
+                        <td>{{ row.best_stock }}</td>
+                        <td>{{ row.worst_stock }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

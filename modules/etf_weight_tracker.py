@@ -97,6 +97,48 @@ class ETFWeightTracker:
         conn.commit()
         conn.close()
 
+    def _normalize_holdings_frame(self, holdings_source, etf_ticker: str) -> pd.DataFrame:
+        """Normalize holdings from different yfinance fund APIs into one schema."""
+        if holdings_source is None:
+            return pd.DataFrame()
+
+        if hasattr(holdings_source, 'top_holdings'):
+            top_holdings = holdings_source.top_holdings
+            if top_holdings is None or top_holdings.empty:
+                return pd.DataFrame()
+            df = top_holdings.reset_index().copy()
+        elif isinstance(holdings_source, pd.DataFrame):
+            if holdings_source.empty:
+                return pd.DataFrame()
+            df = holdings_source.copy()
+        else:
+            return pd.DataFrame()
+
+        rename_map = {
+            'symbol': 'stock_symbol',
+            'Symbol': 'stock_symbol',
+            'holdingPercent': 'weight_pct',
+            'Holding Percent': 'weight_pct',
+            'weight': 'weight_pct',
+            'Name': 'holding_name',
+            'holdingName': 'holding_name',
+        }
+        df.rename(columns={key: value for key, value in rename_map.items() if key in df.columns}, inplace=True)
+
+        if 'stock_symbol' not in df.columns or 'weight_pct' not in df.columns:
+            return pd.DataFrame()
+
+        df['stock_symbol'] = df['stock_symbol'].astype(str).str.upper()
+        df['weight_pct'] = pd.to_numeric(df['weight_pct'], errors='coerce').fillna(0.0)
+        if not df.empty and df['weight_pct'].max() <= 1.0:
+            df['weight_pct'] = df['weight_pct'] * 100
+
+        df['fund_code'] = etf_ticker
+        df['fund_name'] = self.TRACKED_ETFS.get(etf_ticker, etf_ticker)
+        df['report_date'] = datetime.now().strftime('%Y-%m-%d')
+
+        return df
+
     def fetch_etf_holdings(self, etf_ticker: str, force_refresh: bool = False) -> pd.DataFrame:
         """
         Fetch current holdings for an ETF from yfinance
@@ -117,32 +159,20 @@ class ETFWeightTracker:
         # Fetch from yfinance
         try:
             etf = yf.Ticker(etf_ticker)
-            holdings_data = etf.get_holdings()
+            holdings_source = None
 
-            if holdings_data is not None and not holdings_data.empty:
-                # Process holdings
-                df = holdings_data.copy()
+            if hasattr(etf, 'get_holdings'):
+                try:
+                    holdings_source = etf.get_holdings()
+                except Exception:
+                    holdings_source = None
 
-                # Rename columns to standard format
-                if 'symbol' in df.columns:
-                    df.rename(columns={'symbol': 'stock_symbol'}, inplace=True)
-                if 'holdingPercent' in df.columns:
-                    df.rename(columns={'holdingPercent': 'weight_pct'}, inplace=True)
-                elif 'weight' in df.columns:
-                    df.rename(columns={'weight': 'weight_pct'}, inplace=True)
+            if holdings_source is None:
+                holdings_source = getattr(etf, 'funds_data', None)
 
-                # Add metadata
-                df['fund_code'] = etf_ticker
-                df['fund_name'] = self.TRACKED_ETFS.get(etf_ticker, etf_ticker)
-                df['report_date'] = datetime.now().strftime('%Y-%m-%d')
-
-                # Ensure weight is percentage (0-100)
-                if df['weight_pct'].max() <= 1.0:
-                    df['weight_pct'] = df['weight_pct'] * 100
-
-                # Save to database
+            df = self._normalize_holdings_frame(holdings_source, etf_ticker)
+            if not df.empty:
                 self._save_holdings_to_db(df)
-
                 return df
 
         except Exception as e:
@@ -370,6 +400,96 @@ class ETFWeightTracker:
         conn.close()
 
         return df
+
+    def get_fund_snapshot_history(self, fund_code: str, months: int = 6, top_n: int = 10) -> pd.DataFrame:
+        """
+        Build month-end holdings concentration history for a single ETF/fund.
+
+        Returns one row per month using the latest available snapshot in that month.
+        """
+        conn = sqlite3.connect(self.db_path)
+        cutoff_date = (datetime.now() - timedelta(days=max(months, 1) * 35)).strftime('%Y-%m-%d')
+
+        query = """
+            SELECT
+                fund_code,
+                fund_name,
+                stock_symbol,
+                weight_pct,
+                report_date
+            FROM holdings
+            WHERE fund_code = ?
+            AND report_date >= ?
+            ORDER BY report_date ASC, weight_pct DESC
+        """
+        df = pd.read_sql_query(query, conn, params=(fund_code.upper(), cutoff_date))
+        conn.close()
+
+        if df.empty:
+            return df
+
+        df["report_date"] = pd.to_datetime(df["report_date"])
+        df["month"] = df["report_date"].dt.strftime("%Y-%m")
+
+        rows = []
+        previous_snapshot = None
+
+        for month in sorted(df["month"].unique()):
+            month_group = df[df["month"] == month]
+            latest_date = month_group["report_date"].max()
+            snapshot = (
+                month_group[month_group["report_date"] == latest_date]
+                .sort_values("weight_pct", ascending=False)
+                .reset_index(drop=True)
+            )
+            if snapshot.empty:
+                continue
+
+            top_slice = snapshot.head(top_n)
+            top_symbol = str(snapshot.iloc[0]["stock_symbol"]).upper()
+            top_weight = float(snapshot.iloc[0]["weight_pct"] or 0.0)
+            concentration = float(top_slice["weight_pct"].sum())
+            holding_count = int(len(snapshot))
+
+            current_map = dict(
+                zip(
+                    snapshot["stock_symbol"].astype(str).str.upper(),
+                    pd.to_numeric(snapshot["weight_pct"], errors="coerce").fillna(0.0),
+                )
+            )
+            previous_map = {}
+            if previous_snapshot is not None and not previous_snapshot.empty:
+                previous_map = dict(
+                    zip(
+                        previous_snapshot["stock_symbol"].astype(str).str.upper(),
+                        pd.to_numeric(previous_snapshot["weight_pct"], errors="coerce").fillna(0.0),
+                    )
+                )
+
+            delta_map = {
+                symbol: current_map.get(symbol, 0.0) - previous_map.get(symbol, 0.0)
+                for symbol in set(current_map) | set(previous_map)
+            }
+            meaningful_deltas = {symbol: delta for symbol, delta in delta_map.items() if abs(delta) >= 0.05}
+            lead_symbol = max(meaningful_deltas, key=lambda item: abs(meaningful_deltas[item])) if meaningful_deltas else None
+
+            rows.append(
+                {
+                    "month": month,
+                    "report_date": latest_date.strftime("%Y-%m-%d"),
+                    "top_holding": top_symbol,
+                    "top_weight": round(top_weight, 2),
+                    "top_10_concentration": round(concentration, 2),
+                    "holdings_count": holding_count,
+                    "primary_shift_symbol": lead_symbol,
+                    "primary_shift_pct": round(float(meaningful_deltas.get(lead_symbol, 0.0)), 2) if lead_symbol else 0.0,
+                    "added_count": int(len([symbol for symbol in current_map if symbol not in previous_map])),
+                    "removed_count": int(len([symbol for symbol in previous_map if symbol not in current_map])),
+                }
+            )
+            previous_snapshot = snapshot
+
+        return pd.DataFrame(rows)
 
     def detect_fund_manager_actions(self, stock_symbol: str, threshold: float = 1.0) -> Dict:
         """

@@ -1,13 +1,13 @@
 # FundPilot
 
-FundPilot is the live financial research and fund intelligence application currently deployed at `https://fundpilot.techsyncanalytica.com`.
+FundPilot is the live financial research and fund intelligence application deployed at `https://fundpilot.techsyncanalytica.com`.
 
-The product started as `FinanceIQ`, but the active production identity, host, and deployment flow are now centered on `FundPilot`.
+The product started as `FinanceIQ`, but the production identity, host, and runtime are now centered on `FundPilot` as a privacy-first FastAPI web app.
 
 ## Current Production State
 
 - Canonical URL: `https://fundpilot.techsyncanalytica.com`
-- Runtime: `Streamlit`
+- Runtime: `FastAPI + Jinja2`
 - Server: `Hetzner` at `46.62.164.198`
 - Reverse proxy: `nginx`
 - Service: `fundpilot.service`
@@ -28,26 +28,20 @@ FundPilot combines multiple financial workflows inside one production app shell:
 
 ## Current UX/Performance Model
 
-The production runtime has been refactored away from the old heavy multi-tab model.
+The public production surface is now a read-only web app designed for:
 
-Implemented in the live app:
-
-- grouped primary navigation
-- single active workspace rendering
-- lazy loading for heavier modules
-- sidebar `Performance Mode`
-- session-persistent results for expensive analysis views
-- reduced hidden Plotly render overhead
+- open-access dashboarding
+- Turkish fund signal board workflows
+- sponsor and affiliate inventory without ad-network scripts
+- no login wall and no cookie-based personalization
+- server-side rendering with progressive enhancement only
 
 Core runtime files:
 
-- [main.py](/Users/teyfikoz/github-projects/FinanceIQ/main.py)
-- [modules/tr_funds_launchpad_ui.py](/Users/teyfikoz/github-projects/FinanceIQ/modules/tr_funds_launchpad_ui.py)
-- [modules/tefas_portfolio_analysis_ui.py](/Users/teyfikoz/github-projects/FinanceIQ/modules/tefas_portfolio_analysis_ui.py)
-- [modules/cycle_analysis_ui.py](/Users/teyfikoz/github-projects/FinanceIQ/modules/cycle_analysis_ui.py)
-- [modules/portfolio_health_ui.py](/Users/teyfikoz/github-projects/FinanceIQ/modules/portfolio_health_ui.py)
-- [modules/scenario_sandbox_ui.py](/Users/teyfikoz/github-projects/FinanceIQ/modules/scenario_sandbox_ui.py)
-- [modules/etf_weight_tracker_ui.py](/Users/teyfikoz/github-projects/FinanceIQ/modules/etf_weight_tracker_ui.py)
+- [app/main.py](/Users/teyfikoz/github-projects/FinanceIQ/app/main.py)
+- [app/web/routes.py](/Users/teyfikoz/github-projects/FinanceIQ/app/web/routes.py)
+- [app/services/public_dashboard.py](/Users/teyfikoz/github-projects/FinanceIQ/app/services/public_dashboard.py)
+- [app/services/tr_funds.py](/Users/teyfikoz/github-projects/FinanceIQ/app/services/tr_funds.py)
 
 ## Local Development
 
@@ -60,14 +54,28 @@ pip install -r requirements.txt
 ### 2. Run the app
 
 ```bash
-streamlit run main.py --server.port 8501
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 ### 3. Open locally
 
 ```text
-http://localhost:8501
+http://localhost:8000
 ```
+
+## Sponsor Slot Configuration
+
+The public dashboard renders direct sponsor and affiliate cards without third-party ad scripts.
+
+Optional environment variables:
+
+- `FUNDPILOT_SLOT_1_TITLE`
+- `FUNDPILOT_SLOT_1_LABEL`
+- `FUNDPILOT_SLOT_1_HREF`
+- `FUNDPILOT_SLOT_1_DESCRIPTION`
+- `FUNDPILOT_SLOT_1_BADGE`
+
+Repeat the same pattern for slots `2` and `3`.
 
 ## Production Deployment
 
@@ -80,22 +88,17 @@ Deployment assets:
 - [deployment/fundpilot.service](/Users/teyfikoz/github-projects/FinanceIQ/deployment/fundpilot.service)
 - [deployment/fundpilot.nginx.conf](/Users/teyfikoz/github-projects/FinanceIQ/deployment/fundpilot.nginx.conf)
 
-## Legacy Streamlit Cloud Status
+## Legacy Streamlit Status
 
-`Streamlit Cloud` is no longer the primary production target.
+The old Streamlit surface is legacy code and is not the production runtime anymore.
 
-Legacy host:
+Archived entrypoints:
 
-- `https://financeiq.streamlit.app/`
+- [archive/retired_streamlit_runtime/README.md](/Users/teyfikoz/github-projects/FinanceIQ/archive/retired_streamlit_runtime/README.md)
 
-Current policy:
+Google ad setup notes:
 
-- production runs on Hetzner + nginx + systemd
-- Streamlit Cloud is optional fallback/demo infrastructure only
-
-See:
-
-- [STREAMLIT_CLOUD_DEPLOYMENT.md](/Users/teyfikoz/github-projects/FinanceIQ/STREAMLIT_CLOUD_DEPLOYMENT.md)
+- [docs/ADSENSE_ADMOB_SETUP.md](/Users/teyfikoz/github-projects/FinanceIQ/docs/ADSENSE_ADMOB_SETUP.md)
 
 ## Design And QA Docs
 

@@ -151,6 +151,7 @@ cp .env.example .env
 
 # API key'leri .env'e ekle
 echo "FRED_API_KEY=your_key_here" >> .env
+echo "TCMB_EVDS_API_KEY=your_key_here" >> .env
 echo "FINNHUB_API_KEY=your_key_here" >> .env
 
 # VEYA: UI'dan yapılandır (önerilen)

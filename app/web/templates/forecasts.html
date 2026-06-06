@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Forecasts{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Forecast Workspace</p>
+        <h1>Multi-model forecasts are back, without the old runtime risk.</h1>
+        <p class="hero-text">
+            This page restores the model-comparison layer: public trend bias, consensus target,
+            and a direct view of how different forecasting methods disagree.
+        </p>
+        <form class="query-form query-form-wide" method="get" action="/forecasts">
+            <label>
+                <span>Symbol</span>
+                <input type="search" name="symbol" value="{{ workspace.symbol }}" placeholder="NVDA, AAPL, SPY">
+            </label>
+            <label>
+                <span>Days</span>
+                <input type="number" min="7" max="90" name="days" value="{{ workspace.forecast_days }}">
+            </label>
+            <button type="submit" class="button button-primary">Run forecast</button>
+        </form>
+        <div class="chip-row">
+            {% for item in workspace.featured_symbols %}
+            <a href="/forecasts?symbol={{ item }}&days={{ workspace.forecast_days }}" class="signal-chip">{{ item }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="hero-aside">
+        {% if workspace.error %}
+        <p class="eyebrow">Status</p>
+        <div class="hero-score">Unavailable</div>
+        <p class="hero-metric">{{ workspace.error }}</p>
+        {% else %}
+        <p class="eyebrow">Trend bias</p>
+        <div class="hero-score">{{ workspace.trend_bias }}</div>
+        <p class="hero-metric">Current {{ workspace.current_price }}</p>
+        <p class="hero-metric">Consensus {{ workspace.consensus_price }}</p>
+        <p class="hero-metric">Delta {{ workspace.consensus_delta }}</p>
+        {% endif %}
+    </div>
+</section>
+
+{% if workspace.error %}
+<section class="section-block">
+    <article class="editorial-card empty-state">
+        <h3>Forecast request failed.</h3>
+        <p>The shell is healthy, but the model run did not produce a usable output for this symbol yet.</p>
+    </article>
+</section>
+{% else %}
+<section class="section-block">
+    <div class="feature-strip">
+        <div>
+            <p class="feature-label">Current</p>
+            <strong>{{ workspace.current_price }}</strong>
+        </div>
+        <div>
+            <p class="feature-label">Consensus</p>
+            <strong>{{ workspace.consensus_price }}</strong>
+        </div>
+        <div>
+            <p class="feature-label">Consensus delta</p>
+            <strong>{{ workspace.consensus_delta }}</strong>
+        </div>
+        <div>
+            <p class="feature-label">Models</p>
+            <strong>{{ workspace.model_count }}</strong>
+        </div>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Trend Forecast Track</p>
+                <h2>Historical anchor plus validated forward paths</h2>
+            </div>
+            <p class="section-note">Consensus stays bold; individual engines stay visible so disagreement never disappears behind one target.</p>
+        </div>
+        <article class="editorial-card">
+            {% if workspace.chart_svg %}
+            {{ workspace.chart_svg|safe }}
+            {% else %}
+            <p>No chart path is available for this run yet.</p>
+            {% endif %}
+            {% if workspace.chart_legend_rows %}
+            <div class="card-grid card-grid-4">
+                {% for row in workspace.chart_legend_rows %}
+                <article class="compact-card" style="border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:0.9rem;">
+                    <p class="card-kicker" style="color: {{ row.color }};">{{ row.style }}</p>
+                    <h3>{{ row.label }}</h3>
+                    <p>Final {{ row.final_price }} · Delta {{ row.delta_pct }}</p>
+                </article>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </article>
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Entropy Regime</p>
+        <h2>{{ workspace.entropy_signal.regime if workspace.entropy_signal else "Warming" }}</h2>
+        <p>{{ workspace.entropy_signal.posture if workspace.entropy_signal else "Entropy signal is warming." }}</p>
+        <p class="trust-note">Predictability {{ workspace.entropy_signal.predictability_score if workspace.entropy_signal and workspace.entropy_signal.predictability_score is not none else "N/A" }} · 20d change {{ workspace.entropy_signal.change_20d_label if workspace.entropy_signal and workspace.entropy_signal.change_20d_label else "N/A" }}</p>
+        <p class="trust-note">Why we use entropy: {{ workspace.entropy_signal.note if workspace.entropy_signal else "It helps us judge whether return patterns are ordered enough for trend-following models to deserve trust." }}</p>
+    </aside>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Model Table</p>
+                <h2>How the engines disagree</h2>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Final price</th>
+                        <th>Delta</th>
+                        <th>RMSE</th>
+                        <th>MAE</th>
+                        <th>Validation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.model_rows %}
+                    <tr>
+                        <td><strong>{{ row.model_label }}</strong></td>
+                        <td>{{ row.final_price }}</td>
+                        <td>{{ row.delta_pct }}</td>
+                        <td>{{ row.rmse }}</td>
+                        <td>{{ row.mae }}</td>
+                        <td>{{ row.validation|default("Validated") }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Validation Layer</p>
+        <h2>{{ workspace.validation_summary.state if workspace.validation_summary else "Validated" }}</h2>
+        <p>{{ workspace.validation_summary.detail if workspace.validation_summary else "Rendered models passed output sanity checks." }}</p>
+        {% if workspace.validation_summary %}
+        <p class="trust-note">Validated {{ workspace.validation_summary.validated_models }}/{{ workspace.validation_summary.available_models }} · Rejected {{ workspace.validation_summary.rejected_models }} · Dispersion {{ workspace.validation_summary.dispersion_pct }}</p>
+        {% endif %}
+        <p class="trust-note">Best fit {{ workspace.best_model.model_label }} ends at {{ workspace.best_model.final_price }} with delta {{ workspace.best_model.delta_pct }}.</p>
+    </aside>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Preview Path</p>
+            <h2>Next seven public forecast points</h2>
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Predicted price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.preview_rows %}
+                <tr>
+                    <td>{{ row.date }}</td>
+                    <td>{{ row.price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

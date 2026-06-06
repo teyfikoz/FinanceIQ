@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Methodology{% endblock %}
+
+{% block og_title %}{{ app_name }} Methodology{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Methodology</p>
+        <h1>Readable signals, not black-box promises.</h1>
+        <p class="hero-text">
+            FundPilot is designed as a public orientation layer. The objective is to compress noisy market inputs
+            into a faster morning workflow, not to simulate a trading terminal or discretionary mandate.
+        </p>
+    </div>
+    <div class="hero-aside">
+        <p class="eyebrow">Operating posture</p>
+        <div class="hero-score">Public</div>
+        <p class="hero-metric">Read-only research surface</p>
+        <p class="hero-metric">Server-side data fetches</p>
+        <p class="hero-metric">No execution or custody</p>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <article class="editorial-card">
+        <h2>Data sources</h2>
+        <p>Market cards use Yahoo Finance collectors for broad public market orientation.</p>
+        <p>Crypto cards and Fear &amp; Greed sentiment use CoinGecko and related public inputs.</p>
+        <p>Liquidity and macro context use FRED when credentials are available, with clearly marked fallbacks otherwise.</p>
+        <p>Turkish fund workflows rely on TEFAS-derived server-side collection and cached peer-board ranking.</p>
+        <p>BIST catalyst workflows use KAP public company pages, public disclosure feeds, and notice PDFs when exact contract data can be parsed safely.</p>
+    </article>
+    <article class="editorial-card">
+        <h2>Public-surface limits</h2>
+        <p>This site is not an OMS, PMS, or execution rail.</p>
+        <p>Signal scores are heuristics for orientation, not investment advice or suitability assessment.</p>
+        <p>Delayed, missing, or fallback data can appear during upstream outages; the UI now shows that state explicitly.</p>
+        <p>The product is optimized for clarity and repeatability, not maximal feature count.</p>
+    </article>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Signal Construction</p>
+            <h2>How the public pages should be interpreted</h2>
+        </div>
+    </div>
+    <div class="card-grid card-grid-3">
+        <article class="editorial-card">
+            <h3>Market pulse</h3>
+            <p>Use the cross-market cards for opening context and relative tone, not as a full intraday workflow.</p>
+        </article>
+        <article class="editorial-card">
+            <h3>TR funds</h3>
+            <p>The TEFAS layer emphasizes investor growth, allocation drift, and relative ranking to surface regime changes quickly.</p>
+        </article>
+        <article class="editorial-card">
+            <h3>BIST catalysts</h3>
+            <p>The KAP layer rewards material disclosure flow, contract density, and capital efficiency. Contract ratios are catalyst signals, not realized revenue promises.</p>
+        </article>
+        <article class="editorial-card">
+            <h3>Risk mood</h3>
+            <p>The sentiment badge compresses Fear &amp; Greed and VIX into a readable posture label; it is deliberately simple.</p>
+        </article>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Commercial Model</p>
+            <h2>Why the public build stays narrow</h2>
+        </div>
+    </div>
+    <div class="card-stack">
+        <article class="editorial-card">
+            <h3>Research-first monetization</h3>
+            <p>FundPilot keeps the public surface sponsor-safe and affiliate-safe instead of bloating the experience with login-heavy consumer features.</p>
+        </article>
+        <article class="editorial-card">
+            <h3>Operational discipline</h3>
+            <p>From an investor or fund-manager lens, a narrower, stable product is more credible than a broad but brittle interface.</p>
+        </article>
+        <article class="editorial-card">
+            <h3>What to expect next</h3>
+            <p>Further improvements should strengthen data freshness, explicit methodology, and sponsor quality before adding monetization complexity.</p>
+        </article>
+    </div>
+</section>
+{% endblock %}

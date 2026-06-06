@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Compare{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Compare Mode</p>
+        <h1>Put two candidates on one sheet and force a decision.</h1>
+        <p class="hero-text">
+            Compare mode is where FundPilot stops being a dashboard and starts acting like a decision tool.
+            Use it for stocks, ETFs, or TEFAS funds.
+        </p>
+        <form class="query-form query-form-wide" method="get" action="/compare">
+            <label>
+                <span>Type</span>
+                <select name="kind">
+                    {% for option in workspace.kind_options %}
+                    <option value="{{ option.key }}" {% if workspace.kind == option.key %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                <span>Left</span>
+                <input type="text" name="left" value="{{ workspace.left_symbol }}" placeholder="AAPL">
+            </label>
+            <label>
+                <span>Right</span>
+                <input type="text" name="right" value="{{ workspace.right_symbol }}" placeholder="NVDA">
+            </label>
+            <label>
+                <span>Months</span>
+                <input type="number" name="months" min="3" max="18" value="{{ workspace.months }}">
+            </label>
+            <button type="submit" class="button button-primary">Run Compare</button>
+        </form>
+    </div>
+    <div class="hero-aside">
+        <p class="eyebrow">Current pair</p>
+        <div class="hero-score">{{ workspace.left_symbol }}</div>
+        <p class="hero-metric">vs {{ workspace.right_symbol }}</p>
+        <p class="hero-metric">{{ workspace.kind|replace('-', ' ')|title }}</p>
+        <p class="hero-metric">{{ workspace.compare_rows|length }} metrics scored</p>
+    </div>
+</section>
+
+{% if workspace.kind in ['stocks', 'funds'] and workspace.compare_suggestions|default([]) %}
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Suggested Pairs</p>
+            <h2>Exchange-aware compare presets</h2>
+        </div>
+        <p class="section-note">Regional listings should not default into a random US tech comparison.</p>
+    </div>
+    <div class="card-grid card-grid-3">
+        {% for item in workspace.compare_suggestions|default([]) %}
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Preset {{ loop.index }}</p>
+            <h3>{{ item.label }}</h3>
+            <p>{{ item.reason }}</p>
+            <p><a href="{{ item.path }}" class="text-link">Load this pair</a></p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="section-block">
+    <div class="card-grid card-grid-3">
+        {% for card in workspace.summary_cards %}
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">{{ card.label }}</p>
+            <h3>{{ card.value }}</h3>
+            <p>{{ card.detail }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+{% if workspace.regime_workspace and workspace.regime_workspace.rows %}
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Regime Check</p>
+                <h2>{{ workspace.regime_workspace.headline.label }}</h2>
+            </div>
+            <p class="section-note">{{ workspace.regime_workspace.headline.detail }}</p>
+        </div>
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>{{ workspace.left_symbol }}</th>
+                        <th>{{ workspace.right_symbol }}</th>
+                        <th>Winner</th>
+                        <th>Read</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.regime_workspace.rows %}
+                    <tr>
+                        <td><strong>{{ row.metric }}</strong></td>
+                        <td>{{ row.left }}</td>
+                        <td>{{ row.right }}</td>
+                        <td>{{ row.winner }}</td>
+                        <td>{{ row.read }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Trend Read</p>
+                <h2>Persistence and predictability side by side</h2>
+            </div>
+            <p class="section-note">Entropy matters here because trend signals only deserve trust when return patterns are ordered enough to carry them.</p>
+        </div>
+        <div class="card-grid card-grid-2">
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ workspace.regime_workspace.left.symbol }}</p>
+                <h3>{{ workspace.regime_workspace.left.persistence }}</h3>
+                <p>Bias {{ workspace.regime_workspace.left.trend_bias }} · Delta {{ workspace.regime_workspace.left.consensus_delta }}</p>
+                <p>Predictability {{ workspace.regime_workspace.left.predictability }}</p>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ workspace.regime_workspace.right.symbol }}</p>
+                <h3>{{ workspace.regime_workspace.right.persistence }}</h3>
+                <p>Bias {{ workspace.regime_workspace.right.trend_bias }} · Delta {{ workspace.regime_workspace.right.consensus_delta }}</p>
+                <p>Predictability {{ workspace.regime_workspace.right.predictability }}</p>
+            </article>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Decision Sheet</p>
+            <h2>{{ workspace.left_name }} vs {{ workspace.right_name }}</h2>
+        </div>
+        <p class="section-note">Winner only means stronger on that metric, not necessarily the better asset overall.</p>
+    </div>
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>{{ workspace.left_symbol }}</th>
+                    <th>{{ workspace.right_symbol }}</th>
+                    <th>Winner</th>
+                    <th>Read</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.compare_rows %}
+                <tr>
+                    <td><strong>{{ row.metric }}</strong></td>
+                    <td>{{ row.left }}</td>
+                    <td>{{ row.right }}</td>
+                    <td>{{ row.winner }}</td>
+                    <td>{{ row.read }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Left Memo</p>
+                <h2>{{ workspace.left_name }}</h2>
+            </div>
+            <p class="section-note">{{ workspace.left_workspace.data_confidence.label if workspace.left_workspace.data_confidence else "Refreshing" }}</p>
+        </div>
+        <div class="card-stack">
+            {% for item in workspace.left_workspace.what_changed|default([]) %}
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ item.impact }} impact</p>
+                <h3>{{ item.label }} · {{ item.value }}</h3>
+                <p>{{ item.reason }}</p>
+            </article>
+            {% endfor %}
+        </div>
+        {% if workspace.kind == 'stocks' %}
+        <p><a href="/stocks?symbol={{ workspace.left_symbol }}" class="text-link">Open full stock workspace</a></p>
+        {% elif workspace.kind == 'funds' %}
+        <p><a href="/funds-etfs?symbol={{ workspace.left_symbol }}" class="text-link">Open full fund workspace</a></p>
+        {% else %}
+        <p><a href="/turkish-funds?fund={{ workspace.left_symbol }}&months={{ workspace.months }}" class="text-link">Open full TR fund workspace</a></p>
+        {% endif %}
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Right Memo</p>
+                <h2>{{ workspace.right_name }}</h2>
+            </div>
+            <p class="section-note">{{ workspace.right_workspace.data_confidence.label if workspace.right_workspace.data_confidence else "Refreshing" }}</p>
+        </div>
+        <div class="card-stack">
+            {% for item in workspace.right_workspace.what_changed|default([]) %}
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ item.impact }} impact</p>
+                <h3>{{ item.label }} · {{ item.value }}</h3>
+                <p>{{ item.reason }}</p>
+            </article>
+            {% endfor %}
+        </div>
+        {% if workspace.kind == 'stocks' %}
+        <p><a href="/stocks?symbol={{ workspace.right_symbol }}" class="text-link">Open full stock workspace</a></p>
+        {% elif workspace.kind == 'funds' %}
+        <p><a href="/funds-etfs?symbol={{ workspace.right_symbol }}" class="text-link">Open full fund workspace</a></p>
+        {% else %}
+        <p><a href="/turkish-funds?fund={{ workspace.right_symbol }}&months={{ workspace.months }}" class="text-link">Open full TR fund workspace</a></p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

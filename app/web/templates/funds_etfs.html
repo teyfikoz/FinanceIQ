@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Funds & ETFs{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Funds & ETFs Workspace</p>
+        <h1>ETF and fund analysis is back in public read-only form.</h1>
+        <p class="hero-text">
+            Use this page for fee posture, benchmark-relative performance, holdings concentration,
+            and a quick risk read across ETFs and listed funds.
+        </p>
+        <form class="query-form" method="get" action="/funds-etfs">
+            <label>
+                <span>Fund or ETF symbol</span>
+                <input type="search" name="symbol" value="{{ workspace.symbol }}" placeholder="SPY, QQQ, ARKK">
+            </label>
+            <button type="submit" class="button button-primary">Analyze</button>
+        </form>
+        <div class="hero-actions">
+            <a href="{{ workspace.compare_cta_path|default('/compare?kind=funds&left=' ~ workspace.symbol ~ '&right=QQQ') }}" class="button button-secondary">Compare</a>
+            <a href="{{ workspace.overlap_cta_path|default('/overlap-matrix?focus=core') }}" class="button button-secondary">Overlap Matrix</a>
+        </div>
+        <div class="chip-row">
+            {% for item in workspace.featured_symbols %}
+            <a href="/funds-etfs?symbol={{ item }}" class="signal-chip">{{ item }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="hero-aside">
+        {% if workspace.error %}
+        <p class="eyebrow">Status</p>
+        <div class="hero-score">Unavailable</div>
+        <p class="hero-metric">{{ workspace.error }}</p>
+        {% else %}
+        <p class="eyebrow">Current symbol</p>
+        <div class="hero-score">{{ workspace.symbol }}</div>
+        <p class="hero-metric">{{ workspace.overview.fund_name }}</p>
+        <p class="hero-metric">{{ workspace.overview.category }}</p>
+        <p class="hero-metric">Expense {{ workspace.overview.expense_ratio }}</p>
+        {% if workspace.data_confidence %}
+        <p class="hero-metric">Confidence {{ workspace.data_confidence.label }}</p>
+        <p class="hero-metric">{{ workspace.data_confidence.detail }}</p>
+        {% endif %}
+        {% endif %}
+    </div>
+</section>
+
+{% if workspace.error %}
+<section class="section-block">
+    <article class="editorial-card empty-state">
+        <h3>Fund snapshot could not be built.</h3>
+        <p>Try a featured ETF or retry shortly if the upstream data source is lagging.</p>
+    </article>
+</section>
+{% else %}
+{% if workspace.what_changed %}
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Narrative Memo</p>
+                <h2>What actually moved inside the wrapper</h2>
+            </div>
+            <p class="section-note">A deterministic summary instead of a vague product blurb.</p>
+        </div>
+        <div class="card-stack">
+            {% for item in workspace.what_changed %}
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ item.impact }} impact</p>
+                <h3>{{ item.label }} · {{ item.value }}</h3>
+                <p>{{ item.reason }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Data Confidence</p>
+        <h2>{{ workspace.data_confidence.label if workspace.data_confidence else "Refreshing" }}</h2>
+        <p>{{ workspace.data_confidence.detail if workspace.data_confidence else "No confidence note is available yet." }}</p>
+        <p class="trust-note">Asset-base drift is shown as a proxy when upstream AUM history is incomplete.</p>
+    </aside>
+</section>
+{% endif %}
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Market Lens</p>
+                <h2>{{ workspace.market_profile.market_label if workspace.market_profile else "Funds & ETFs" }}</h2>
+            </div>
+            <p class="section-note">{{ workspace.market_profile.exchange if workspace.market_profile else "US-listed wrappers" }}</p>
+        </div>
+        <article class="editorial-card">
+            <h3>Where this wrapper should be judged</h3>
+            <p>{{ workspace.market_profile.description if workspace.market_profile else "Use benchmark, fee drag, and concentration to frame the wrapper before chasing narrative." }}</p>
+        </article>
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Compare Presets</p>
+                <h2>Exchange-aware pairings</h2>
+            </div>
+            <p class="section-note">Default comparisons now stay inside the wrapper family before jumping cross-theme.</p>
+        </div>
+        <div class="card-stack">
+            {% for item in workspace.compare_suggestions|default([]) %}
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ item.symbol }}</p>
+                <h3>{{ item.label }}</h3>
+                <p>{{ item.reason }}</p>
+                <a href="{{ item.path }}" class="text-link">Open compare</a>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% if workspace.regional_groups|default([]) %}
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Regional ETF Quick Picks</p>
+            <h2>Jump between benchmark, regional, and thematic wrappers</h2>
+        </div>
+        <p class="section-note">This is the fastest path into regional overlap and like-for-like wrapper comparison.</p>
+    </div>
+    <div class="card-grid card-grid-3">
+        {% for group in workspace.regional_groups %}
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">{{ group.exchange }}</p>
+            <h3>{{ group.label }}{% if group.selected %} · Current{% endif %}</h3>
+            <div class="chip-row">
+                {% for item in group.symbols %}
+                <a href="/funds-etfs?symbol={{ item }}" class="signal-chip">{{ item }}</a>
+                {% endfor %}
+            </div>
+            <a href="{{ group.overlap_path }}" class="text-link">Open overlap view</a>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Overview</p>
+            <h2>{{ workspace.overview.fund_name }}</h2>
+        </div>
+        <p class="section-note">{{ workspace.overview.fund_family }} · {{ workspace.overview.category }}</p>
+    </div>
+    <div class="card-grid card-grid-4">
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Assets</p>
+            <h3>{{ workspace.overview.total_assets }}</h3>
+            <p>Scale matters for tradability and survivability.</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Expense ratio</p>
+            <h3>{{ workspace.overview.expense_ratio }}</h3>
+            <p>Cost drag is structural, not tactical.</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Yield</p>
+            <h3>{{ workspace.overview.yield }}</h3>
+            <p>Income view only, not a total-return substitute.</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Morningstar</p>
+            <h3>{{ workspace.overview.morningstar_rating }}</h3>
+            <p>Rating plus context, not a buy signal.</p>
+        </article>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Performance</p>
+                <h2>Multi-period read</h2>
+            </div>
+        </div>
+        <div class="card-grid card-grid-4">
+            {% for item in workspace.performance_cards %}
+            <article class="market-card">
+                <p class="card-kicker">{{ item.label }}</p>
+                <h3>{{ item.value }}</h3>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Fund Rating</p>
+        <h2>{{ workspace.rating.overall_rating }}/10</h2>
+        <p>{{ workspace.rating.explanation }}</p>
+        <p class="trust-note">Performance {{ workspace.rating.performance_rating }} · Risk {{ workspace.rating.risk_rating }} · Cost {{ workspace.rating.cost_rating }}</p>
+    </aside>
+</section>
+
+{% if workspace.forecast_lens %}
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Forecast Lens</p>
+                <h2>Mini wrapper trend map inside the fund workspace</h2>
+            </div>
+            <p class="section-note">The same validated forecast stack, compressed into the ETF page so you can read trend quality without leaving the wrapper.</p>
+        </div>
+        <article class="editorial-card">
+            {% if workspace.forecast_lens.chart_svg %}
+            {{ workspace.forecast_lens.chart_svg|safe }}
+            {% else %}
+            <p>{{ workspace.forecast_lens.detail|default("Fund forecast lens is warming.") }}</p>
+            {% endif %}
+            <div class="hero-actions">
+                <a href="{{ workspace.forecast_cta_path|default('/forecasts?symbol=' ~ workspace.symbol ~ '&days=21') }}" class="button button-secondary">Open Full Forecast</a>
+            </div>
+        </article>
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Trend Persistence</p>
+                <h2>{{ workspace.forecast_lens.trend_persistence.label if workspace.forecast_lens.trend_persistence else "Warming" }}</h2>
+            </div>
+            <p class="section-note">{{ workspace.forecast_lens.trend_persistence.detail if workspace.forecast_lens.trend_persistence else workspace.forecast_lens.detail }}</p>
+        </div>
+        <div class="card-grid card-grid-2">
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Consensus</p>
+                <h3>{{ workspace.forecast_lens.consensus_price|default("N/A") }}</h3>
+                <p>Delta {{ workspace.forecast_lens.consensus_delta|default("N/A") }} · Bias {{ workspace.forecast_lens.trend_bias|default("Mixed") }}</p>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Validation</p>
+                <h3>{{ workspace.forecast_lens.validation_summary.state if workspace.forecast_lens.validation_summary else "Warming" }}</h3>
+                <p>{{ workspace.forecast_lens.validation_summary.detail if workspace.forecast_lens.validation_summary else "Forecast validation layer is warming." }}</p>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Entropy Regime</p>
+                <h3>{{ workspace.forecast_lens.entropy_signal.regime if workspace.forecast_lens.entropy_signal else "Warming" }}</h3>
+                <p>Predictability {{ workspace.forecast_lens.entropy_signal.predictability_score if workspace.forecast_lens.entropy_signal and workspace.forecast_lens.entropy_signal.predictability_score is not none else "N/A" }} · 20d {{ workspace.forecast_lens.entropy_signal.change_20d_label if workspace.forecast_lens.entropy_signal and workspace.forecast_lens.entropy_signal.change_20d_label else "N/A" }}</p>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Why entropy</p>
+                <p>{{ workspace.forecast_lens.entropy_signal.note if workspace.forecast_lens.entropy_signal else "Entropy helps judge whether return patterns are ordered enough to trust trend-following models." }}</p>
+            </article>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Monthly Asset Tape</p>
+                <h2>How the capital base is moving</h2>
+            </div>
+            <p class="section-note">{{ workspace.monthly_note|default("Month-end asset and risk drift.") }}</p>
+        </div>
+        {% if workspace.monthly_rows|default([]) %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Asset Base</th>
+                        <th>Delta</th>
+                        <th>1M Return</th>
+                        <th>Vol</th>
+                        <th>Posture</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.monthly_rows %}
+                    <tr>
+                        <td>{{ row.month }}</td>
+                        <td>{{ row.asset_base_proxy }}</td>
+                        <td>{{ row.asset_change_proxy }}</td>
+                        <td>{{ row.monthly_return }}</td>
+                        <td>{{ row.realized_volatility }}</td>
+                        <td><strong>{{ row.posture }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>Monthly asset tape is still warming.</h3>
+            <p>The fund loaded correctly, but no month-end drift rows were returned for this symbol yet.</p>
+        </article>
+        {% endif %}
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Positioning Drift</p>
+                <h2>What changed inside the fund</h2>
+            </div>
+            <p class="section-note">{{ workspace.holdings_timeline_note|default("Month-end holdings snapshots if available.") }}</p>
+        </div>
+        {% if workspace.holdings_timeline_rows|default([]) %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Top Holding</th>
+                        <th>Top Weight</th>
+                        <th>Top 10</th>
+                        <th>Primary Shift</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.holdings_timeline_rows %}
+                    <tr>
+                        <td>{{ row.month }}</td>
+                        <td>{{ row.top_holding }}</td>
+                        <td>{{ row.top_weight }}</td>
+                        <td>{{ row.top_10_concentration }}</td>
+                        <td>{{ row.primary_shift }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>Holdings drift history is not ready yet.</h3>
+            <p>Current holdings are available below; multi-month composition drift will populate as snapshots accumulate.</p>
+        </article>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Risk Snapshot</p>
+            <h2>What can go wrong and how fast</h2>
+        </div>
+    </div>
+    <div class="card-grid card-grid-4">
+        <article class="market-card">
+            <p class="card-kicker">Volatility</p>
+            <h3>{{ workspace.risk_snapshot.volatility }}</h3>
+        </article>
+        <article class="market-card">
+            <p class="card-kicker">Max drawdown</p>
+            <h3>{{ workspace.risk_snapshot.max_drawdown }}</h3>
+        </article>
+        <article class="market-card">
+            <p class="card-kicker">Sharpe</p>
+            <h3>{{ workspace.risk_snapshot.sharpe_ratio }}</h3>
+        </article>
+        <article class="market-card">
+            <p class="card-kicker">Sortino</p>
+            <h3>{{ workspace.risk_snapshot.sortino_ratio }}</h3>
+        </article>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Top Holdings</p>
+                <h2>Concentration check</h2>
+            </div>
+            <p class="section-note">Top 10 concentration {{ workspace.holdings_summary.top_10_concentration }} · Holdings {{ workspace.holdings_summary.holdings_count }}</p>
+        </div>
+        {% if workspace.holdings_summary.top_holdings %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Holding</th>
+                        <th>Symbol</th>
+                        <th>Weight</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.holdings_summary.top_holdings %}
+                    <tr>
+                        <td><strong>{{ row.holdingName or row.name or row.symbol }}</strong></td>
+                        <td>{{ row.symbol or row.holdingSymbol or "N/A" }}</td>
+                        <td>{{ row.weight or row.holdingPercent or "N/A" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>Holdings file is not available for this symbol.</h3>
+            <p>That is common for some funds. Performance and risk reads still work.</p>
+        </article>
+        {% endif %}
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Benchmark</p>
+                <h2>Versus SPY</h2>
+            </div>
+        </div>
+        {% if workspace.benchmark and workspace.benchmark.comparison_metrics %}
+        <div class="card-stack">
+            {% for key, value in workspace.benchmark.comparison_metrics.items() %}
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ key.replace('_vs_benchmark', '').replace('_', ' ') }}</p>
+                <h3>{{ value }}</h3>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>Benchmark comparison is limited.</h3>
+            <p>Some funds do not provide enough history or metadata for a clean SPY-relative comparison.</p>
+        </article>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

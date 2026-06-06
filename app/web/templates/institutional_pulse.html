@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Institutional Pulse{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Institutional Pulse</p>
+        <h1>Real 13F position changes, not synthetic whale theater.</h1>
+        <p class="hero-text">
+            This workspace reads official SEC 13F filings for a curated set of institutional managers,
+            then surfaces top holdings, new positions, trims, exits, and overlap.
+        </p>
+        <form class="query-form" method="get" action="/institutional-pulse">
+            <label>
+                <span>Manager</span>
+                <select name="manager">
+                    {% for option in workspace.manager_options %}
+                    <option value="{{ option.key }}" {% if workspace.selected_manager == option.key %}selected{% endif %}>
+                        {{ option.label }} · {{ option.manager_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit" class="button button-primary">Refresh Filing View</button>
+        </form>
+        <div class="chip-row">
+            {% for item in workspace.methodology %}
+            <span class="signal-chip">{{ item }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="hero-aside">
+        <p class="eyebrow">Selected manager</p>
+        <div class="hero-score">{{ workspace.manager.manager_name }}</div>
+        <p class="hero-metric">{{ workspace.manager.label }}</p>
+        <p class="hero-metric">{{ workspace.manager.style }}</p>
+        <p class="hero-metric">Source state {{ workspace.source_state }}</p>
+    </div>
+</section>
+
+{% if workspace.warning %}
+<section class="section-block">
+    <article class="editorial-card empty-state">
+        <h3>Refresh note</h3>
+        <p>{{ workspace.warning }}</p>
+    </article>
+</section>
+{% endif %}
+
+{% if workspace.error %}
+<section class="section-block">
+    <article class="editorial-card empty-state">
+        <h3>Institutional pulse is not ready yet.</h3>
+        <p>{{ workspace.error }}</p>
+    </article>
+</section>
+{% else %}
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Manager Coverage</p>
+            <h2>How durable the curated filing layer is</h2>
+        </div>
+        <p class="section-note">This is FundPilot's own superinvestor board built from EDGAR, not a third-party mirror.</p>
+    </div>
+    <div class="card-grid card-grid-4">
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Managers tracked</p>
+            <h3>{{ workspace.coverage_summary.manager_count }}</h3>
+            <p>{{ workspace.coverage_summary.live_count }} live · {{ workspace.coverage_summary.snapshot_count }} snapshot</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Warming managers</p>
+            <h3>{{ workspace.coverage_summary.warming_count }}</h3>
+            <p>Names still waiting for a clean live refresh.</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Latest filing date</p>
+            <h3>{{ workspace.coverage_summary.latest_filing }}</h3>
+            <p>Best available filing across the curated manager set.</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Consensus names</p>
+            <h3>{{ workspace.consensus_coverage }}</h3>
+            <p>Managers contributing to overlap detection.</p>
+        </article>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Coverage Board</p>
+            <h2>Curated manager monitor</h2>
+        </div>
+        <p class="section-note">Use this to see if a filing source is fresh before trusting any single manager view.</p>
+    </div>
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Manager</th>
+                    <th>State</th>
+                    <th>Latest Filing</th>
+                    <th>Portfolio</th>
+                    <th>Largest Position</th>
+                    <th>Turnover</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.coverage_rows %}
+                <tr>
+                    <td><strong>{{ row.manager_name }}</strong><span>{{ row.label }}</span></td>
+                    <td>{{ row.source_state }}</td>
+                    <td>{{ row.latest_filing }}</td>
+                    <td>{{ row.portfolio_value }} · {{ row.holding_count }} holdings</td>
+                    <td>{{ row.largest_position }} · {{ row.top_10_weight }}</td>
+                    <td>{{ row.new_positions }} new / {{ row.exited_positions }} exited</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Filing Summary</p>
+            <h2>{{ workspace.manager.label }}</h2>
+        </div>
+        <p class="section-note">{{ workspace.source_note }}</p>
+    </div>
+    <div class="card-grid card-grid-4">
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Reported portfolio</p>
+            <h3>{{ workspace.summary.portfolio_value }}</h3>
+            <p>{{ workspace.summary.holding_count }} holdings</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Top 10 concentration</p>
+            <h3>{{ workspace.summary.top_10_weight }}</h3>
+            <p>Largest position {{ workspace.summary.largest_position_weight }}</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Latest filing</p>
+            <h3>{{ workspace.latest_filing.filing_date }}</h3>
+            <p>{{ workspace.latest_filing.form }} · lag {{ workspace.summary.filing_lag_days }} days</p>
+        </article>
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">Position turnover</p>
+            <h3>{{ workspace.summary.new_positions }} new / {{ workspace.summary.exited_positions }} exited</h3>
+            <p>Option exposure {{ workspace.summary.option_exposure }}</p>
+        </article>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Top Holdings</p>
+                <h2>Largest reported positions</h2>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Issuer</th>
+                        <th>Class</th>
+                        <th>Value</th>
+                        <th>Weight</th>
+                        <th>Shares</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.top_holdings %}
+                    <tr>
+                        <td><strong>{{ row.issuer }}</strong><span>{{ row.put_call }}</span></td>
+                        <td>{{ row.class_title }}</td>
+                        <td>{{ row.value }}</td>
+                        <td>{{ row.portfolio_weight }}</td>
+                        <td>{{ row.shares }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Reading the lag</p>
+        <h2>{{ workspace.summary.largest_position }}</h2>
+        <p>13F data is powerful, but delayed. Use this page to see how serious managers re-shaped books, not to mimic entries tick-for-tick.</p>
+        <p class="trust-note">
+            Previous filing:
+            {% if workspace.previous_filing %}
+            {{ workspace.previous_filing.filing_date }} · {{ workspace.previous_filing.form }}
+            {% else %}
+            N/A
+            {% endif %}
+        </p>
+    </aside>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Change Set</p>
+            <h2>Where the manager leaned in or backed away</h2>
+        </div>
+        <p class="section-note">Moves are ranked by reported size, not by headlines.</p>
+    </div>
+    <div class="card-grid card-grid-2">
+        <article class="editorial-card">
+            <p class="card-kicker">New positions</p>
+            {% if workspace.new_positions %}
+            <div class="table-wrap">
+                <table class="signal-table">
+                    <thead>
+                        <tr>
+                            <th>Issuer</th>
+                            <th>Current</th>
+                            <th>Weight delta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in workspace.new_positions %}
+                        <tr>
+                            <td><strong>{{ row.issuer }}</strong><span>{{ row.class_title }}</span></td>
+                            <td>{{ row.current_value }}</td>
+                            <td>{{ row.weight_change }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>No new positions were detected in the latest comparison window.</p>
+            {% endif %}
+        </article>
+        <article class="editorial-card">
+            <p class="card-kicker">Added to existing positions</p>
+            {% if workspace.added_positions %}
+            <div class="table-wrap">
+                <table class="signal-table">
+                    <thead>
+                        <tr>
+                            <th>Issuer</th>
+                            <th>Value change</th>
+                            <th>Weight delta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in workspace.added_positions %}
+                        <tr>
+                            <td><strong>{{ row.issuer }}</strong><span>{{ row.class_title }}</span></td>
+                            <td>{{ row.value_change }}</td>
+                            <td>{{ row.weight_change }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>No material adds were detected in the latest comparison window.</p>
+            {% endif %}
+        </article>
+        <article class="editorial-card">
+            <p class="card-kicker">Trimmed</p>
+            {% if workspace.trimmed_positions %}
+            <div class="table-wrap">
+                <table class="signal-table">
+                    <thead>
+                        <tr>
+                            <th>Issuer</th>
+                            <th>Value change</th>
+                            <th>Weight delta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in workspace.trimmed_positions %}
+                        <tr>
+                            <td><strong>{{ row.issuer }}</strong><span>{{ row.class_title }}</span></td>
+                            <td>{{ row.value_change }}</td>
+                            <td>{{ row.weight_change }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>No material trims were detected in the latest comparison window.</p>
+            {% endif %}
+        </article>
+        <article class="editorial-card">
+            <p class="card-kicker">Exited</p>
+            {% if workspace.sold_positions %}
+            <div class="table-wrap">
+                <table class="signal-table">
+                    <thead>
+                        <tr>
+                            <th>Issuer</th>
+                            <th>Previous</th>
+                            <th>Weight delta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in workspace.sold_positions %}
+                        <tr>
+                            <td><strong>{{ row.issuer }}</strong><span>{{ row.class_title }}</span></td>
+                            <td>{{ row.previous_value }}</td>
+                            <td>{{ row.weight_change }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>No full exits were detected in the latest comparison window.</p>
+            {% endif %}
+        </article>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Cross-Manager Overlap</p>
+                <h2>Where the curated books crowd together</h2>
+            </div>
+            <p class="section-note">{{ workspace.consensus_coverage }} managers refreshed successfully.</p>
+        </div>
+        {% if workspace.consensus_rows %}
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Issuer</th>
+                        <th>Managers</th>
+                        <th>Combined weight</th>
+                        <th>Largest single weight</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.consensus_rows %}
+                    <tr>
+                        <td><strong>{{ row.issuer }}</strong><span>{{ row.latest_filing }}</span></td>
+                        <td>{{ row.manager_count }} · {{ row.managers }}</td>
+                        <td>{{ row.combined_weight }}</td>
+                        <td>{{ row.max_weight }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <article class="editorial-card empty-state">
+            <h3>Consensus board is still warming.</h3>
+            <p>FundPilot only shows overlap after at least two manager snapshots are available.</p>
+        </article>
+        {% endif %}
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Why this page matters</p>
+        <h2>Positioning over chatter</h2>
+        <p>Google Finance, Yahoo Finance, and Investing are good at quotes, charts, and headlines. This layer is about book construction and position drift.</p>
+        <p class="trust-note">Use overlap as a crowding signal, not as a copy-trade invitation.</p>
+    </aside>
+</section>
+{% endif %}
+{% endblock %}

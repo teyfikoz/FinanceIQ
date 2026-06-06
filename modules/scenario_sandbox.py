@@ -422,7 +422,11 @@ class ScenarioSandbox:
         for scenario_key in scenarios:
             if scenario_key in predefined_scenarios:
                 scenario_config = predefined_scenarios[scenario_key]
-                scenario = self.create_scenario(**scenario_config)
+                scenario = self.create_scenario(
+                    scenario_type=scenario_config['type'],
+                    scenario_name=scenario_config['name'],
+                    **scenario_config['parameters']
+                )
                 impact_df = self.simulate_portfolio_impact(portfolio, scenario)
 
                 results[scenario_key] = {

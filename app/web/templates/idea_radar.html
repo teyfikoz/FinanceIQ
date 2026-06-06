@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Idea Radar{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Idea Radar</p>
+        <h1>Generic quote pages stop at data. This page starts at conviction.</h1>
+        <p class="hero-text">
+            Idea Radar ranks liquid names with a blended score: momentum, quality, sector tailwind,
+            and ETF crowding. It is built to answer what deserves attention now.
+        </p>
+        <form class="query-form" method="get" action="/idea-radar">
+            <label>
+                <span>Universe</span>
+                <select name="universe">
+                    {% for option in workspace.universe_options %}
+                    <option value="{{ option.key }}" {% if workspace.selected_universe == option.key %}selected{% endif %}>{{ option.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                <span>Rows</span>
+                <select name="limit">
+                    {% for value in [6, 8, 10, 12] %}
+                    <option value="{{ value }}" {% if workspace.rows|length == value %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit" class="button button-primary">Refresh Radar</button>
+        </form>
+        <div class="hero-actions">
+            <a href="/compare?kind=stocks&left={{ workspace.top_pick.symbol if workspace.top_pick else 'AAPL' }}&right=NVDA" class="button button-secondary">Compare Top Name</a>
+            <a href="/bist-quality-board" class="button button-secondary">Open BIST Board</a>
+        </div>
+        <div class="chip-row">
+            {% for item in workspace.methodology %}
+            <span class="signal-chip">{{ item }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="hero-aside">
+        {% if workspace.top_pick %}
+        <p class="eyebrow">Top pick</p>
+        <div class="hero-score">{{ workspace.top_pick.symbol }}</div>
+        <p class="hero-metric">{{ workspace.top_pick.band }}</p>
+        <p class="hero-metric">Score {{ workspace.top_pick.score }}</p>
+        <p class="hero-metric">{{ workspace.top_pick.price_change_3m }} · sector {{ workspace.top_pick.sector_tailwind }}</p>
+        <p class="hero-metric">{{ workspace.top_pick.fundamental_rating }} · fundamental {{ workspace.top_pick.fundamental_score }} · {{ workspace.top_pick.capital_profile }}</p>
+        <p class="hero-metric">{{ workspace.top_pick.trend_label }} · predictability {{ workspace.top_pick.predictability_score }} · {{ workspace.top_pick.entropy_regime }}</p>
+        <p class="hero-metric">KAP {{ workspace.top_pick.disclosure_momentum_score }} · {{ workspace.top_pick.contract_mentions_365d }} contract-style notices</p>
+        {% else %}
+        <p class="eyebrow">Status</p>
+        <div class="hero-score">No ideas</div>
+        <p class="hero-metric">The radar returned no ranked candidates.</p>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Universe</p>
+            <h2>{{ workspace.universe_label }}</h2>
+        </div>
+        <p class="section-note">{{ workspace.coverage_size }} symbols scanned · {{ workspace.universe_description }}</p>
+    </div>
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Conviction</th>
+                    <th>3M</th>
+                    <th>RSI</th>
+                    <th>Fundamental</th>
+                    <th>Capital</th>
+                    <th>KAP flow</th>
+                    <th>Trend Lens</th>
+                    <th>Sector wind</th>
+                    <th>Curated 13F</th>
+                    <th>ETF crowding</th>
+                    <th>Why Passed</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.rows %}
+                <tr>
+                    <td>
+                        <strong>{{ row.symbol }}</strong>
+                        <span>{{ row.name }} · {{ row.sector }}</span>
+                    </td>
+                    <td>
+                        <strong>{{ row.score }}</strong>
+                        <span>{{ row.band }}</span>
+                    </td>
+                    <td>{{ row.price_change_3m }}</td>
+                    <td>{{ row.rsi }}</td>
+                    <td>{{ row.fundamental_rating }}<span>{{ row.fundamental_score }} · {{ row.valuation_stance }}</span></td>
+                    <td>{{ row.capital_profile }}<span>{{ row.capital_signal }} · {{ row.net_income_to_capital }}</span></td>
+                    <td>{{ row.disclosure_momentum_score }}<span>{{ row.material_disclosures_90d }} material · {{ row.contract_mentions_365d }} contract</span></td>
+                    <td>{{ row.trend_label }}<span>{{ row.predictability_score }} · {{ row.entropy_regime }}</span></td>
+                    <td>{{ row.sector_tailwind }}</td>
+                    <td>{{ row.curated_13f_signal }}<span>{{ row.curated_13f_holders }} managers · {{ row.curated_13f_weight }}</span></td>
+                    <td>{{ row.ownership_count }} funds · {{ row.ownership_weight }}</td>
+                    <td>{{ row.why_passed }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% if workspace.top_pick %}
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Component Score</p>
+                <h2>{{ workspace.top_pick.symbol }} breakdown</h2>
+            </div>
+        </div>
+        <div class="card-grid card-grid-4">
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Momentum</p>
+                <h3>{{ workspace.top_pick.components.momentum }}</h3>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">RSI posture</p>
+                <h3>{{ workspace.top_pick.components.rsi }}</h3>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Quality</p>
+                <h3>{{ workspace.top_pick.components.quality }}</h3>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Valuation</p>
+                <h3>{{ workspace.top_pick.components.valuation }}</h3>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Capital</p>
+                <h3>{{ workspace.top_pick.components.capital }}</h3>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">KAP Flow</p>
+                <h3>{{ workspace.top_pick.components.disclosure }}</h3>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Sector</p>
+                <h3>{{ workspace.top_pick.components.sector }}</h3>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Ownership</p>
+                <h3>{{ workspace.top_pick.components.ownership }}</h3>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Curated 13F</p>
+                <h3>{{ workspace.top_pick.components.institutional }}</h3>
+            </article>
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">Trend</p>
+                <h3>{{ workspace.top_pick.components.trend }}</h3>
+            </article>
+        </div>
+    </div>
+    <aside class="trust-card">
+        <p class="eyebrow">Why this matters</p>
+        <h2>{{ workspace.top_pick.band }}</h2>
+        <p>Most finance sites show price, chart and maybe news. This layer ranks opportunity quality across multiple dimensions in one pass.</p>
+        {% if workspace.top_pick.why_passed %}
+        <p>{{ workspace.top_pick.why_passed }}</p>
+        {% endif %}
+        <p>{{ workspace.top_pick.trend_detail }}</p>
+        <p class="trust-note">Why entropy: {{ workspace.top_pick.entropy_note }}</p>
+        <p class="trust-note">Use it as a triage engine, then drill into `Stocks`, `Ownership Lens`, and `Scenario Lab` for detail.</p>
+    </aside>
+</section>
+{% endif %}
+{% endblock %}

@@ -80,7 +80,7 @@ class TEFASPortfolioTracker:
         "other": "Other",
     }
 
-    def __init__(self):
+    def __init__(self, request_timeout_seconds: int = 6, max_retries: int = 1):
         self.base_url = "https://www.tefas.gov.tr/api/funds"
         self.session = requests.Session()
         self.session.headers.update(
@@ -96,12 +96,18 @@ class TEFASPortfolioTracker:
             }
         )
         self.max_window_days = 28
+        self.request_timeout_seconds = request_timeout_seconds
+        self.max_retries = max_retries
 
     def _post_json(self, endpoint: str, payload: Dict[str, Any]) -> List[Dict[str, Any]]:
         last_error: Optional[Exception] = None
-        for attempt in range(3):
+        for attempt in range(self.max_retries + 1):
             try:
-                response = self.session.post(f"{self.base_url}/{endpoint}", json=payload, timeout=30)
+                response = self.session.post(
+                    f"{self.base_url}/{endpoint}",
+                    json=payload,
+                    timeout=self.request_timeout_seconds,
+                )
                 response.raise_for_status()
                 data = response.json()
                 if data.get("errorMessage"):
@@ -109,7 +115,7 @@ class TEFASPortfolioTracker:
                 return data.get("resultList") or []
             except Exception as exc:
                 last_error = exc
-                if attempt < 2:
+                if attempt < self.max_retries:
                     time.sleep(0.75 * (attempt + 1))
                     continue
         raise RuntimeError(str(last_error) if last_error else "Unknown TEFAS error")
@@ -593,3 +599,15 @@ class TEFASPortfolioTracker:
         except Exception as e:
             print(f"Error generating portfolio summary: {e}")
             return {}
+
+    def get_fund_identity(self, fund_code: str) -> Dict[str, Any]:
+        """Fetch the current TEFAS identity block for one fund code."""
+        overview = self.get_current_fund_overview(fund_code) or {}
+        return {
+            "fund_code": fund_code.upper(),
+            "fund_name": overview.get("fund_name", ""),
+            "category": overview.get("category", ""),
+            "category_rank": overview.get("category_rank", 0),
+            "category_count": overview.get("category_count", 0),
+            "market_share": overview.get("market_share", 0.0),
+        }

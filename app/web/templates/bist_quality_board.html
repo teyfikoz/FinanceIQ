@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} BIST Quality Board{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">BIST Quality + Capital Board</p>
+        <h1>Rank local names by capital efficiency, not just price action.</h1>
+        <p class="hero-text">
+            This board leans into what generic finance sites usually ignore on local equities:
+            paid-in capital conversion, disclosure intensity, and contract pressure versus sales.
+        </p>
+        <div class="chip-row">
+            {% for item in workspace.methodology %}
+            <span class="signal-chip">{{ item }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="hero-aside">
+        {% if workspace.top_pick %}
+        <p class="eyebrow">Top local setup</p>
+        <div class="hero-score">{{ workspace.top_pick.symbol }}</div>
+        <p class="hero-metric">{{ workspace.top_pick.board_score }} board score</p>
+        <p class="hero-metric">{{ workspace.top_pick.fundamental_rating }} · {{ workspace.top_pick.capital_profile }}</p>
+        <p class="hero-metric">{{ workspace.top_pick.catalyst_tape.label }} · predictability {{ workspace.top_pick.predictability_score }} · {{ workspace.top_pick.trend_label }}</p>
+        <p class="hero-metric">{{ workspace.top_pick.why_passed }}</p>
+        <p class="hero-metric">Why entropy: {{ workspace.top_pick.entropy_note }}</p>
+        {% else %}
+        <p class="eyebrow">Status</p>
+        <div class="hero-score">Warming</div>
+        <p class="hero-metric">No ranked local names yet.</p>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Board</p>
+            <h2>Quality, capital, and disclosure stack</h2>
+        </div>
+        <p class="section-note">Contract intensity is a catalyst signal, not realized revenue.</p>
+    </div>
+    <div class="table-wrap">
+        <table class="signal-table">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Board Score</th>
+                    <th>Fundamental</th>
+                    <th>Capital</th>
+                    <th>Trend Lens</th>
+                    <th>KAP Flow</th>
+                    <th>Catalyst + Tape</th>
+                    <th>Contracts / Sales</th>
+                    <th>Curated 13F</th>
+                    <th>Why Passed</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in workspace.rows %}
+                <tr>
+                    <td><strong>{{ row.symbol }}</strong><span>{{ row.name }} · {{ row.sector }}</span></td>
+                    <td>{{ row.board_score }}</td>
+                    <td>{{ row.fundamental_rating }}<span>{{ row.fundamental_score }} · {{ row.valuation_stance }}</span></td>
+                    <td>{{ row.capital_profile }}<span>{{ row.net_income_to_capital }} net income/capital · {{ row.revenue_to_capital }} sales/capital</span></td>
+                    <td>{{ row.trend_label }}<span>{{ row.predictability_score }} · {{ row.entropy_regime }}</span></td>
+                    <td>{{ row.disclosure_momentum_score }}<span>{{ row.material_disclosures_90d }} material · {{ row.contract_mentions_365d }} contract</span></td>
+                    <td>{{ row.catalyst_tape.label }}<span>{{ row.catalyst_clean_score }} clean-tape score</span></td>
+                    <td>{{ row.contracts_to_sales }}</td>
+                    <td>{{ row.curated_13f_signal }}<span>{{ row.curated_13f_holders }} managers</span></td>
+                    <td>{{ row.why_passed }}<span><a href="/stocks?symbol={{ row.symbol }}" class="text-link">Open stock workspace</a></span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

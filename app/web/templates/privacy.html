@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Privacy{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Privacy Note</p>
+        <h1>Low-retention public build.</h1>
+        <p class="hero-text">
+            This public FundPilot surface is intentionally designed to avoid the highest-friction privacy patterns:
+            no account wall, no third-party analytics, no ad-exchange scripts, and no personalized advertising.
+        </p>
+    </div>
+    <div class="hero-aside">
+        <p class="eyebrow">Contact</p>
+        <div class="hero-score">Policy</div>
+        <p class="hero-metric"><a href="mailto:{{ support_email }}">{{ support_email }}</a></p>
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <article class="editorial-card">
+        <h2>What this public site does not do</h2>
+        <p>No signup or login.</p>
+        <p>No third-party analytics pixels.</p>
+        <p>No Google AdSense, ad exchange tags, or personalized ad scripts.</p>
+        <p>No client-side local storage for user portfolios or watchlists.</p>
+    </article>
+    <article class="editorial-card">
+        <h2>What is still processed</h2>
+        <p>Standard server access logs may exist at the hosting and reverse-proxy layer for security and operations.</p>
+        <p>Market and TEFAS data is fetched server-side from upstream providers and rendered into the page.</p>
+        <p>Affiliate or sponsor links may redirect you to third-party sites that have their own privacy practices.</p>
+    </article>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Affiliate Disclosure</p>
+            <h2 id="affiliate-disclosure">Direct placement only</h2>
+        </div>
+    </div>
+    <div class="card-stack">
+        <article class="editorial-card">
+            <h3>How monetization works here</h3>
+            <p>Placements are rendered directly by FundPilot as sponsor or affiliate cards. They are not injected by ad-tech vendors.</p>
+        </article>
+        <article class="editorial-card">
+            <h3>What changes the compliance posture</h3>
+            <p>If you later add third-party analytics, cookie-based attribution, or Google ad products, consent and disclosure requirements increase materially.</p>
+        </article>
+        <article class="editorial-card">
+            <h3>Current practical posture</h3>
+            <p>This build minimizes data collection, but no software or legal posture should be described as literally risk-free. Review hosting logs and future integrations before claiming that externally.</p>
+        </article>
+    </div>
+</section>
+{% endblock %}

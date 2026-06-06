@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Catalyst Calendar{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Catalyst Calendar</p>
+        <h1>Know when your inputs can change before price forces your attention.</h1>
+        <p class="hero-text">
+            This page tracks disclosure cadence, institutional filing windows, and refresh cycles that can move
+            FundPilot's higher-conviction layers.
+        </p>
+    </div>
+    <div class="hero-aside">
+        <p class="eyebrow">Calendar generated</p>
+        <div class="hero-score">{{ workspace.generated_at[:10] }}</div>
+        <p class="hero-metric">{{ workspace.recent_rows|length }} recent events</p>
+        <p class="hero-metric">{{ workspace.upcoming_rows|length }} upcoming windows</p>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="card-grid card-grid-3">
+        {% for card in workspace.summary_cards %}
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">{{ card.label }}</p>
+            <h3>{{ card.value }}</h3>
+            <p>{{ card.detail }}</p>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section-block two-column">
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Recent</p>
+                <h2>What just happened</h2>
+            </div>
+            <p class="section-note">These are the freshest structured catalyst rows visible to the public surface.</p>
+        </div>
+        <div class="table-wrap">
+            <table class="signal-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Source</th>
+                        <th>Subject</th>
+                        <th>Event</th>
+                        <th>Detail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in workspace.recent_rows %}
+                    <tr>
+                        <td>{{ row.date }}</td>
+                        <td>{{ row.source }}</td>
+                        <td>{{ row.subject }}</td>
+                        <td>{{ row.event }}</td>
+                        <td>{{ row.detail }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Upcoming</p>
+                <h2>What can change next</h2>
+            </div>
+            <p class="section-note">Not every event moves price. The point is to know when the model can legitimately change its mind.</p>
+        </div>
+        <div class="card-stack">
+            {% for row in workspace.upcoming_rows %}
+            <article class="editorial-card compact-card">
+                <p class="card-kicker">{{ row.source }} · {{ row.date }}</p>
+                <h3>{{ row.subject }}</h3>
+                <p><strong>{{ row.event }}</strong></p>
+                <p>{{ row.detail }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">BIST Lane</p>
+            <h2>Clean-tape catalysts</h2>
+        </div>
+        <p class="section-note">Catalysts matter more when the local tape is orderly enough for trend-following interpretations to deserve trust.</p>
+    </div>
+    {% if workspace.clean_tape_rows %}
+    <div class="card-grid card-grid-3">
+        {% for row in workspace.clean_tape_rows %}
+        <article class="editorial-card compact-card">
+            <p class="card-kicker">{{ row.symbol }} · {{ row.label }}</p>
+            <h3>{{ row.trend_label }}</h3>
+            <p>Predictability {{ row.predictability_score }} · disclosure {{ row.disclosure_momentum_score }}</p>
+            <p>{{ row.detail }}</p>
+            <p>{{ row.contracts_to_sales }} contracts/sales</p>
+            <a href="{{ row.detail_path }}" class="text-link">Open stock workspace</a>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <article class="editorial-card empty-state">
+        <h3>No local clean-tape catalysts are confirmed yet.</h3>
+        <p>The board is still useful; it just means catalyst pressure and tape quality are not aligned enough right now.</p>
+    </article>
+    {% endif %}
+</section>
+{% endblock %}

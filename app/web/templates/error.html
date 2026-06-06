@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}{{ app_name }} Service Notice{% endblock %}
+
+{% block content %}
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">Service Notice</p>
+        <h1>{{ error_title }}</h1>
+        <p class="hero-text">{{ error_message }}</p>
+        <div class="hero-actions">
+            <a href="/dashboard" class="button button-primary">Reload dashboard</a>
+            <a href="mailto:{{ support_email }}?subject=FundPilot%20Issue" class="button button-secondary">Report issue</a>
+        </div>
+    </div>
+    <div class="hero-aside">
+        <p class="eyebrow">Public Build</p>
+        <div class="hero-score">{{ error_code }}</div>
+        <p class="hero-metric">Read-only mode</p>
+        <p class="hero-metric">No account wall</p>
+        <p class="hero-metric">No third-party trackers</p>
+    </div>
+</section>
+{% endblock %}
