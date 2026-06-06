@@ -298,6 +298,8 @@ GLOBAL_ETFS = {
     }
 }
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=300)
 def get_stock_data_cached(symbol: str, period: str = "1y"):
     """Get stock data with caching to prevent rate limiting."""

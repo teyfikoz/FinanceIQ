@@ -1,5 +1,5 @@
 """
-FinanceIQ Pro - Test Script
+FundPortal Pro - Test Script
 Quick test to verify all modules work correctly
 """
 
@@ -153,7 +153,7 @@ def test_etf_weight_tracker():
 def main():
     """Run all tests"""
     print("\n" + "🚀" * 30)
-    print("FinanceIQ Pro - Module Test Suite")
+    print("FundPortal Pro - Module Test Suite")
     print("🚀" * 30 + "\n")
 
     results = {}

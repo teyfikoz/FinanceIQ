@@ -269,6 +269,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Cache for better performance
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=300)
 def get_market_data(symbol: str, period: str = "1y"):
     """Get market data from Yahoo Finance with caching"""
@@ -281,6 +283,8 @@ def get_market_data(symbol: str, period: str = "1y"):
         st.error(f"Error fetching data for {symbol}: {e}")
         return None, None
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=600)
 def get_multiple_stocks(symbols: list, period: str = "1y"):
     """Get multiple stock data efficiently with rate limiting protection"""

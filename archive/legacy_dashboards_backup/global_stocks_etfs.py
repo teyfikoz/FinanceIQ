@@ -216,6 +216,8 @@ def t(key: str, lang: str = None) -> str:
         lang = st.session_state.get('language', 'tr')
     return TRANSLATIONS.get(lang, {}).get(key, key)
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=300)  # 5 dakika cache
 def get_stock_data(symbol: str, period: str = "1y"):
     """Hisse senedi verisi çek ve cache'le."""
@@ -227,6 +229,8 @@ def get_stock_data(symbol: str, period: str = "1y"):
         st.error(f"Veri çekme hatası: {e}")
         return None
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=600)  # 10 dakika cache
 def analyze_stock(symbol: str, period: str = "1y"):
     """Hisse senedi analizi yap ve cache'le."""

@@ -1,14 +1,14 @@
-# FinanceIQ Deployment & Product Guide (Production)
+# FundPortal Deployment & Product Guide (Production)
 
 ## Executive Summary
-FinanceIQ is a unified Streamlit platform for multi‑market financial analysis, institutional activity insights, technical analysis, strategy backtesting, and macro context. The application runs from a single entrypoint (`main.py`) and is modular, production‑ready, and extensible.
+FundPortal is a unified Streamlit platform for multi‑market financial analysis, institutional activity insights, technical analysis, strategy backtesting, and macro context. The application runs from a single entrypoint (`main.py`) and is modular, production‑ready, and extensible.
 
 **Live app:**
 ```
 https://financeiq.streamlit.app/
 ```
 
-## 1) What is FinanceIQ?
+## 1) What is FundPortal?
 A professional-grade dashboard that aggregates global markets, ETFs/funds, crypto, Turkish markets, and institutional analytics into one interface.
 
 ## 2) What does it do?
@@ -85,7 +85,7 @@ flowchart TD
 ## 6) Repos & References
 **Main repo:**
 ```
-https://github.com/teyfikoz/FinanceIQ
+https://github.com/teyfikoz/FundPortal
 ```
 
 **Optional data bridge:**
@@ -114,7 +114,7 @@ https://github.com/Mathieu2301/TradingView-API
 
 ## 8) Local Setup
 ```bash
-cd /Users/teyfikoz/github-projects/FinanceIQ
+cd /Users/teyfikoz/github-projects/FundPortal
 pip install -r requirements.txt
 python3 -m streamlit run main.py
 ```

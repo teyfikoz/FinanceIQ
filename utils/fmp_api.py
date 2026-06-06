@@ -12,6 +12,8 @@ class FMPAPI:
         self.api_key = get_secret('FMP_API_KEY', 'fmp', default=None)
         self.base_url = 'https://financialmodelingprep.com/api/v3'
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=3600)  # Cache for 1 hour
     def get_company_profile(_self, symbol: str) -> Optional[Dict]:
         """Get company profile and fundamental data
@@ -60,6 +62,8 @@ class FMPAPI:
             print(f"FMP API error: {str(e)}")
             return None
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=3600)
     def get_financial_ratios(_self, symbol: str) -> Optional[Dict]:
         """Get financial ratios
@@ -103,6 +107,8 @@ class FMPAPI:
             print(f"FMP ratios error: {str(e)}")
             return None
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=86400)  # Cache for 24 hours
     def get_earnings_calendar(_self, limit: int = 20) -> Optional[list]:
         """Get earnings calendar
@@ -144,6 +150,8 @@ class FMPAPI:
             print(f"FMP earnings calendar error: {str(e)}")
             return None
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=3600)
     def get_stock_news(_self, symbol: str, limit: int = 10) -> Optional[list]:
         """Get stock news

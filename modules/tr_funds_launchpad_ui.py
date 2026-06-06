@@ -1,7 +1,7 @@
 """
 TR Funds Intelligence Launchpad
 ===============================
-High-level Turkish funds overview layer for the public FundPilot experience.
+High-level Turkish funds overview layer for the public FundPortal experience.
 
 This module sits above the detailed TEFAS portfolio analysis and flow tools.
 It keeps the existing content structure intact while giving the user a faster,
@@ -147,6 +147,11 @@ def _load_tr_fund_summary_live(fund_code: str, months: int) -> Optional[Dict]:
     return tracker.generate_portfolio_summary(fund_code, months)
 
 
+# INTENTIONAL CACHE DIVERGENCE:
+# This uses Streamlit's @st.cache_data for fast, local UI memoization.
+# It is intentionally kept separate from the centralized get_cache() service.
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=600, show_spinner=False)
 def _load_tr_fund_summary(fund_code: str, months: int) -> Optional[Dict]:
     return _load_tr_fund_summary_live(fund_code, months)
@@ -200,6 +205,8 @@ def _build_tr_peer_table(months: int) -> pd.DataFrame:
     ).reset_index(drop=True)
 
 
+# INTENTIONAL CACHE DIVERGENCE:
+# This uses Streamlit's @st.cache_data for fast, local UI memoization.
 @st.cache_data(ttl=600, show_spinner=False)
 def _load_tr_peer_table(months: int) -> pd.DataFrame:
     return _build_tr_peer_table(months)
@@ -358,7 +365,7 @@ def render_tr_funds_launchpad():
 
     if not peer_df.empty:
         st.markdown("---")
-        st.subheader("🏁 FundPilot Signal Board")
+        st.subheader("🏁 FundPortal Signal Board")
 
         chart_df = peer_df.sort_values("signal_score", ascending=False)
         chart_cols = st.columns(2)

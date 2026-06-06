@@ -19,7 +19,7 @@ from utils.news_utils import normalize_yfinance_news
 
 
 class AILiteTools:
-    """Lightweight AI-powered tools for FinanceIQ"""
+    """Lightweight AI-powered tools for FundPortal"""
 
     def __init__(self):
         self.scaler = StandardScaler()

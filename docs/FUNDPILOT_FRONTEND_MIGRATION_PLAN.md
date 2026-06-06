@@ -1,7 +1,7 @@
-# FundPilot Frontend Migration Plan
+# FundPortal Frontend Migration Plan
 
 ## Short Answer
-FundPilot does not need a React or Java rewrite right now.
+FundPortal does not need a React or Java rewrite right now.
 
 The current highest-value path is:
 
@@ -22,7 +22,7 @@ Move to React or Next.js when at least two of these become true:
 - you need a stronger long-term SaaS frontend shell
 
 ## Recommended Future Stack
-If FundPilot outgrows Streamlit, the most practical architecture is:
+If FundPortal outgrows Streamlit, the most practical architecture is:
 
 - frontend: Next.js
 - design system: Tailwind + Radix UI or shadcn/ui

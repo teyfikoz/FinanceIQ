@@ -67,7 +67,7 @@ python3-dev
 
 ### Step 1: Check Logs
 1. Go to https://share.streamlit.io/
-2. Click on your app (FinanceIQ)
+2. Click on your app (FundPortal)
 3. Click on "⋮" menu → "Logs"
 4. Look for error messages in red
 
@@ -76,7 +76,7 @@ If you see this in the browser console:
 ```
 content.js:1 Uncaught (in promise) The message port closed before a response was received.
 ```
-This is **not** caused by the FinanceIQ app. It comes from a browser extension’s content script.
+This is **not** caused by the FundPortal app. It comes from a browser extension’s content script.
 
 **Why this happens**
 - The console line points to `content.js`, which typically belongs to a Chrome/Brave extension.
@@ -244,7 +244,7 @@ def some_function():
 - Docs: https://docs.streamlit.io/
 
 **App Specific:**
-- GitHub Issues: https://github.com/teyfikoz/FinanceIQ/issues
+- GitHub Issues: https://github.com/teyfikoz/FundPortal/issues
 - Logs: https://share.streamlit.io/ → Your App → Logs
 
 ---

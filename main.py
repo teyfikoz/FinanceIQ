@@ -5,6 +5,30 @@ Professional financial platform with real-time data, comprehensive analysis,
 and institutional investor tracking - ALL IN ONE PORT
 """
 
+import os
+import sys
+import io
+
+class StreamlitWarningSuppressor(io.StringIO):
+    def write(self, s):
+        if "No runtime found" not in s and "MemoryCacheStorageManager" not in s:
+            sys.__stderr__.write(s)
+    def flush(self):
+        sys.__stderr__.flush()
+
+# Suppress Streamlit's hardcoded stderr warnings during bare imports
+if __name__ != "__main__":
+    sys.stderr = StreamlitWarningSuppressor()
+
+os.environ["STREAMLIT_LOGGER_LEVEL"] = "error"
+import logging
+
+class StreamlitWarningFilter(logging.Filter):
+    def filter(self, record):
+        return "No runtime found" not in record.getMessage()
+
+logging.getLogger().addFilter(StreamlitWarningFilter())
+
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -24,6 +48,15 @@ warnings.filterwarnings('ignore')
 # Logging + app config
 from utils.logging_config import configure_logging
 from utils.app_config import get_app_config
+
+# Configure logging before importing other modules
+configure_logging()
+
+# Now suppress Streamlit cache warnings
+# Now suppress Streamlit cache warnings
+import logging
+logging.getLogger("streamlit").setLevel(logging.ERROR)
+logging.getLogger("streamlit").propagate = False
 from utils.dotenv_loader import load_dotenv
 
 # Import authentication and utilities
@@ -72,14 +105,6 @@ PUBLIC_APP_URL = APP_CONFIG.public_app_url
 PUBLIC_APP_HOST = APP_CONFIG.public_app_host
 SUPPORT_EMAIL = APP_CONFIG.support_email
 
-# Configure Streamlit page
-st.set_page_config(
-    page_title=f"{APP_DISPLAY_NAME} | AI-Powered Financial Analysis Platform",
-    page_icon="🧠",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
 # Configure logging
 configure_logging()
 
@@ -106,48 +131,58 @@ def init_app_database():
 
     return db
 
-# Initialize app database
-init_app_database()
+def init_ui():
+    """Initialize the UI setup including page config, database and session state."""
+    # Configure Streamlit page
+    st.set_page_config(
+        page_title=f"{APP_DISPLAY_NAME} | AI-Powered Financial Analysis Platform",
+        page_icon="🧠",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
 
-# Initialize session state
-init_session_state()
+    # Initialize app database
+    init_app_database()
 
-# Authentication (toggle via env)
-if APP_CONFIG.require_auth:
-    if not require_authentication():
-        st.stop()
-else:
-    print("🚀 Direct access mode - no authentication required")
+    # Initialize session state
+    init_session_state()
 
-# Global FundPortal design system styling
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
+    # Authentication (toggle via env)
+    if APP_CONFIG.require_auth:
+        if not require_authentication():
+            st.stop()
+    else:
+        print("🚀 Direct access mode - no authentication required")
 
-    :root {
-        --fp-ink: #0F172A;
-        --fp-slate: #475569;
-        --fp-border: #CBD5E1;
-        --fp-canvas: #F8FAFC;
-        --fp-panel: #FFFFFF;
-        --fp-accent: #0F766E;
-        --fp-accent-strong: #115E59;
-        --fp-positive: #15803D;
-        --fp-negative: #B91C1C;
-        --fp-watch: #B45309;
-        --fp-info: #1D4ED8;
-        --fp-gold: #B8891F;
-    }
+    # Global FundPortal design system styling
+    st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
 
-    html, body, [class*="css"] {
-        font-family: "IBM Plex Sans", sans-serif;
-    }
+        :root {
+            --fp-ink: #0F172A;
+            --fp-slate: #475569;
+            --fp-border: #CBD5E1;
+            --fp-canvas: #F8FAFC;
+            --fp-panel: #FFFFFF;
+            --fp-accent: #0F766E;
+            --fp-accent-strong: #115E59;
+            --fp-positive: #15803D;
+            --fp-negative: #B91C1C;
+            --fp-watch: #B45309;
+            --fp-info: #1D4ED8;
+            --fp-gold: #B8891F;
+        }
 
-    .stApp {
-        background:
-            radial-gradient(circle at top right, rgba(15, 118, 110, 0.07), transparent 28%),
-            radial-gradient(circle at top left, rgba(29, 78, 216, 0.05), transparent 26%),
-            var(--fp-canvas);
+        html, body, [class*="css"] {
+            font-family: "IBM Plex Sans", sans-serif;
+        }
+
+        .stApp {
+            background:
+                radial-gradient(circle at top right, rgba(15, 118, 110, 0.07), transparent 28%),
+                radial-gradient(circle at top left, rgba(29, 78, 216, 0.05), transparent 26%),
+                var(--fp-canvas);
         color: var(--fp-ink);
     }
 
@@ -1297,7 +1332,7 @@ def get_social_media_sentiment(symbol):
     return social_data.get(symbol, None)
 
 def create_header():
-    """Create editorial-style FundPilot header."""
+    """Create editorial-style FundPortal header."""
     current_time = datetime.now().strftime("%H:%M:%S")
     st.markdown(
         f"""
@@ -1555,6 +1590,11 @@ def render_footer():
         unsafe_allow_html=True,
     )
 
+# INTENTIONAL CACHE DIVERGENCE:
+# This uses Streamlit's @st.cache_data for fast, local UI memoization.
+# It is intentionally kept separate from the centralized get_cache() service.
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=900, show_spinner=False)
 def get_landing_signal_snapshot():
     """Create a lightweight, public-facing playbook context for the landing area."""
@@ -1607,6 +1647,8 @@ def get_landing_signal_snapshot():
     }
 
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=900, show_spinner=False)
 def get_cached_stock_technical_analysis(symbol: str, period: str):
     from app.analytics.advanced_technical_analysis import AdvancedTechnicalAnalyzer
@@ -1615,6 +1657,8 @@ def get_cached_stock_technical_analysis(symbol: str, period: str):
     return analyzer.get_complete_technical_analysis()
 
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=1800, show_spinner=False)
 def get_cached_dividend_analysis(symbol: str):
     from app.analytics.dividend_analysis import DividendAnalyzer
@@ -1623,6 +1667,8 @@ def get_cached_dividend_analysis(symbol: str):
     return div_analyzer.get_comprehensive_dividend_analysis()
 
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=1800, show_spinner=False)
 def get_cached_sector_analysis(symbol: str):
     from app.analytics.sector_analysis import SectorAnalyzer
@@ -1631,6 +1677,8 @@ def get_cached_sector_analysis(symbol: str):
     return sector_analyzer.get_comprehensive_sector_analysis()
 
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=900, show_spinner=False)
 def get_cached_research_settlement_analysis(symbol: str, period: str):
     from app.analytics.settlement_analysis import SettlementAnalyzer
@@ -2668,6 +2716,8 @@ def analyze_individual_stock(symbol, period):
     except Exception as e:
         st.error(f"Error analyzing {symbol}: {str(e)}")
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=300)  # 5-minute cache for technical indicators
 def calculate_technical_indicators(df, symbol="", period=""):
     """Calculate technical indicators for stock analysis with caching"""
@@ -3240,6 +3290,8 @@ def create_portfolio_management():
         summary = pm.get_portfolio_summary(selected_portfolio_id)
 
         # Get current prices for conversions
+        # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+        # the centralized get_cache() service to utilize Streamlit's native TTL handling.
         @st.cache_data(ttl=300)
         def get_conversion_rates():
             try:
@@ -5479,6 +5531,8 @@ def create_education_tab():
         tr = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
         return tr.rolling(period).mean()
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=3600)
     def _education_sample_data():
         np.random.seed(42)
@@ -6053,6 +6107,7 @@ Pozisyon Adedi = Risk Butcesi / (Giris Fiyati - Stop Fiyati)
 
 def main():
     """Main application function"""
+    init_ui()
     # Initialize session state
     if 'analyze_stock' not in st.session_state:
         st.session_state['analyze_stock'] = False
@@ -6478,4 +6533,5 @@ def get_supply_chain_disruption_data(symbol):
     })
 
 # Call main() automatically after authentication
-main()
+if __name__ == "__main__":
+    main()

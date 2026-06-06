@@ -1,4 +1,4 @@
-# FinanceIQ Video Scripts (Timed + Visual Directions)
+# FundPortal Video Scripts (Timed + Visual Directions)
 
 All scripts are educational and not financial advice.
 
@@ -9,7 +9,7 @@ All scripts are educational and not financial advice.
 **Goal**: Show the main workflow and key tabs.
 
 **00:00–00:06 (Hook)**  
-Narration: "FinanceIQ gives a clear, structured view of global markets, analysis tools, and portfolio insights."  
+Narration: "FundPortal gives a clear, structured view of global markets, analysis tools, and portfolio insights."  
 Visual: Dashboard overview.  
 Screen behavior: Static, highlight top navigation bar.
 
@@ -34,7 +34,7 @@ Visual: Portfolio -> Export section.
 Screen behavior: Highlight download buttons.
 
 **01:12–01:20 (Closing)**  
-Narration: "FinanceIQ supports consistent analysis with a clean, repeatable workflow."  
+Narration: "FundPortal supports consistent analysis with a clean, repeatable workflow."  
 Visual: Return to top tabs.  
 Screen behavior: Static.
 

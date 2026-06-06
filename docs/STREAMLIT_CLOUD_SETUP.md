@@ -9,7 +9,7 @@ Tüm güncellemeler GitHub'a push edildi:
 - 🇹🇷 TEFAS Integration
 
 **Commit:** `95ccc57`
-**Repository:** https://github.com/teyfikoz/FinanceIQ
+**Repository:** https://github.com/teyfikoz/FundPortal
 
 ---
 
@@ -23,7 +23,7 @@ Streamlit Cloud otomatik olarak deploy edecek (2-5 dakika).
 
 1. Git: https://share.streamlit.io/
 2. Login yap
-3. "FinanceIQ" app'ine tıkla
+3. "FundPortal" app'ine tıkla
 4. "Deploy" tab'ında status gör
 
 ---
@@ -35,7 +35,7 @@ Streamlit Cloud otomatik olarak deploy edecek (2-5 dakika).
 ### Adım 1: Streamlit Cloud Dashboard
 
 1. Git: https://share.streamlit.io/
-2. "FinanceIQ" app'ine tıkla
+2. "FundPortal" app'ine tıkla
 3. ⚙️ "Settings" (sağ üstte)
 4. "Secrets" tab'ını aç
 
@@ -44,7 +44,7 @@ Streamlit Cloud otomatik olarak deploy edecek (2-5 dakika).
 Aşağıdaki TOML formatında secrets ekle:
 
 ```toml
-# API Keys for FinanceIQ
+# API Keys for FundPortal
 
 # FRED - Federal Reserve Economic Data
 FRED_API_KEY = "629b7edf6527882dd34e63e9d997dbbd"
@@ -209,7 +209,7 @@ Deployment sonrası kontrol listesi:
 ## 📞 Support
 
 **Issues:**
-- GitHub: https://github.com/teyfikoz/FinanceIQ/issues
+- GitHub: https://github.com/teyfikoz/FundPortal/issues
 - Streamlit Community: https://discuss.streamlit.io/
 
 **Streamlit Cloud:**
@@ -222,7 +222,7 @@ Deployment sonrası kontrol listesi:
 
 Eğer yukarıdaki checklist'in tamamı ✅ ise:
 
-**🚀 FinanceIQ artık production'da!**
+**🚀 FundPortal artık production'da!**
 
 ```
 🌐 Live URL: https://financeiq.streamlit.app

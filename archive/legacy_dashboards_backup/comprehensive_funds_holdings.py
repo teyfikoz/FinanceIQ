@@ -269,6 +269,8 @@ COMPREHENSIVE_ETFS = {
     }
 }
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=300)
 def get_etf_data_cached(symbol: str):
     """Get ETF data with caching to prevent rate limiting."""

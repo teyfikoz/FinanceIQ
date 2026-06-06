@@ -1,7 +1,7 @@
-# 🚀 FinanceIQ Game Changer Features - Phase 1
+# 🚀 FundPortal Game Changer Features - Phase 1
 
 ## Overview
-This document describes the **Phase 1 Game Changer Features** for FinanceIQ, a comprehensive suite of social, visualization, and AI-powered tools designed to dramatically enhance user engagement and analytical capabilities—all at **$0 cost** and **offline-friendly**.
+This document describes the **Phase 1 Game Changer Features** for FundPortal, a comprehensive suite of social, visualization, and AI-powered tools designed to dramatically enhance user engagement and analytical capabilities—all at **$0 cost** and **offline-friendly**.
 
 ---
 
@@ -427,7 +427,7 @@ pip install -r requirements.txt
 streamlit run game_changer_dashboard.py
 ```
 
-3. **OR run full FinanceIQ app** (includes Game Changer as tab 12):
+3. **OR run full FundPortal app** (includes Game Changer as tab 12):
 ```bash
 streamlit run main.py
 ```
@@ -578,7 +578,7 @@ pip install qrcode[pil]
 
 ## 📜 License & Credits
 
-**Developer**: FinanceIQ Team
+**Developer**: FundPortal Team
 **Built With**: Streamlit, Plotly, Pandas, NumPy, yfinance
 **Cost**: $0 (all free/open-source libraries)
 **License**: MIT (or your chosen license)

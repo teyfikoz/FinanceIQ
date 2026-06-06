@@ -1,5 +1,5 @@
 """
-AI Narrative Engine — FinanceIQ
+AI Narrative Engine — FundPortal
 LLM-powered executive summaries and risk memos via HF Pro (Mixtral-8x7B).
 Falls back to rule-based InsightEngine when HF is unavailable.
 """

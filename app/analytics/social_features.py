@@ -20,7 +20,7 @@ from utils.market_data_fetcher import get_market_fetcher
 
 
 class SocialFeatures:
-    """Social layer functionality for FinanceIQ"""
+    """Social layer functionality for FundPortal"""
 
     def __init__(self):
         self._init_session_state()
@@ -398,7 +398,7 @@ class SocialFeatures:
 
     def leaderboard_ui(self):
         """Display demo leaderboard with simulated performance"""
-        st.subheader("🏆 FinanceIQ Leaderboard")
+        st.subheader("🏆 FundPortal Leaderboard")
 
         st.markdown("""
         **Top performing portfolios** based on YTD returns, Sharpe ratio, and consistency.

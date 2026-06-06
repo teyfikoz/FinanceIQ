@@ -1,11 +1,11 @@
-# FinanceIQ User Guide (English)
+# FundPortal User Guide (English)
 
-This guide explains the main sections of FinanceIQ, typical workflows, and practical usage tips.
+This guide explains the main sections of FundPortal, typical workflows, and practical usage tips.
 
 ---
 
 ## 1) Overview
-FinanceIQ brings global markets, ETFs/funds, technical analysis, institutional tracking, and macro indicators into one Streamlit app. The entry point is `main.py`.
+FundPortal brings global markets, ETFs/funds, technical analysis, institutional tracking, and macro indicators into one Streamlit app. The entry point is `main.py`.
 
 **Live app**
 ```
@@ -269,4 +269,4 @@ Tip: 1280x720 or 1440x900 works well for docs.
 ---
 
 ## 11) Note
-FinanceIQ is for educational purposes only. It is not financial advice.
+FundPortal is for educational purposes only. It is not financial advice.

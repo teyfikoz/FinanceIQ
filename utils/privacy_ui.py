@@ -1,4 +1,4 @@
-"""Privacy and Data Management UI for FinanceIQ"""
+"""Privacy and Data Management UI for FundPortal"""
 
 import streamlit as st
 import json
@@ -266,7 +266,7 @@ def display_privacy_settings(user_id: int):
                 st.download_button(
                     label="💾 JSON Dosyasını İndir",
                     data=json_data,
-                    file_name=f"financeiq_data_{user_id}_{datetime.now().strftime('%Y%m%d')}.json",
+                    file_name=f"fundportal_data_{user_id}_{datetime.now().strftime('%Y%m%d')}.json",
                     mime="application/json"
                 )
 

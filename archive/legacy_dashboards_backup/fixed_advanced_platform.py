@@ -151,6 +151,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Rate Limiting için cache
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=300)  # 5 dakika cache
 def get_stock_data_cached(symbol: str, period: str = "1y"):
     """Rate limiting ile veri çekme"""

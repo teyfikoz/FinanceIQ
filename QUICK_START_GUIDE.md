@@ -1,4 +1,4 @@
-# 🚀 FinanceIQ Pro - Quick Start Guide
+# 🚀 FundPortal Pro - Quick Start Guide
 
 ## ⚡ 5 Dakikada Başlangıç
 
@@ -260,7 +260,7 @@ print(df)
 
 ```bash
 git add .
-git commit -m "Add FinanceIQ Pro modules"
+git commit -m "Add FundPortal Pro modules"
 git push origin main
 ```
 

@@ -1,8 +1,8 @@
-# FundPilot
+# FundPortal
 
-FundPilot is the live financial research and fund intelligence application currently deployed at `https://fundpilot.techsyncanalytica.com`.
+FundPortal is the live financial research and fund intelligence application currently deployed at `https://fundpilot.techsyncanalytica.com`.
 
-The product started as `FinanceIQ`, but the active production identity, host, and deployment flow are now centered on `FundPilot`.
+The product started as `FundPortal`, but the active production identity, host, and deployment flow are now centered on `FundPortal`.
 
 ## Current Production State
 
@@ -10,13 +10,13 @@ The product started as `FinanceIQ`, but the active production identity, host, an
 - Runtime: `Streamlit`
 - Server: `Hetzner` at `46.62.164.198`
 - Reverse proxy: `nginx`
-- Service: `fundpilot.service`
-- App path: `/opt/fundpilot/app`
-- Python env: `/opt/fundpilot/venv`
+- Service: `fundportal.service`
+- App path: `/opt/fundportal/app`
+- Python env: `/opt/fundportal/venv`
 
 ## Product Scope
 
-FundPilot combines multiple financial workflows inside one production app shell:
+FundPortal combines multiple financial workflows inside one production app shell:
 
 - market dashboard and macro snapshot
 - Turkish markets and TEFAS fund workflows
@@ -41,13 +41,13 @@ Implemented in the live app:
 
 Core runtime files:
 
-- [main.py](/Users/teyfikoz/github-projects/FinanceIQ/main.py)
-- [modules/tr_funds_launchpad_ui.py](/Users/teyfikoz/github-projects/FinanceIQ/modules/tr_funds_launchpad_ui.py)
-- [modules/tefas_portfolio_analysis_ui.py](/Users/teyfikoz/github-projects/FinanceIQ/modules/tefas_portfolio_analysis_ui.py)
-- [modules/cycle_analysis_ui.py](/Users/teyfikoz/github-projects/FinanceIQ/modules/cycle_analysis_ui.py)
-- [modules/portfolio_health_ui.py](/Users/teyfikoz/github-projects/FinanceIQ/modules/portfolio_health_ui.py)
-- [modules/scenario_sandbox_ui.py](/Users/teyfikoz/github-projects/FinanceIQ/modules/scenario_sandbox_ui.py)
-- [modules/etf_weight_tracker_ui.py](/Users/teyfikoz/github-projects/FinanceIQ/modules/etf_weight_tracker_ui.py)
+- [main.py](/Users/teyfikoz/github-projects/FundPortal/main.py)
+- [modules/tr_funds_launchpad_ui.py](/Users/teyfikoz/github-projects/FundPortal/modules/tr_funds_launchpad_ui.py)
+- [modules/tefas_portfolio_analysis_ui.py](/Users/teyfikoz/github-projects/FundPortal/modules/tefas_portfolio_analysis_ui.py)
+- [modules/cycle_analysis_ui.py](/Users/teyfikoz/github-projects/FundPortal/modules/cycle_analysis_ui.py)
+- [modules/portfolio_health_ui.py](/Users/teyfikoz/github-projects/FundPortal/modules/portfolio_health_ui.py)
+- [modules/scenario_sandbox_ui.py](/Users/teyfikoz/github-projects/FundPortal/modules/scenario_sandbox_ui.py)
+- [modules/etf_weight_tracker_ui.py](/Users/teyfikoz/github-projects/FundPortal/modules/etf_weight_tracker_ui.py)
 
 ## Local Development
 
@@ -73,12 +73,12 @@ http://localhost:8501
 
 Primary deployment documentation:
 
-- [DEPLOYMENT_GUIDE.md](/Users/teyfikoz/github-projects/FinanceIQ/DEPLOYMENT_GUIDE.md)
+- [DEPLOYMENT_GUIDE.md](/Users/teyfikoz/github-projects/FundPortal/DEPLOYMENT_GUIDE.md)
 
 Deployment assets:
 
-- [deployment/fundpilot.service](/Users/teyfikoz/github-projects/FinanceIQ/deployment/fundpilot.service)
-- [deployment/fundpilot.nginx.conf](/Users/teyfikoz/github-projects/FinanceIQ/deployment/fundpilot.nginx.conf)
+- [deployment/fundportal.service](/Users/teyfikoz/github-projects/FundPortal/deployment/fundportal.service)
+- [deployment/fundportal.nginx.conf](/Users/teyfikoz/github-projects/FundPortal/deployment/fundportal.nginx.conf)
 
 ## Legacy Streamlit Cloud Status
 
@@ -95,12 +95,12 @@ Current policy:
 
 See:
 
-- [STREAMLIT_CLOUD_DEPLOYMENT.md](/Users/teyfikoz/github-projects/FinanceIQ/STREAMLIT_CLOUD_DEPLOYMENT.md)
+- [STREAMLIT_CLOUD_DEPLOYMENT.md](/Users/teyfikoz/github-projects/FundPortal/STREAMLIT_CLOUD_DEPLOYMENT.md)
 
 ## Design And QA Docs
 
-- [DESIGN.md](/Users/teyfikoz/github-projects/FinanceIQ/DESIGN.md)
-- [docs/FUNDPILOT_UI_REDESIGN_PLAN.md](/Users/teyfikoz/github-projects/FinanceIQ/docs/FUNDPILOT_UI_REDESIGN_PLAN.md)
-- [docs/FUNDPILOT_FRONTEND_MIGRATION_PLAN.md](/Users/teyfikoz/github-projects/FinanceIQ/docs/FUNDPILOT_FRONTEND_MIGRATION_PLAN.md)
-- [docs/CLAUDE_CODE_QA_PROMPTS.md](/Users/teyfikoz/github-projects/FinanceIQ/docs/CLAUDE_CODE_QA_PROMPTS.md)
-- [docs/CLAUDE_CODE_MULTI_AGENT_AUDIT_PROMPT.md](/Users/teyfikoz/github-projects/FinanceIQ/docs/CLAUDE_CODE_MULTI_AGENT_AUDIT_PROMPT.md)
+- [DESIGN.md](/Users/teyfikoz/github-projects/FundPortal/DESIGN.md)
+- [docs/FUNDPILOT_UI_REDESIGN_PLAN.md](/Users/teyfikoz/github-projects/FundPortal/docs/FUNDPILOT_UI_REDESIGN_PLAN.md)
+- [docs/FUNDPILOT_FRONTEND_MIGRATION_PLAN.md](/Users/teyfikoz/github-projects/FundPortal/docs/FUNDPILOT_FRONTEND_MIGRATION_PLAN.md)
+- [docs/CLAUDE_CODE_QA_PROMPTS.md](/Users/teyfikoz/github-projects/FundPortal/docs/CLAUDE_CODE_QA_PROMPTS.md)
+- [docs/CLAUDE_CODE_MULTI_AGENT_AUDIT_PROMPT.md](/Users/teyfikoz/github-projects/FundPortal/docs/CLAUDE_CODE_MULTI_AGENT_AUDIT_PROMPT.md)

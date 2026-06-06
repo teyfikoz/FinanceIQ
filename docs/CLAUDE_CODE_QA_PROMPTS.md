@@ -1,11 +1,11 @@
 # Claude Code QA Prompts
 
-These prompts are designed for detailed FundPilot validation after the current redesign and performance refactor.
+These prompts are designed for detailed FundPortal validation after the current redesign and performance refactor.
 
 ## 1. Full Product Audit
 
 ```text
-You are auditing the FundPilot codebase end to end.
+You are auditing the FundPortal codebase end to end.
 
 Project goals:
 - fast first-load Streamlit experience
@@ -17,7 +17,7 @@ Critical context:
 - repository contains DESIGN.md; treat it as the visual source of truth
 - main application entrypoint is main.py
 - app runs as a Streamlit app
-- current public product name is FundPilot
+- current public product name is FundPortal
 - key routes/features are Dashboard, Stock Research, Turkish Markets, Whale Intelligence, AI Tools, Portfolio, Watchlist, Alerts, Privacy
 
 Your job:
@@ -40,7 +40,7 @@ Use ultrathink. Stay compact but precise.
 ## 2. Performance Regression Audit
 
 ```text
-Audit FundPilot specifically for Streamlit performance regressions.
+Audit FundPortal specifically for Streamlit performance regressions.
 
 Focus only on:
 - hidden tabs rendering unnecessarily
@@ -68,7 +68,7 @@ Use planmode and ultrathink.
 ## 3. Turkish Markets Validation
 
 ```text
-Validate FundPilot's Turkish market experience in depth.
+Validate FundPortal's Turkish market experience in depth.
 
 Focus on:
 - BIST stock symbol normalization
@@ -97,7 +97,7 @@ Be strict. If something is fragile, call it out.
 ## 4. UI Consistency Review
 
 ```text
-Review FundPilot UI consistency against DESIGN.md.
+Review FundPortal UI consistency against DESIGN.md.
 
 You are not redesigning from scratch. You are checking adherence.
 
@@ -121,7 +121,7 @@ Use compact mode but do not miss details.
 ## 5. Safe Refactor Prompt
 
 ```text
-Refactor FundPilot toward a faster and cleaner Streamlit architecture.
+Refactor FundPortal toward a faster and cleaner Streamlit architecture.
 
 Constraints:
 - preserve existing business logic
@@ -153,7 +153,7 @@ Use opus, planmode, ultrathink.
 ## 6. Deployment Smoke Test Prompt
 
 ```text
-Run a deployment-oriented smoke review for FundPilot.
+Run a deployment-oriented smoke review for FundPortal.
 
 Checklist:
 - app boots without import errors
@@ -175,7 +175,7 @@ Use compact mode and be concrete.
 ## 7. Final Release Gate Prompt
 
 ```text
-You are the final release gate reviewer for FundPilot.
+You are the final release gate reviewer for FundPortal.
 
 Evaluate whether the app is ready for a serious public-facing beta.
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-🚀 FinanceIQ Game Changer Dashboard - Phase 1
+🚀 FundPortal Game Changer Dashboard - Phase 1
 Consolidated dashboard with all Phase 1 features:
 - Social Layer (Snapshots, Watchlists, Notes, Leaderboard)
 - Advanced Visualizations (Heatmaps, Sector Rotation, Fear & Greed, 3D Portfolio)
@@ -32,7 +32,7 @@ except ImportError as e:
 
 # Configure page
 st.set_page_config(
-    page_title="FinanceIQ | Game Changer Features",
+    page_title="FundPortal | Game Changer Features",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -47,7 +47,7 @@ def main():
 
     # Sidebar
     with st.sidebar:
-        st.image("https://via.placeholder.com/150x50/667eea/ffffff?text=FinanceIQ", use_container_width=True)
+        st.image("https://via.placeholder.com/150x50/667eea/ffffff?text=FundPortal", use_container_width=True)
         st.markdown("---")
 
         # Theme toggle
@@ -121,9 +121,9 @@ def main():
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; padding: 2rem; color: #666;">
-        <p><strong>🧠 FinanceIQ</strong> | AI-Powered Financial Analysis Platform</p>
+        <p><strong>🧠 FundPortal</strong> | AI-Powered Financial Analysis Platform</p>
         <p>Phase 1 Game Changer Features | Cost: $0 | Offline-Friendly | No Paid APIs</p>
-        <p style="font-size: 0.85rem;">© 2024 FinanceIQ. Built with Streamlit, Plotly, and ❤️</p>
+        <p style="font-size: 0.85rem;">© 2024 FundPortal. Built with Streamlit, Plotly, and ❤️</p>
     </div>
     """, unsafe_allow_html=True)
 

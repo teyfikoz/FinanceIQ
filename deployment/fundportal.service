@@ -1,0 +1,19 @@
+[Unit]
+Description=FundPortal Streamlit Application
+After=network.target
+
+[Service]
+Type=simple
+User=fundportal
+Group=fundportal
+WorkingDirectory=/opt/fundportal/app
+EnvironmentFile=/etc/fundportal/fundportal.env
+Environment=HOME=/opt/fundportal
+Environment=PYTHONPATH=/opt/fundportal/app
+ExecStart=/opt/fundportal/venv/bin/streamlit run /opt/fundportal/app/main.py --server.port=8501 --server.address=127.0.0.1 --server.headless=true --browser.gatherUsageStats=false
+Restart=always
+RestartSec=5
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

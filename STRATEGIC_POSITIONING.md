@@ -1,4 +1,4 @@
-# 🎯 FinanceIQ - Strategic Positioning & Competitive Moat
+# 🎯 FundPortal - Strategic Positioning & Competitive Moat
 
 ## 🔴 CURRENT PROBLEM: No Defensible Moat
 
@@ -11,7 +11,7 @@
 | Yahoo Finance | Simple, reliable | Free | Integrated with Google |
 | Seeking Alpha | Stock analysis, news | $20/mo | Quality content |
 
-**FinanceIQ Today:** Generic dashboard with public data ❌
+**FundPortal Today:** Generic dashboard with public data ❌
 **Result:** No reason to switch from competitors ❌
 
 ---

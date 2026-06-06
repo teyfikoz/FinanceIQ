@@ -1,4 +1,4 @@
-# ✅ FinanceIQ Pro - Implementation Complete
+# ✅ FundPortal Pro - Implementation Complete
 
 ## 🎉 Sprint 1 & 2 Başarıyla Tamamlandı!
 
@@ -329,7 +329,7 @@ streamlit run financeiq_pro.py
 ### **Streamlit Cloud:**
 ```bash
 git add .
-git commit -m "Add FinanceIQ Pro"
+git commit -m "Add FundPortal Pro"
 git push origin main
 ```
 

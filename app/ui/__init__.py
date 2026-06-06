@@ -1,5 +1,5 @@
 """
-UI Components for FinanceIQ Game Changer Features
+UI Components for FundPortal Game Changer Features
 """
 
 from .navigation import create_game_changer_navigation

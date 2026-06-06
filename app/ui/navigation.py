@@ -35,7 +35,7 @@ def create_game_changer_navigation():
 
     st.markdown("""
     <div class="game-changer-header">
-        <h1>🚀 FinanceIQ Game Changer Features</h1>
+        <h1>🚀 FundPortal Game Changer Features</h1>
         <p style="font-size: 1.1rem; margin-top: 0.5rem;">
             Phase 1: Social, Visualization & AI-Lite Tools
         </p>

@@ -309,7 +309,7 @@ class DataReliabilityAuditor:
 
         report = f"""
 ╔══════════════════════════════════════════════════════════════╗
-║        FinanceIQ Pro - Data Reliability Audit Report        ║
+║        FundPortal Pro - Data Reliability Audit Report        ║
 ╚══════════════════════════════════════════════════════════════╝
 
 Timestamp: {audit_results['timestamp']}

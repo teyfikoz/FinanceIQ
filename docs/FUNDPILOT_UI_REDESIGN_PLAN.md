@@ -1,4 +1,4 @@
-# FundPilot UI Redesign Plan
+# FundPortal UI Redesign Plan
 
 ## Verdict
 Yes, the app needs a better design system. No, a visual redesign alone will not fix the current complaint.
@@ -20,15 +20,15 @@ Google Stitch is useful for:
 - quick dashboard layout exploration
 - turning a design system into multiple UI variants
 
-Recent Google Labs updates describe Stitch as an AI-native design canvas with support for design systems and `DESIGN.md` import/export. That makes it a good ideation tool for FundPilot, but not the source of truth for the product.
+Recent Google Labs updates describe Stitch as an AI-native design canvas with support for design systems and `DESIGN.md` import/export. That makes it a good ideation tool for FundPortal, but not the source of truth for the product.
 
-For FundPilot, the source of truth should be:
+For FundPortal, the source of truth should be:
 
 - `DESIGN.md` for the visual system
 - the app code for performance-conscious implementation
 
 ## Why Stitch Is Not the First Fix
-FundPilot was slow because too much work was happening in the UI at once:
+FundPortal was slow because too much work was happening in the UI at once:
 
 - hidden views were still rendering
 - heavy charting created frontend noise
@@ -132,7 +132,7 @@ Should be clearly separated from the first-screen flow.
 Use this prompt inside Stitch if you want visual explorations:
 
 ```text
-Design a premium financial intelligence web app called FundPilot.
+Design a premium financial intelligence web app called FundPortal.
 
 The product is not a generic SaaS dashboard. It should feel like an editorial market desk for serious investors and analysts. The app needs to communicate trust, speed and signal clarity. Avoid purple gradients, crypto-casino aesthetics and playful startup visuals.
 

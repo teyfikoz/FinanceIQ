@@ -1,4 +1,4 @@
-# 🎯 FinanceIQ - Killer Features Analysis
+# 🎯 FundPortal - Killer Features Analysis
 ## 12 Özelliklerin Stratejik Analizi ve Önceliklendirme
 
 ---
@@ -495,7 +495,7 @@ class PortfolioHealthScore:
 
 ## 🏆 REKABET AVANTAJI ANALİZİ
 
-| Özellik | TradingView | Investing.com | Bloomberg | FinanceIQ |
+| Özellik | TradingView | Investing.com | Bloomberg | FundPortal |
 |---------|-------------|---------------|-----------|-----------|
 | ETF Holdings Weight Change | ❌ | ❌ | ✅ ($$$) | ✅ FREE |
 | Factor Exposure | ❌ | ❌ | ✅ | ✅ |

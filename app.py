@@ -1,5 +1,5 @@
 """
-FinanceIQ Pro - Advanced Portfolio Analytics
+FundPortal Pro - Advanced Portfolio Analytics
 Portfolio Health Score + ETF Holdings Weight Tracker
 """
 
@@ -24,7 +24,7 @@ from modules.institutional_event_reaction_lab_ui import InstitutionalEventReacti
 
 # Page config
 st.set_page_config(
-    page_title="FinanceIQ Pro | Portfolio Analytics",
+    page_title="FundPortal Pro | Portfolio Analytics",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -57,7 +57,7 @@ st.markdown("""
 
 # Header
 st.markdown("""
-# 🧠 FinanceIQ Pro
+# 🧠 FundPortal Pro
 ### Bloomberg Terminal Seviyesinde Portföy Analizi
 
 **Profesyonel yatırımcılar için gelişmiş analitik araçlar:**
@@ -181,7 +181,7 @@ with tab10:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: gray; padding: 2rem;'>
-    <p>FinanceIQ Pro v1.7 | Bloomberg-level Analytics for Retail Investors</p>
-    <p>📧 support@financeiq.com | 🌐 www.financeiq.com</p>
+    <p>FundPortal Pro v1.7 | Bloomberg-level Analytics for Retail Investors</p>
+    <p>📧 support@fundportal.com | 🌐 www.fundportal.com</p>
 </div>
 """, unsafe_allow_html=True)

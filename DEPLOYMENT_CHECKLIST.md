@@ -290,7 +290,7 @@ Before sharing with users:
 
 ---
 
-**🎊 Congratulations! Your FinanceIQ app with Game Changer features is live!**
+**🎊 Congratulations! Your FundPortal app with Game Changer features is live!**
 
 **Live URL**: https://financeiq.streamlit.app/
 

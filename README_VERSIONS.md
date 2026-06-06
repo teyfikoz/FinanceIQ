@@ -1,4 +1,4 @@
-# 🐋 FinanceIQ Pro - Version Guide
+# 🐋 FundPortal Pro - Version Guide
 
 ## Current: Whale Intelligence Only (main.py)
 

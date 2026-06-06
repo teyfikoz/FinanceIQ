@@ -286,6 +286,8 @@ class Config:
     CACHE_DURATION = 300  # 5 minutes
 
 # Data fetching functions
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=Config.CACHE_DURATION)
 def fetch_crypto_data():
     """Fetch cryptocurrency data from CoinGecko"""
@@ -321,6 +323,8 @@ def fetch_crypto_data():
         st.error(f"Error fetching crypto data: {e}")
         return None
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=Config.CACHE_DURATION)
 def fetch_stock_data():
     """Fetch stock and ETF data from Yahoo Finance"""
@@ -357,6 +361,8 @@ def fetch_stock_data():
         st.error(f"Error fetching stock data: {e}")
         return {}
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=1800)  # 30 minutes cache for macro data
 def fetch_macro_indicators():
     """Fetch macro economic indicators"""

@@ -66,6 +66,8 @@ with tab1:
         st.rerun()
 
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=43200)  # 12 hours
     def load_fund_holdings(fund: str, top: int):
         """Load fund holdings with caching."""
@@ -172,6 +174,8 @@ with tab2:
         st.rerun()
 
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=43200)  # 12 hours
     def load_stock_ownership(stock: str, funds: list):
         """Load stock ownership with caching."""

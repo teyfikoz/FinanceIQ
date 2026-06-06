@@ -18,7 +18,7 @@ import calendar
 
 
 class VisualizationTools:
-    """Advanced visualization toolkit for FinanceIQ"""
+    """Advanced visualization toolkit for FundPortal"""
 
     def __init__(self):
         self.sector_colors = {

@@ -1,10 +1,10 @@
-# 🚀 FinanceIQ - 90-Day Implementation Roadmap
+# 🚀 FundPortal - 90-Day Implementation Roadmap
 ## "Turkish Investor Co-Pilot" Strategy
 
 ---
 
 ## 🎯 MISSION
-Transform FinanceIQ from generic dashboard → **#1 platform for Turkish retail investors**
+Transform FundPortal from generic dashboard → **#1 platform for Turkish retail investors**
 
 **Target:** 1,000 paying users (₺99K/month revenue) by Day 180
 
@@ -166,7 +166,7 @@ class TurkishAlertBot:
 
     def setup_telegram_bot(self):
         """Telegram Bot API (unlimited free)"""
-        # Create @FinanceIQBot
+        # Create @FundPortalBot
         # Turkish commands: /portfoy, /uyarılar
 
     def send_smart_alert(self, user_id: str, alert_type: str, data: dict):
@@ -315,7 +315,7 @@ class TurkishBrokerIntegration:
 **2. Broker Partnerships:**
 - İş Yatırım, Enpara: Co-marketing
 - Offer: ₺50-100 per new account referral
-- Integration: "Powered by FinanceIQ" badge
+- Integration: "Powered by FundPortal" badge
 
 **3. Content Marketing:**
 - Turkish blog: "BIST Stratejileri"
@@ -323,7 +323,7 @@ class TurkishBrokerIntegration:
 - YouTube: Short explainer videos
 
 **4. Community Building:**
-- Telegram group: "FinanceIQ Kullanıcıları"
+- Telegram group: "FundPortal Kullanıcıları"
 - Monthly webinars: "TCMB Kararları Nasıl Yorumlanır?"
 
 **Growth Target:**

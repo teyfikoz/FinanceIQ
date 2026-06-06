@@ -1,6 +1,6 @@
 # 🔑 Ücretsiz API Kayıt Rehberi
 
-Bu rehber, FinanceIQ uygulamasında kullanabileceğin tüm ücretsiz API'leri nasıl alacağını gösterir.
+Bu rehber, FundPortal uygulamasında kullanabileceğin tüm ücretsiz API'leri nasıl alacağını gösterir.
 
 ---
 
@@ -108,7 +108,7 @@ pip install investpy
 2. Binance hesabı aç (email: teyfikoz@yahoo.com)
 3. Account → API Management
 4. Create API Key
-   - Label: "FinanceIQ App"
+   - Label: "FundPortal App"
    - Restrictions: Enable Reading ✅, Disable Trading ❌
 5. ✅ API Key + Secret Key alacaksın
 

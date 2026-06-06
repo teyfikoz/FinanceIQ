@@ -12,6 +12,8 @@ class AlphaVantageAPI:
         self.api_key = get_secret('ALPHA_VANTAGE_API_KEY', 'ALPHA_VANTAGE_KEY', 'alpha_vantage', default='demo')
         self.base_url = 'https://www.alphavantage.co/query'
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=3600)  # Cache for 1 hour
     def get_news_sentiment(_self, symbol: str, limit: int = 10) -> Optional[Dict]:
         """Get news sentiment for a symbol
@@ -77,6 +79,8 @@ class AlphaVantageAPI:
             print(f"Alpha Vantage API error: {str(e)}")
             return None
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=3600)
     def search_symbol(_self, keywords: str) -> List[Dict]:
         """Search for symbols

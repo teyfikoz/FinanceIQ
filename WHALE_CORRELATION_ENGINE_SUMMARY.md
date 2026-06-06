@@ -314,7 +314,7 @@ TEST SUMMARY
 
 ---
 
-## 📈 FinanceIQ Pro v1.5 - Toplam Özet
+## 📈 FundPortal Pro v1.5 - Toplam Özet
 
 ### Tüm Modüller:
 
@@ -333,7 +333,7 @@ TEST SUMMARY
 
 ### Değer Önerisi (Güncellenmiş):
 
-> "FinanceIQ Pro ile sadece Warren Buffett'ın ne aldığını değil,
+> "FundPortal Pro ile sadece Warren Buffett'ın ne aldığını değil,
 > Buffett ile Gates'in portföyleri ne kadar benzer, hangi whale'ler
 > aynı cluster'da, ve senin yatırım DNA'n kime benziyor öğren!
 >
@@ -431,7 +431,7 @@ streamlit>=1.28.0
 
 ---
 
-## 🏆 FinanceIQ Pro Competitive Edge
+## 🏆 FundPortal Pro Competitive Edge
 
 **Rakiplerde YOK:**
 - ❌ Bloomberg: Whale correlation yok
@@ -439,7 +439,7 @@ streamlit>=1.28.0
 - ❌ TradingView: Whale tracking yok
 - ❌ Investing.com: Temel veriler
 
-**FinanceIQ Pro'da VAR:**
+**FundPortal Pro'da VAR:**
 - ✅ Whale portfolio correlation
 - ✅ User DNA matching
 - ✅ Network graph
@@ -456,7 +456,7 @@ streamlit>=1.28.0
 
 ## 📞 İletişim
 
-**FinanceIQ Pro v1.5**
+**FundPortal Pro v1.5**
 📧 support@financeiq.com
 🌐 www.financeiq.com
 
