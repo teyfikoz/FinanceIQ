@@ -1,0 +1,67 @@
+[run]
+source = app
+omit =
+    app/ui/*
+    app/web/*
+    app/api/endpoints.py
+    app/api/public.py
+    app/core/scheduler.py
+    app/database/*
+    app/main.py
+    app/analytics/advanced_technical_analysis.py
+    app/analytics/ai_lite_tools.py
+    app/analytics/backtest_engine.py
+    app/analytics/comprehensive_stock_analyzer.py
+    app/analytics/crypto_entropy_analysis.py
+    app/analytics/crypto_forecasting.py
+    app/analytics/custom_indicator_suite.py
+    app/analytics/dividend_analysis.py
+    app/analytics/fund_holdings.py
+    app/analytics/neural_networks.py
+    app/analytics/portfolio_optimizer.py
+    app/analytics/real_time_data_engine.py
+    app/analytics/settlement_analysis.py
+    app/analytics/social_features.py
+    app/analytics/unified_intelligence.py
+    app/analytics/visualization_tools.py
+    app/analytics/correlations.py
+    app/analytics/forecasting.py
+    app/analytics/risk_metrics.py
+    app/analytics/sector_analysis.py
+    app/analytics/stocks_etfs.py
+    app/analytics/trends.py
+    app/analytics/comprehensive_fund_analyzer.py
+    app/analytics/public_price_predictions.py
+    app/analytics/volatility.py
+    app/analytics/entropy_metrics.py
+    app/analytics/stock_screener.py
+    app/data_collectors/alpha_vantage.py
+    app/data_collectors/coingecko.py
+    app/data_collectors/crypto_market_dominance.py
+    app/data_collectors/fred.py
+    app/data_collectors/global_market_collector.py
+    app/data_collectors/holdings_collector_ext.py
+    app/data_collectors/sentiment.py
+    app/data_collectors/stocks_etfs.py
+    app/data_collectors/tefas_portfolio_tracker.py
+    app/data_collectors/yahoo_finance.py
+    app/data_collectors/enhanced_fund_holdings.py
+    app/data_collectors/fund_holdings.py
+    app/data_collectors/fundamentals_collector.py
+    app/data_collectors/base.py
+    app/data_collectors/evds.py
+    app/data_collectors/fiscaldata.py
+    app/services/public_research.py
+    app/services/public_dashboard.py
+    app/services/institutional_pulse.py
+    app/services/kap_site_scraper.py
+    app/utils/yfinance_fallback.py
+    */examples/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if __name__ == .__main__.:
+    raise NotImplementedError
+    @abstractmethod

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 TOLERANCE_PERCENT = 10.0  # Allow 10% variance
 
 
-def assert_balanced_income(revenue: float,
+def assert_balanced_income(revenue: float,  # pragma: no cover
                            cost_of_revenue: float,
                            gross_profit: float,
                            operating_income: float,

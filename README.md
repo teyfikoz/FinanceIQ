@@ -6,6 +6,7 @@ The product started as `FinanceIQ`, but the production identity, host, and runti
 
 ## Current Production State
 
+[![Build](https://github.com/teyfikoz/financeiq/actions/workflows/publish.yml/badge.svg)](https://github.com/teyfikoz/financeiq/actions/workflows/publish.yml)
 - Canonical URL: `https://fundpilot.techsyncanalytica.com`
 - Runtime: `FastAPI + Jinja2`
 - Server: `Hetzner` at `46.62.164.198`

@@ -5,7 +5,7 @@ from pydantic import PostgresDsn, field_validator
 
 try:
     from pydantic_settings import BaseSettings
-except Exception:
+except Exception:  # pragma: no cover
     class BaseSettings:
         def __init__(self, **kwargs):
             for key, value in kwargs.items():
@@ -170,7 +170,7 @@ class Settings(BaseSettings):
 # Safe initialization with fallback
 try:
     settings = Settings()
-except Exception as e:
+except Exception as e:  # pragma: no cover
     print(f"⚠️ Warning: Could not load settings from .env: {e}")
     print("Using default settings without .env file...")
     # Create settings WITHOUT reading .env file

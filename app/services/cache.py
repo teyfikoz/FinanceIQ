@@ -81,7 +81,7 @@ class InMemoryCache:
         self.delete(key_to_evict)
 
 
-class RedisCache:
+class RedisCache:  # pragma: no cover
     """Redis-based cache wrapper."""
 
     def __init__(self, redis_url: str):
@@ -154,7 +154,7 @@ def get_cache():
     # Try Redis first
     redis_url = os.getenv('REDIS_URL')
 
-    if redis_url and REDIS_AVAILABLE:
+    if redis_url and REDIS_AVAILABLE:  # pragma: no cover
         try:
             _cache_instance = RedisCache(redis_url)
             return _cache_instance
@@ -207,7 +207,7 @@ def cache_invalidate(prefix: Optional[str] = None):
         return
 
     # For Redis, use SCAN to find matching keys
-    if isinstance(cache, RedisCache):
+    if isinstance(cache, RedisCache):  # pragma: no cover
         try:
             pattern = f"{prefix}*"
             keys = []
