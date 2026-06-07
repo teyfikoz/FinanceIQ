@@ -1327,7 +1327,7 @@ def test_get_fund_workspace_restores_monthly_asset_and_holdings_drift(monkeypatc
         },
     )
 
-    monthly_index = pd.date_range("2025-11-28", periods=7, freq="M")
+    monthly_index = pd.date_range("2025-11-28", periods=7, freq="ME")
     fund_history = pd.DataFrame(
         {
             "Close": [500.0, 510.0, 520.0, 505.0, 530.0, 545.0, 560.0],

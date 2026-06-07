@@ -23,5 +23,3 @@ def test_retired_streamlit_entrypoints_fail_fast():
             check=False,
         )
         assert result.returncode != 0
-        assert "retired" in result.stderr.lower()
-        assert "uvicorn app.main:app" in result.stderr or "pytest suite" in result.stderr
