@@ -142,6 +142,8 @@ def t(key: str, lang: str = None) -> str:
         lang = st.session_state.get('language', 'tr')
     return TRANSLATIONS.get(lang, {}).get(key, key)
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=300)  # Cache for 5 minutes
 def get_real_market_data():
     """Gerçek piyasa verilerini çek - Optimized Global Coverage"""
@@ -373,6 +375,8 @@ def get_sample_data():
         "USDTRY=X": {"price": 30.15, "change": 0.8, "volume": 0, "type": "fx"},
     }
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=1800)  # Cache for 30 minutes
 def get_historical_correlations(symbols, days=30):
     """Calculate real correlations"""

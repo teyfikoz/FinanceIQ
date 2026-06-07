@@ -1,4 +1,4 @@
-# 🚀 Quick Start Guide - FinanceIQ with Full API Integration
+# 🚀 Quick Start Guide - FundPortal with Full API Integration
 
 ## ✅ API Keys Configured!
 

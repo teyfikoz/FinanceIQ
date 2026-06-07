@@ -1,4 +1,4 @@
-# 🚀 FinanceIQ - AI-Powered Financial Analysis Platform
+# 🚀 FundPortal - AI-Powered Financial Analysis Platform
 
 ## With Game Changer Features - Phase 1
 
@@ -68,7 +68,7 @@ streamlit run game_changer_dashboard.py
 
 ## 📊 Features Overview
 
-### **Tab 1-11: Original FinanceIQ Features**
+### **Tab 1-11: Original FundPortal Features**
 - 🎯 Executive Dashboard
 - 🔍 Comprehensive Stock Research
 - 📡 Advanced Stock Screener

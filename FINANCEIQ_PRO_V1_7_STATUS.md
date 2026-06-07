@@ -1,4 +1,4 @@
-# 🚀 FinanceIQ Pro v1.7 - Development Status Report
+# 🚀 FundPortal Pro v1.7 - Development Status Report
 
 **Date:** 25 Ocak 2025
 **Current Version:** 1.6 → 1.7 (in progress)
@@ -473,7 +473,7 @@ market_index = (avg_activity_score + 100) / 2  # 0-100
 
 ## 📞 Support & Contact
 
-**FinanceIQ Pro Development Team**
+**FundPortal Pro Development Team**
 - 📧 Email: support@financeiq.com
 - 🌐 Website: www.financeiq.com
 - 🐙 GitHub: github.com/financeiq/financeiq-pro
@@ -634,4 +634,4 @@ market_index = (avg_activity_score + 100) / 2  # 0-100
 
 *Report generated: 25 Ocak 2025*
 *Next update: Phase 3 completion (est. February 1, 2025)*
-*© 2025 FinanceIQ Pro. All rights reserved.*
+*© 2025 FundPortal Pro. All rights reserved.*

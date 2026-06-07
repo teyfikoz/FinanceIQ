@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Logging configuration for FinanceIQ."""
+"""Logging configuration for FundPortal."""
 
 from __future__ import annotations
 

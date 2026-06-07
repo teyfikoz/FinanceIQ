@@ -2,7 +2,7 @@
 
 ## Genel Bakış
 
-FinanceIQ uygulaması **tamamen ücretsiz API'ler** kullanarak günde **2+ milyon request** kapasitesine sahip.
+FundPortal uygulaması **tamamen ücretsiz API'ler** kullanarak günde **2+ milyon request** kapasitesine sahip.
 
 ---
 

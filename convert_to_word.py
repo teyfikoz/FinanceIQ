@@ -1,5 +1,5 @@
 """
-Convert FinanceIQ Pro Markdown Documentation to Word Format
+Convert FundPortal Pro Markdown Documentation to Word Format
 Creates a professionally formatted .docx file with proper styling
 """
 
@@ -24,7 +24,7 @@ def create_word_document():
         section.right_margin = Inches(1)
 
     # Read Markdown file
-    with open('FINANCEIQ_PRO_COMPREHENSIVE_DOCUMENTATION.md', 'r', encoding='utf-8') as f:
+    with open('FUNDPORTAL_PRO_COMPREHENSIVE_DOCUMENTATION.md', 'r', encoding='utf-8') as f:
         content = f.read()
 
     # Split into lines
@@ -180,7 +180,7 @@ def create_word_document():
     # Add cover page
     doc.paragraphs[0].insert_paragraph_before('')
     cover = doc.paragraphs[0]
-    cover.text = 'FinanceIQ Pro'
+    cover.text = 'FundPortal Pro'
     cover.alignment = WD_ALIGN_PARAGRAPH.CENTER
     for run in cover.runs:
         run.font.size = Pt(36)
@@ -216,13 +216,12 @@ def create_word_document():
     version_para.paragraph_format.space_after = Pt(48)
 
     # Save document
-    doc.save('FINANCEIQ_PRO_DOCUMENTATION.docx')
-    print("✅ Word document created: FINANCEIQ_PRO_DOCUMENTATION.docx")
+    doc.save('FUNDPORTAL_PRO_DOCUMENTATION.docx')
+    print("✅ Word document created: FUNDPORTAL_PRO_DOCUMENTATION.docx")
 
 if __name__ == "__main__":
     try:
         create_word_document()
     except Exception as e:
         print(f"❌ Error creating Word document: {str(e)}")
-        print("\nAlternative: Use Pandoc to convert:")
-        print("pandoc FINANCEIQ_PRO_COMPREHENSIVE_DOCUMENTATION.md -o FINANCEIQ_PRO_DOCUMENTATION.docx")
+        print("pandoc FUNDPORTAL_PRO_COMPREHENSIVE_DOCUMENTATION.md -o FUNDPORTAL_PRO_DOCUMENTATION.docx")

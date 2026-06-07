@@ -155,7 +155,7 @@ python -m modules.data_reliability
 **Output:**
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║        FinanceIQ Pro - Data Reliability Audit Report        ║
+║        FundPortal Pro - Data Reliability Audit Report        ║
 ╚══════════════════════════════════════════════════════════════╝
 
 Health Score: 33.3/100

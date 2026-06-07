@@ -335,6 +335,8 @@ GLOBAL_MARKETS = {
 }
 
 # Advanced Stock Data with AI-powered features
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=300)
 def get_enhanced_stock_data(symbol: str, period: str = "1y") -> Optional[Dict]:
     """Enhanced stock data with AI insights"""

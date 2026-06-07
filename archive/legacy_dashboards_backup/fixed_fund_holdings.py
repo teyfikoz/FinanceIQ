@@ -164,6 +164,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Cache for data fetching
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=300)
 def get_fund_data_cached(symbol):
     """Rate limiting ile fon verilerini çek"""

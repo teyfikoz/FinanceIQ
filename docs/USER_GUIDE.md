@@ -1,11 +1,11 @@
-# FinanceIQ Kullanici Rehberi
+# FundPortal Kullanici Rehberi
 
-Bu rehber, FinanceIQ uygulamasinin ana bolumlerini, tipik is akislari ve pratik kullanim ipuclarini aciklar.
+Bu rehber, FundPortal uygulamasinin ana bolumlerini, tipik is akislari ve pratik kullanim ipuclarini aciklar.
 
 ---
 
 ## 1) Genel Bakis
-FinanceIQ; global piyasalar, ETF ve fon analizleri, teknik analiz, kurumsal yatirimci takibi ve makro indikatorleri tek bir Streamlit arayuzunde birlestirir. Uygulama tek giris noktasi olan `main.py` uzerinden calisir.
+FundPortal; global piyasalar, ETF ve fon analizleri, teknik analiz, kurumsal yatirimci takibi ve makro indikatorleri tek bir Streamlit arayuzunde birlestirir. Uygulama tek giris noktasi olan `main.py` uzerinden calisir.
 
 **Canli uygulama**
 ```
@@ -277,4 +277,4 @@ Not: 1280x720 veya 1440x900 boyutlari dokumantasyon icin idealdir.
 ---
 
 ## 11) Not
-FinanceIQ bir finansal analiz platformudur. Yatirim tavsiyesi degildir.
+FundPortal bir finansal analiz platformudur. Yatirim tavsiyesi degildir.

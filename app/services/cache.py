@@ -19,7 +19,7 @@ try:
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
-    logger.warning("Redis not available, using in-memory cache")
+    logger.debug("Redis not available, using in-memory cache")
 
 
 class InMemoryCache:

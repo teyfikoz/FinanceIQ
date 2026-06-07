@@ -1,5 +1,5 @@
 """
-GDPR and KVKK Compliance Module for FinanceIQ
+GDPR and KVKK Compliance Module for FundPortal
 Handles user consent, data privacy, and regulatory compliance
 """
 

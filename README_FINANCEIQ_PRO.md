@@ -1,4 +1,4 @@
-# 📊 FinanceIQ Pro - Advanced Portfolio Analytics
+# 📊 FundPortal Pro - Advanced Portfolio Analytics
 
 **Bloomberg Terminal seviyesinde analitik araçlar, bireysel yatırımcılar için.**
 
@@ -418,4 +418,4 @@ MIT License - see LICENSE file for details
 
 **Built with ❤️ for retail investors who deserve Bloomberg-level tools.**
 
-**🚀 FinanceIQ Pro | $0 Cost | Open Source**
+**🚀 FundPortal Pro | $0 Cost | Open Source**

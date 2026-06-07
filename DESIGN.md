@@ -1,6 +1,6 @@
 ---
 version: "alpha"
-name: FundPilot
+name: FundPortal
 description: Editorial market intelligence design system for a fast, credibility-first financial analysis workspace.
 colors:
   ink: "#0F172A"
@@ -126,7 +126,7 @@ components:
 ---
 
 ## Overview
-FundPilot should feel like a premium market desk, not a generic dashboard. The product sits between editorial intelligence and terminal-grade signal scanning. The interface should communicate speed, trust and clarity before it communicates feature depth.
+FundPortal should feel like a premium market desk, not a generic dashboard. The product sits between editorial intelligence and terminal-grade signal scanning. The interface should communicate speed, trust and clarity before it communicates feature depth.
 
 The visual identity is built around three ideas:
 

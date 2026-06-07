@@ -1,11 +1,11 @@
-## 🚀 FinanceIQ Pro - Phase 2 Build Prompt
+## 🚀 FundPortal Pro - Phase 2 Build Prompt
 ### Comprehensive Development Plan: Scenario Sandbox + Fund Flow Radar + Factor Exposure
 
 ---
 
 ## 🎯 MISSION STATEMENT
 
-Transform FinanceIQ Pro from "portfolio analytics tool" → **"Bloomberg-level decision intelligence platform"**
+Transform FundPortal Pro from "portfolio analytics tool" → **"Bloomberg-level decision intelligence platform"**
 
 **Core Value Proposition:**
 > "Yatırımcılar sadece 'ne oldu' değil, 'ne olabilir' ve 'ne yapmalıyım' sorularına cevap alsın."

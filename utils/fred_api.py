@@ -21,6 +21,8 @@ class FREDAPI:
         except ImportError:
             print("fredapi not installed. Run: pip install fredapi")
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=86400)  # Cache for 24 hours
     def get_global_liquidity_index(_self) -> Optional[Dict]:
         """Get global liquidity index data
@@ -70,6 +72,8 @@ class FREDAPI:
             print(f"FRED API error: {str(e)}")
             return None
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=86400)
     def get_interest_rates(_self) -> Optional[Dict]:
         """Get key interest rate data
@@ -116,6 +120,8 @@ class FREDAPI:
             print(f"FRED interest rates error: {str(e)}")
             return None
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=86400)
     def get_economic_indicators(_self) -> Optional[Dict]:
         """Get key economic indicators

@@ -119,6 +119,8 @@ POPULAR_STOCKS = {
     }
 }
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=300)  # 5 dakika cache
 def get_stock_data(symbol: str, period: str = "1y") -> Optional[Dict]:
     """Hisse senedi verilerini çek - Cache ile"""

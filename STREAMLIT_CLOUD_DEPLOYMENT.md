@@ -19,7 +19,7 @@ Current deployment policy:
 
 Primary production guide:
 
-- [DEPLOYMENT_GUIDE.md](/Users/teyfikoz/github-projects/FinanceIQ/DEPLOYMENT_GUIDE.md)
+- [DEPLOYMENT_GUIDE.md](/Users/teyfikoz/github-projects/FundPortal/DEPLOYMENT_GUIDE.md)
 
 ## When To Use Streamlit Cloud
 
@@ -37,13 +37,13 @@ Do not treat it as the source of truth for:
 
 ## Current App Identity
 
-- Product name: `FundPilot`
-- Internal legacy name: `FinanceIQ`
+- Product name: `FundPortal`
+- Internal legacy name: `FundPortal`
 - Preferred public URL: `https://fundpilot.techsyncanalytica.com`
 
 If Streamlit Cloud is used again, the app should still present:
 
-- `FundPilot` branding
+- `FundPortal` branding
 - `fundpilot.techsyncanalytica.com` as the canonical public URL
 
 ## Streamlit Cloud Requirements
@@ -63,7 +63,7 @@ FINANCEIQ_REQUIRE_AUTH = false
 FINANCEIQ_DIRECT_ACCESS = true
 FINANCEIQ_CREATE_DEMO_USER = false
 FINANCEIQ_PUBLIC_APP_URL = "https://fundpilot.techsyncanalytica.com"
-FINANCEIQ_APP_DISPLAY_NAME = "FundPilot"
+FINANCEIQ_APP_DISPLAY_NAME = "FundPortal"
 FINANCEIQ_SUPPORT_EMAIL = "support@techsyncanalytica.com"
 
 [api_keys]
@@ -88,7 +88,7 @@ HF_RISK_MODEL = "google/flan-t5-base"
 
 ```bash
 git add .
-git commit -m "Update FundPilot deployment state"
+git commit -m "Update FundPortal deployment state"
 git push origin main
 ```
 
@@ -105,7 +105,7 @@ Set the secrets shown above in the Streamlit Cloud app settings.
 ### 4. Validate
 
 - app starts without import errors
-- branding shows `FundPilot`
+- branding shows `FundPortal`
 - exports and QR links point to `https://fundpilot.techsyncanalytica.com`
 
 ## Limits And Caveats

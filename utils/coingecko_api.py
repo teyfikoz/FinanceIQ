@@ -10,6 +10,8 @@ class CoinGeckoAPI:
     def __init__(self):
         self.base_url = 'https://api.coingecko.com/api/v3'
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=300)  # Cache for 5 minutes
     def get_crypto_prices(_self, ids: List[str] = None) -> Optional[Dict]:
         """Get cryptocurrency prices
@@ -42,6 +44,8 @@ class CoinGeckoAPI:
             print(f"CoinGecko API error: {str(e)}")
             return None
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=3600)  # Cache for 1 hour
     def get_global_crypto_data(_self) -> Optional[Dict]:
         """Get global cryptocurrency market data
@@ -73,6 +77,8 @@ class CoinGeckoAPI:
             print(f"CoinGecko global data error: {str(e)}")
             return None
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=300)
     def get_top_cryptocurrencies(_self, limit: int = 20) -> Optional[List[Dict]]:
         """Get top cryptocurrencies by market cap
@@ -123,6 +129,8 @@ class CoinGeckoAPI:
             print(f"CoinGecko top coins error: {str(e)}")
             return None
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=3600)
     def get_coin_history(_self, coin_id: str, days: int = 30) -> Optional[Dict]:
         """Get historical data for a cryptocurrency
@@ -158,6 +166,8 @@ class CoinGeckoAPI:
             print(f"CoinGecko history error: {str(e)}")
             return None
 
+    # INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+    # the centralized get_cache() service to utilize Streamlit's native TTL handling.
     @st.cache_data(ttl=3600)
     def get_trending_coins(_self) -> Optional[List[Dict]]:
         """Get trending coins

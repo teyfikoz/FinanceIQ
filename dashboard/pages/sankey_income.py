@@ -55,12 +55,16 @@ if st.sidebar.button("🔄 Refresh Data"):
     st.rerun()
 
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=3600)
 def load_income_statement(ticker: str, period: str, limit: int):
     """Load income statement data with caching."""
     return get_income_statement(ticker, period, limit)
 
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=86400)
 def load_company_name(ticker: str):
     """Load company name with caching."""

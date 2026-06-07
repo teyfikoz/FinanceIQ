@@ -8,7 +8,7 @@ PRIVACY_POLICY_TR = """
 
 ## 1. Veri Sorumlusu
 
-FinanceIQ ("Biz", "Platform") olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") ve Avrupa Birliği Genel Veri Koruma Tüzüğü ("GDPR") kapsamında veri sorumlusuyuz.
+FundPortal ("Biz", "Platform") olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") ve Avrupa Birliği Genel Veri Koruma Tüzüğü ("GDPR") kapsamında veri sorumlusuyuz.
 
 ## 2. Toplanan Kişisel Veriler
 
@@ -127,7 +127,7 @@ PRIVACY_POLICY_EN = """
 
 ## 1. Data Controller
 
-FinanceIQ ("We", "Platform") is the data controller under the Turkish Personal Data Protection Law No. 6698 ("KVKK") and the EU General Data Protection Regulation ("GDPR").
+FundPortal ("We", "Platform") is the data controller under the Turkish Personal Data Protection Law No. 6698 ("KVKK") and the EU General Data Protection Regulation ("GDPR").
 
 ## 2. Personal Data We Collect
 
@@ -246,7 +246,7 @@ TERMS_OF_SERVICE = """
 
 ## 1. Hizmet Tanımı
 
-FinanceIQ, finansal veri analizi ve portföy yönetimi hizmeti sunan bir platformdur.
+FundPortal, finansal veri analizi ve portföy yönetimi hizmeti sunan bir platformdur.
 
 ## 2. Kullanıcı Sorumlulukları
 

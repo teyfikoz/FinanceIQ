@@ -1,4 +1,4 @@
-# FinanceIQ Pro - Kapsamlı Teknik Dokümantasyon
+# FundPortal Pro - Kapsamlı Teknik Dokümantasyon
 
 **Versiyon:** 1.5
 **Tarih:** 25 Ocak 2025
@@ -26,7 +26,7 @@
 
 ### 1.1 Ürün Tanımı
 
-**FinanceIQ Pro**, bireysel yatırımcılara Bloomberg Terminal seviyesinde analitik araçlar sunan, Python/Streamlit tabanlı bir portföy yönetimi ve analiz platformudur.
+**FundPortal Pro**, bireysel yatırımcılara Bloomberg Terminal seviyesinde analitik araçlar sunan, Python/Streamlit tabanlı bir portföy yönetimi ve analiz platformudur.
 
 **Temel Değer Önerisi:**
 > "Profesyonel yatırımcıların kullandığı araçları, ₺149/ay'a bireysel yatırımcılara sunuyoruz."
@@ -69,15 +69,15 @@
 
 **Fırsat Boşluğu:**
 
-Bloomberg ile ücretsiz araçlar arasında **BÜYÜK BİR BOŞLUK** var. FinanceIQ Pro bu boşluğu doldurur.
+Bloomberg ile ücretsiz araçlar arasında **BÜYÜK BİR BOŞLUK** var. FundPortal Pro bu boşluğu doldurur.
 
 ### 2.2 Unique Value Proposition (UVP)
 
-#### Neden FinanceIQ Pro?
+#### Neden FundPortal Pro?
 
 1. **Bloomberg-Level Analytics at 1/200th Price**
    - Bloomberg: $24,000/yıl
-   - FinanceIQ Pro: ₺149/ay (~$60/yıl)
+   - FundPortal Pro: ₺149/ay (~$60/yıl)
    - **400x daha uygun!**
 
 2. **Türkiye'ye Özel**
@@ -107,7 +107,7 @@ Bloomberg ile ücretsiz araçlar arasında **BÜYÜK BİR BOŞLUK** var. Finance
                      |
       Koyfin         |
          ●           |
-    FinanceIQ Pro ●  |
+    FundPortal Pro ●  |
                      |
          Matriks  ●  |
                      |
@@ -1058,7 +1058,7 @@ Health Score: 83.3/100
 
 **Karşılaştırma Matrisi:**
 
-| Özellik | FinanceIQ Pro | Bloomberg Terminal | Koyfin | TradingView | Matriks | Investing.com |
+| Özellik | FundPortal Pro | Bloomberg Terminal | Koyfin | TradingView | Matriks | Investing.com |
 |---------|---------------|-------------------|--------|-------------|---------|---------------|
 | **Fiyat ($/yıl)** | $60 | $24,000 | $420 | $180 | $0 | $0 |
 | **Portfolio Health Score** | ✅ (8 metrik) | ✅ | ✅ (basic) | ❌ | ❌ | ❌ |
@@ -1084,7 +1084,7 @@ Health Score: 83.3/100
 
 #### Portfolio Analytics
 
-| Özellik | FinanceIQ Pro | Bloomberg | Koyfin | TradingView |
+| Özellik | FundPortal Pro | Bloomberg | Koyfin | TradingView |
 |---------|---------------|-----------|--------|-------------|
 | Risk Metrics | ✅ Beta, Sharpe | ✅ 50+ metrik | ✅ 20+ metrik | ⚠️ Basic |
 | Diversification | ✅ HHI, Entropy | ✅ Advanced | ✅ Basic | ❌ |
@@ -1094,7 +1094,7 @@ Health Score: 83.3/100
 
 #### Institutional Intelligence
 
-| Özellik | FinanceIQ Pro | Bloomberg | Koyfin | Others |
+| Özellik | FundPortal Pro | Bloomberg | Koyfin | Others |
 |---------|---------------|-----------|--------|--------|
 | 13F Tracking | ✅ 7 investors | ✅ All | ✅ Top 50 | ❌ |
 | ETF Holdings | ✅ 25+ ETFs | ✅ All ETFs | ✅ Major | ⚠️ Some |
@@ -1104,7 +1104,7 @@ Health Score: 83.3/100
 
 #### Scenario & Risk
 
-| Özellik | FinanceIQ Pro | Bloomberg | Koyfin | Others |
+| Özellik | FundPortal Pro | Bloomberg | Koyfin | Others |
 |---------|---------------|-----------|--------|--------|
 | Scenario Builder | ✅ 5 types | ✅ Unlimited | ✅ Basic | ❌ |
 | Monte Carlo | ✅ VaR/CVaR | ✅ Advanced | ✅ Basic | ❌ |
@@ -1114,7 +1114,7 @@ Health Score: 83.3/100
 
 #### User Experience
 
-| Özellik | FinanceIQ Pro | Bloomberg | Koyfin | TradingView |
+| Özellik | FundPortal Pro | Bloomberg | Koyfin | TradingView |
 |---------|---------------|-----------|--------|-------------|
 | Learning Curve | ⭐⭐⭐ Easy | ⭐ Very Hard | ⭐⭐ Medium | ⭐⭐⭐⭐ Easy |
 | Turkish Support | ✅ Full | ❌ | ❌ | ⚠️ Partial |
@@ -1137,7 +1137,7 @@ Koyfin:
 - Features: 7/10
 - ROI: MODERATE (good but pricey for retail)
 
-FinanceIQ Pro (Premium):
+FundPortal Pro (Premium):
 - Cost: $60/year (₺149/mo)
 - Features: 8/10
 - ROI: EXCELLENT (best value)
@@ -1155,11 +1155,11 @@ Value Score = (Features / Cost) × 1000
 
 Bloomberg: (10 / 24000) × 1000 = 0.42
 Koyfin: (7 / 420) × 1000 = 16.67
-FinanceIQ Pro: (8 / 60) × 1000 = 133.33 🏆
+FundPortal Pro: (8 / 60) × 1000 = 133.33 🏆
 TradingView: (3 / 0) = undefined (free)
 ```
 
-**FinanceIQ Pro 8x better value than Koyfin!**
+**FundPortal Pro 8x better value than Koyfin!**
 
 ### 5.4 Speed & Performance Benchmark
 
@@ -1170,7 +1170,7 @@ TradingView: (3 / 0) = undefined (free)
 
 **Performance Metrics:**
 
-| Operation | FinanceIQ Pro | Bloomberg | Koyfin |
+| Operation | FundPortal Pro | Bloomberg | Koyfin |
 |-----------|---------------|-----------|--------|
 | App Load Time | 2.3s | 8.5s | 3.1s |
 | Portfolio Analysis (50 stocks) | 45s | 12s | 25s |
@@ -1181,7 +1181,7 @@ TradingView: (3 / 0) = undefined (free)
 | Chart Rendering | 0.8s | 1.2s | 0.9s |
 
 **Performance Rating:**
-- FinanceIQ Pro: ⭐⭐⭐⭐ (Very Good)
+- FundPortal Pro: ⭐⭐⭐⭐ (Very Good)
 - Bloomberg: ⭐⭐⭐⭐⭐ (Excellent)
 - Koyfin: ⭐⭐⭐⭐ (Very Good)
 
@@ -1247,7 +1247,7 @@ TradingView: (3 / 0) = undefined (free)
 **Örnek:**
 ```
 ❌ Koyfin: "Tech sector weight: 65%"
-✅ FinanceIQ: "🔴 Sektör Riski: Teknoloji %65.
+✅ FundPortal: "🔴 Sektör Riski: Teknoloji %65.
    Çok konsantre! Defansif sektörlere ağırlık verin."
 ```
 
@@ -1268,7 +1268,7 @@ TradingView: (3 / 0) = undefined (free)
 **Unique Combination:**
 - Bloomberg: 13F var ama pahalı
 - Koyfin: 13F var ama fund flow yok
-- FinanceIQ: İKİSİ DE VAR + ucuz
+- FundPortal: İKİSİ DE VAR + ucuz
 
 **Etki:**
 - "Smart money"yi takip et
@@ -1587,7 +1587,7 @@ modules/
 - Portföyü dengeli mi emin değil
 - Hata yapmaktan korkuyor
 
-**FinanceIQ Pro Kullanımı:**
+**FundPortal Pro Kullanımı:**
 
 **1. Portföy Upload:**
 ```
@@ -1632,7 +1632,7 @@ TUPRS, 30 shares, ₺420
 - Whale signals yakalamak istiyor
 - Risk yönetimi geliştirmek istiyor
 
-**FinanceIQ Pro Kullanımı:**
+**FundPortal Pro Kullanımı:**
 
 **1. Whale Investor Analytics:**
 ```
@@ -1682,7 +1682,7 @@ En güvenli: İhracatçılar
 - Board'a rapor hazırlamak zaman alıyor
 - Multi-scenario analiz yapması gerekiyor
 
-**FinanceIQ Pro Kullanımı:**
+**FundPortal Pro Kullanımı:**
 
 **1. Portfolio Health (Quarterly Report):**
 ```
@@ -1724,7 +1724,7 @@ Fon akışları:
 - Mehmet $120K → $300/yıl tasarruf
 - Raporlama 10 saat → 2 saat
 - Board memnun
-- FinanceIQ Pro referans veriyor
+- FundPortal Pro referans veriyor
 
 ---
 
@@ -1742,7 +1742,7 @@ Fon akışları:
 - Unique insight bulmak zor
 - Rakipler aynı şeyleri yazıyor
 
-**FinanceIQ Pro Kullanımı:**
+**FundPortal Pro Kullanımı:**
 
 **1. Whale Analytics (Content Idea):**
 ```
@@ -1773,7 +1773,7 @@ Fon akışları:
 - Ayşe unique content üretiyor
 - Rakiplerden farklılaşıyor
 - Takipçileri artıyor
-- Affiliate revenue: FinanceIQ Pro referral
+- Affiliate revenue: FundPortal Pro referral
 
 ---
 
@@ -1790,13 +1790,13 @@ Fon akışları:
 - Her müşteri için özel analiz gerekiyor
 - Bloomberg 10 kullanıcı = $240K/yıl (çok pahalı)
 
-**FinanceIQ Pro (Business Tier) Kullanımı:**
+**FundPortal Pro (Business Tier) Kullanımı:**
 
 **Pricing:** $500/mo (10 user license)
 
 **1. White-Label:**
 ```
-ABC Yatırım Portal (Powered by FinanceIQ)
+ABC Yatırım Portal (Powered by FundPortal)
 - Custom branding
 - Client login
 - Automated reports
@@ -1815,7 +1815,7 @@ Yeni müşteri:
 ```
 Haftalık rapor (150 müşteri):
 - Manuel: 150 × 2 saat = 300 saat
-- FinanceIQ: 150 × 0.1 saat = 15 saat
+- FundPortal: 150 × 0.1 saat = 15 saat
 → 285 saat tasarruf = $28,500/ay (@ $100/saat)
 ```
 
@@ -2377,7 +2377,7 @@ sentry_sdk.init(
 
 ### 11.1 Executive Summary
 
-**FinanceIQ Pro:**
+**FundPortal Pro:**
 - ✅ **Production-ready** (6,450+ satır kod)
 - ✅ **Bloomberg-level analytics** (1/400 fiyatına)
 - ✅ **Türkiye'ye özel** (BIST, TEFAS, TCMB)
@@ -2512,7 +2512,7 @@ sentry_sdk.init(
 
 ### 12.3 Contact
 
-**FinanceIQ Pro Team**
+**FundPortal Pro Team**
 Email: support@financeiq.com
 Website: www.financeiq.com
 GitHub: https://github.com/yourrepo/financeiq-pro
@@ -2521,9 +2521,9 @@ GitHub: https://github.com/yourrepo/financeiq-pro
 
 **Document Version:** 1.0
 **Last Updated:** 25 Ocak 2025
-**Author:** FinanceIQ Development Team
+**Author:** FundPortal Development Team
 **Status:** ✅ Production Ready
 
 ---
 
-*Bu dokümantasyon FinanceIQ Pro v1.4 için hazırlanmıştır. Ürün sürekli geliştirilmekte olup, özellikler ve fiyatlandırma değişebilir.*
+*Bu dokümantasyon FundPortal Pro v1.4 için hazırlanmıştır. Ürün sürekli geliştirilmekte olup, özellikler ve fiyatlandırma değişebilir.*

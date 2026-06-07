@@ -13,6 +13,8 @@ from utils.data_quality import format_quality_badge, DataQuality
 from app.analytics.custom_indicator_suite import PROFILES, compute_indicator_bundle
 
 
+# INTENTIONAL CACHE DIVERGENCE: This UI-bound memoization intentionally bypasses 
+# the centralized get_cache() service to utilize Streamlit's native TTL handling.
 @st.cache_data(ttl=300)
 def _load_indicator_bundle(symbol: str, profile_key: str, source_pref: str):
     profile = PROFILES[profile_key]

@@ -1,9 +1,9 @@
-# FinanceIQ User Guide (Comprehensive)
+# FundPortal User Guide (Comprehensive)
 
 ## 1) Quick Start
 **Local:**
 ```bash
-cd /Users/teyfikoz/github-projects/FinanceIQ
+cd /Users/teyfikoz/github-projects/FundPortal
 pip install -r requirements.txt
 python3 -m streamlit run main.py
 ```
@@ -13,7 +13,7 @@ Open: http://localhost:8501
 Use Streamlit Cloud and set secrets in the app settings (see deployment guide).
 
 ## 2) Navigation Overview
-FinanceIQ is organized by feature tabs:
+FundPortal is organized by feature tabs:
 
 - **🎯 Dashboard** – global market summary, KPIs, snapshots
 - **🔍 Stock Research** – company overview, fundamentals, news, indicators
@@ -59,7 +59,7 @@ FinanceIQ is organized by feature tabs:
 - Set alerts for price thresholds.
 
 ## 4) Data Sources & Fallbacks
-FinanceIQ uses a multi‑source data layer:
+FundPortal uses a multi‑source data layer:
 - **Primary:** yfinance
 - **Fallbacks:** Finnhub → Alpha Vantage → TwelveData (where available)
 

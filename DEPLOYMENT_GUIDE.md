@@ -1,16 +1,16 @@
-# FundPilot Deployment Guide
+# FundPortal Deployment Guide
 
 ## Current Production State
 
-- Product name: `FundPilot`
+- Product name: `FundPortal`
 - Canonical URL: `https://fundpilot.techsyncanalytica.com`
-- Runtime: `FastAPI + Jinja2`
-- App entrypoint: [`app/main.py`](/Users/teyfikoz/github-projects/FinanceIQ/app/main.py)
+- Runtime: `Streamlit`
+- App entrypoint: [`main.py`](/Users/teyfikoz/github-projects/FundPortal/main.py)
 - Server: `Hetzner` at `46.62.164.198`
 - Reverse proxy: `nginx`
-- Service unit: [`deployment/fundpilot.service`](/Users/teyfikoz/github-projects/FinanceIQ/deployment/fundpilot.service)
-- Nginx site template: [`deployment/fundpilot.nginx.conf`](/Users/teyfikoz/github-projects/FinanceIQ/deployment/fundpilot.nginx.conf)
-- Public branding and host config: [`app/core/config.py`](/Users/teyfikoz/github-projects/FinanceIQ/app/core/config.py)
+- Service unit: [`deployment/fundportal.service`](/Users/teyfikoz/github-projects/FundPortal/deployment/fundportal.service)
+- Nginx site template: [`deployment/fundportal.nginx.conf`](/Users/teyfikoz/github-projects/FundPortal/deployment/fundportal.nginx.conf)
+- Public branding and host config: [`utils/app_config.py`](/Users/teyfikoz/github-projects/FundPortal/utils/app_config.py)
 
 ## Current Architecture
 
@@ -20,82 +20,94 @@ GoDaddy DNS
 
 Hetzner Ubuntu
   nginx :80/:443
-    -> proxy_pass 127.0.0.1:8004
+    -> proxy_pass 127.0.0.1:8501
 
 Systemd
-  fundpilot.service
-    -> uvicorn app.main:app --host 127.0.0.1 --port 8004
+  fundportal.service
+    -> streamlit run /opt/fundportal/app/main.py
 
 App
-  /opt/fundpilot/app
-  /opt/fundpilot/venv
-  /etc/fundpilot/fundpilot.env
+  /opt/fundportal/app
+  /opt/fundportal/venv
+  /etc/fundportal/fundportal.env
 ```
 
 ## Runtime Paths
 
-- App directory: `/opt/fundpilot/app`
-- Virtualenv: `/opt/fundpilot/venv`
-- Environment file: `/etc/fundpilot/fundpilot.env`
-- App bind: `127.0.0.1:8004`
-- Health endpoint: `http://127.0.0.1:8004/health`
+- App directory: `/opt/fundportal/app`
+- Virtualenv: `/opt/fundportal/venv`
+- Environment file: `/etc/fundportal/fundportal.env`
+- Streamlit bind: `127.0.0.1:8501`
+- Health endpoint: `http://127.0.0.1:8501/_stcore/health`
 
 ## Local To Production Workflow
 
 ### 1. Verify locally
 
 ```bash
-python3 -m py_compile app/main.py
-python3 -m py_compile app/services/*.py
-python3 -m py_compile app/web/routes.py
+python3 -m py_compile main.py
+python3 -m py_compile modules/*.py
 ```
 
 ### 2. Sync to server
 
 ```bash
-rsync -az app root@46.62.164.198:/opt/fundpilot/app/
-rsync -az deployment/ root@46.62.164.198:/opt/fundpilot/app/deployment/
-rsync -az requirements.txt root@46.62.164.198:/opt/fundpilot/app/requirements.txt
+rsync -az main.py root@46.62.164.198:/opt/fundportal/app/main.py
+rsync -az modules/ root@46.62.164.198:/opt/fundportal/app/modules/
+rsync -az utils/ root@46.62.164.198:/opt/fundportal/app/utils/
+rsync -az app root@46.62.164.198:/opt/fundportal/app/
 ```
+
+> **CRITICAL — `app` vs `app/`**
+> Use `app` (no trailing slash). `app/` would expand the directory contents
+> directly into `/opt/fundportal/app/`, overwriting the Streamlit `main.py`
+> with `app/main.py` (FastAPI) and crashing the service with
+> `ModuleNotFoundError: No module named 'fastapi'`.
 
 ### 3. Restart service
 
 ```bash
 ssh -o BatchMode=yes root@46.62.164.198 \
-  "cd /opt/fundpilot/app && /opt/fundpilot/venv/bin/python -m py_compile app/main.py && systemctl restart fundpilot"
+  "cd /opt/fundportal/app && /opt/fundportal/venv/bin/python -m py_compile main.py && systemctl restart fundportal"
 ```
 
 ### 4. Validate
 
 ```bash
 ssh -o BatchMode=yes root@46.62.164.198 \
-  "curl -s http://127.0.0.1:8004/health"
+  "curl -s http://127.0.0.1:8501/_stcore/health"
 
 curl -I https://fundpilot.techsyncanalytica.com
 ```
 
 Expected:
 
-- health endpoint returns JSON with `"status": "healthy"`
+- health endpoint returns `ok`
 - public host returns `HTTP 200`
 - validate the HTTPS host as the canonical production endpoint
 
 ## Current UX/Performance State
 
-The production app is now a read-only public web surface optimized for:
+The production app has already been refactored away from the old multi-tab heavy render model.
 
-- open-access dashboarding
-- Turkish funds signal board
-- sponsor and affiliate inventory without ad-network scripts
-- no account wall, no client-side portfolio storage
-- server-side rendering with progressive enhancement only
+Implemented:
+
+- grouped primary navigation
+- single active workspace rendering
+- lazy loading for heavier modules
+- performance mode toggle in sidebar
+- session-persistent results for expensive tools
+- reduced hidden Plotly render overhead
+- persisted result payloads for rerun-heavy views such as TEFAS, ETF Tracker, Settlement Analysis, Screener, Backtest, and Sankey flows
 
 Key files:
 
-- [`app/main.py`](/Users/teyfikoz/github-projects/FinanceIQ/app/main.py)
-- [`app/web/routes.py`](/Users/teyfikoz/github-projects/FinanceIQ/app/web/routes.py)
-- [`app/services/public_dashboard.py`](/Users/teyfikoz/github-projects/FinanceIQ/app/services/public_dashboard.py)
-- [`app/services/tr_funds.py`](/Users/teyfikoz/github-projects/FinanceIQ/app/services/tr_funds.py)
+- [`main.py`](/Users/teyfikoz/github-projects/FundPortal/main.py)
+- [`modules/tefas_portfolio_analysis_ui.py`](/Users/teyfikoz/github-projects/FundPortal/modules/tefas_portfolio_analysis_ui.py)
+- [`modules/cycle_analysis_ui.py`](/Users/teyfikoz/github-projects/FundPortal/modules/cycle_analysis_ui.py)
+- [`modules/portfolio_health_ui.py`](/Users/teyfikoz/github-projects/FundPortal/modules/portfolio_health_ui.py)
+- [`modules/scenario_sandbox_ui.py`](/Users/teyfikoz/github-projects/FundPortal/modules/scenario_sandbox_ui.py)
+- [`modules/etf_weight_tracker_ui.py`](/Users/teyfikoz/github-projects/FundPortal/modules/etf_weight_tracker_ui.py)
 
 ## Nginx Setup
 
@@ -108,36 +120,37 @@ server {
     server_name fundpilot.techsyncanalytica.com;
 
     location / {
-        proxy_pass http://127.0.0.1:8004;
+        proxy_pass http://127.0.0.1:8501;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_read_timeout 60;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 86400;
     }
 }
 ```
 
 Source file:
 
-- [`deployment/fundpilot.nginx.conf`](/Users/teyfikoz/github-projects/FinanceIQ/deployment/fundpilot.nginx.conf)
+- [`deployment/fundportal.nginx.conf`](/Users/teyfikoz/github-projects/FundPortal/deployment/fundportal.nginx.conf)
 
 ## Systemd Setup
 
 Service source:
 
-- [`deployment/fundpilot.service`](/Users/teyfikoz/github-projects/FinanceIQ/deployment/fundpilot.service)
+- [`deployment/fundportal.service`](/Users/teyfikoz/github-projects/FundPortal/deployment/fundportal.service)
 
 Core command:
 
 ```bash
-/opt/fundpilot/venv/bin/uvicorn app.main:app \
-  --host 127.0.0.1 \
-  --port 8004 \
-  --workers 2 \
-  --proxy-headers \
-  --forwarded-allow-ips=*
+/opt/fundportal/venv/bin/streamlit run /opt/fundportal/app/main.py \
+  --server.port=8501 \
+  --server.address=127.0.0.1 \
+  --server.headless=true \
+  --browser.gatherUsageStats=false
 ```
 
 ## DNS
@@ -146,28 +159,38 @@ Required record:
 
 ```text
 Type: A
-Name: fundpilot
+Name: fundportal
 Value: 46.62.164.198
 ```
 
-## Legacy Streamlit Status
+## Streamlit Cloud Status
 
-The old Streamlit app is legacy code and not the production runtime anymore.
+`Streamlit Cloud` is no longer the primary production deployment target.
 
-Archived entrypoints live under:
+Legacy public URL:
 
-- [`archive/retired_streamlit_runtime/README.md`](/Users/teyfikoz/github-projects/FinanceIQ/archive/retired_streamlit_runtime/README.md)
+- `https://financeiq.streamlit.app/`
+
+Current policy:
+
+- primary production host is Hetzner + nginx + systemd
+- Streamlit Cloud is optional fallback/demo infrastructure only
+
+See:
+
+- [`STREAMLIT_CLOUD_DEPLOYMENT.md`](/Users/teyfikoz/github-projects/FundPortal/STREAMLIT_CLOUD_DEPLOYMENT.md)
 
 ## Release Checklist
 
 - code compiles locally
-- changed modules synced to `/opt/fundpilot/app`
-- `fundpilot.service` restarted
-- local health check returns healthy JSON
+- changed modules synced to `/opt/fundportal/app`
+- `fundportal.service` restarted
+- local health check returns `ok`
 - `https://fundpilot.techsyncanalytica.com` returns `200`
 - no production hostname regressions in branding or QR/export URLs
 
 ## Known Follow-Up Work
 
-- clean up remaining package-level Streamlit helper modules that are no longer needed for reference
-- add structured uptime monitoring and sponsor slot analytics that do not require third-party trackers
+- convert remaining standalone helper/demo renderers to the same production navigation/runtime standard
+- add compact chart mode for selected heavy Plotly surfaces
+- expand structured observability beyond current logs and health checks

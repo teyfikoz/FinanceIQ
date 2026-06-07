@@ -24,7 +24,7 @@ python -m modules.data_reliability
 **Output:**
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║        FinanceIQ Pro - Data Reliability Audit Report        ║
+║        FundPortal Pro - Data Reliability Audit Report        ║
 ╚══════════════════════════════════════════════════════════════╝
 
 Health Score: 85.2/100
@@ -300,10 +300,10 @@ with st.sidebar:
 ## 📞 What's Different Now?
 
 ### **Before:**
-> "FinanceIQ is a portfolio analytics tool."
+> "FundPortal is a portfolio analytics tool."
 
 ### **Now:**
-> "FinanceIQ Pro is an AI-powered decision intelligence platform 
+> "FundPortal Pro is an AI-powered decision intelligence platform 
 > with Bloomberg-level analytics, data reliability guarantees, 
 > and actionable insights - all for ₺149/month."
 
