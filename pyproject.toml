@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "global-liquidity-dashboard"
+name = "fundportal"
 version = "1.0.0"
-description = "Global Liquidity & Market Correlation Dashboard"
+description = "FundPortal financial research and fund intelligence workspace"
 authors = [
     { name = "Tefy Koz", email = "tefy@example.com" }
 ]

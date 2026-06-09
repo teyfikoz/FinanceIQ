@@ -47,22 +47,22 @@ Aşağıdaki TOML formatında secrets ekle:
 # API Keys for FundPortal
 
 # FRED - Federal Reserve Economic Data
-FRED_API_KEY = "629b7edf6527882dd34e63e9d997dbbd"
+FRED_API_KEY = "your_fred_key_here"
 
 # Finnhub - News & Sentiment
-FINNHUB_API_KEY = "d4av0chr01qp275hlc1gd4av0chr01qp275hlc20"
+FINNHUB_API_KEY = "your_finnhub_key_here"
 
 # Alpha Vantage - Stock Data Backup
-ALPHA_VANTAGE_KEY = "BYBVGOL3FJUY25VJ"
+ALPHA_VANTAGE_KEY = "your_alpha_vantage_key_here"
 
 # Financial Modeling Prep
-FMP_API_KEY = "FQKKwmFS2XU4qv2RGnpubSVMFydihGHK"
+FMP_API_KEY = "your_fmp_key_here"
 
 # Polygon.io
-POLYGON_API_KEY = "FzBpujruNLMWzu9gkd059VxCpIipt0Ds"
+POLYGON_API_KEY = "your_polygon_key_here"
 
 # TradingEconomics
-TRADINGECONOMICS_KEY = "3634da0992cf49f:uvn9offvqlvdtvr"
+TRADINGECONOMICS_KEY = "your_tradingeconomics_key_here"
 
 # Optional: Binance (uncomment if you have keys)
 # BINANCE_API_KEY = "your_binance_key"
@@ -117,8 +117,8 @@ Eğer secrets yerine environment variables kullanmak istersen:
 2. "Python version" altında "Environment variables" bul
 3. Her API key için:
    ```
-   FRED_API_KEY=629b7edf6527882dd34e63e9d997dbbd
-   FINNHUB_API_KEY=d4av0chr01qp275hlc1gd4av0chr01qp275hlc20
+   FRED_API_KEY=your_fred_key_here
+   FINNHUB_API_KEY=your_finnhub_key_here
    ...
    ```
 

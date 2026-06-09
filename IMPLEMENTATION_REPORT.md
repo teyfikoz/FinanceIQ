@@ -592,7 +592,7 @@ Tüm endpoint'ler fallback mekanizmasına sahip:
 
 ```env
 # Production için mutlaka değiştirin:
-SECRET_KEY=your-super-secret-jwt-key-change-this-in-production
+SECRET_KEY=your_secret_key_here
 
 # Güçlü şifre kullanın:
 POSTGRES_PASSWORD=use_strong_password_here

@@ -45,8 +45,7 @@ App
 ### 1. Verify locally
 
 ```bash
-python3 -m py_compile main.py
-python3 -m py_compile modules/*.py
+python scripts/release_guard.py
 ```
 
 ### 2. Sync to server
@@ -85,6 +84,14 @@ Expected:
 - health endpoint returns `ok`
 - public host returns `HTTP 200`
 - validate the HTTPS host as the canonical production endpoint
+
+### 5. Run the smoke script
+
+```bash
+BASE_URL=https://fundpilot.techsyncanalytica.com \
+SSH_TARGET=root@46.62.164.198 \
+bash scripts/post_deploy_smoke.sh
+```
 
 ## Current UX/Performance State
 
@@ -182,12 +189,17 @@ See:
 
 ## Release Checklist
 
-- code compiles locally
+- `scripts/release_guard.py` passes locally
 - changed modules synced to `/opt/fundportal/app`
 - `fundportal.service` restarted
 - local health check returns `ok`
 - `https://fundpilot.techsyncanalytica.com` returns `200`
 - no production hostname regressions in branding or QR/export URLs
+
+## Operational Docs
+
+- [DEPLOYMENT_CHECKLIST.md](/Users/teyfikoz/github-projects/FundPortal/DEPLOYMENT_CHECKLIST.md)
+- [docs/PRODUCTION_RUNBOOK.md](/Users/teyfikoz/github-projects/FundPortal/docs/PRODUCTION_RUNBOOK.md)
 
 ## Known Follow-Up Work
 

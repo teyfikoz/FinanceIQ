@@ -68,7 +68,7 @@ pip install -r requirements.txt
 ### 2. Database Setup
 ```bash
 # Start PostgreSQL and Redis
-docker run -d --name postgres -e POSTGRES_PASSWORD=password -p 5432:5432 postgres:15
+docker run -d --name postgres -e POSTGRES_PASSWORD=replace_with_postgres_password -p 5432:5432 postgres:15
 docker run -d --name redis -p 6379:6379 redis:7
 
 # Setup database
@@ -147,7 +147,7 @@ LOG_LEVEL=INFO
 UPDATE_FREQUENCY_HOURS=24
 
 # Security
-SECRET_KEY=your-super-secret-key
+SECRET_KEY=your_secret_key_here
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 # Alerts

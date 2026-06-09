@@ -1,8 +1,6 @@
 # FundPortal
 
-FundPortal is the live financial research and fund intelligence application currently deployed at `https://fundpilot.techsyncanalytica.com`.
-
-The product started as `FundPortal`, but the active production identity, host, and deployment flow are now centered on `FundPortal`.
+FundPortal is the live financial research and fund intelligence application deployed at `https://fundpilot.techsyncanalytica.com`.
 
 ## Current Production State
 
@@ -74,11 +72,31 @@ http://localhost:8501
 Primary deployment documentation:
 
 - [DEPLOYMENT_GUIDE.md](/Users/teyfikoz/github-projects/FundPortal/DEPLOYMENT_GUIDE.md)
+- [DEPLOYMENT_CHECKLIST.md](/Users/teyfikoz/github-projects/FundPortal/DEPLOYMENT_CHECKLIST.md)
+- [docs/PRODUCTION_RUNBOOK.md](/Users/teyfikoz/github-projects/FundPortal/docs/PRODUCTION_RUNBOOK.md)
+- [docs/SECRET_ROTATION_CHECKLIST.md](/Users/teyfikoz/github-projects/FundPortal/docs/SECRET_ROTATION_CHECKLIST.md)
 
 Deployment assets:
 
 - [deployment/fundportal.service](/Users/teyfikoz/github-projects/FundPortal/deployment/fundportal.service)
 - [deployment/fundportal.nginx.conf](/Users/teyfikoz/github-projects/FundPortal/deployment/fundportal.nginx.conf)
+
+## Release Guard
+
+Run the repo-level guard before shipping:
+
+```bash
+python scripts/release_guard.py
+```
+
+This enforces:
+
+- `pytest -q tests/`
+- silent `import main`
+- Python compile sanity
+- no legacy branding regressions in active production files
+- no undocumented `@st.cache_data` usage
+- no obvious hardcoded secret values in tracked text files
 
 ## Legacy Streamlit Cloud Status
 

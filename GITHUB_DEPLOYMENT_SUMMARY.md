@@ -254,7 +254,7 @@ ALPHA_VANTAGE_API_KEY = "optional"
    ```
    FRED_API_KEY=your_key
    COINGECKO_API_KEY=optional
-   SECRET_KEY=random_secure_string
+   SECRET_KEY=your_secret_key_here
    ```
 6. **"Apply"** → Deployment başlar
 

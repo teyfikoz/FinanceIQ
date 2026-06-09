@@ -13,22 +13,22 @@ except Exception:  # pragma: no cover
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "FundPilot"
+    PROJECT_NAME: str = "FundPortal"
     VERSION: str = "2.0.0"
     API_V1_STR: str = "/api/v1"
-    APP_DISPLAY_NAME: str = "FundPilot"
+    APP_DISPLAY_NAME: str = "FundPortal"
     PUBLIC_SITE_URL: str = os.environ.get("PUBLIC_SITE_URL", "https://fundpilot.techsyncanalytica.com")
     SUPPORT_EMAIL: str = os.environ.get("SUPPORT_EMAIL", "techsyncanalytica@gmail.com")
 
     # Security - MUST be set via environment variable in production
-    SECRET_KEY: str = os.environ.get("SECRET_KEY", "dev-only-change-in-production")
+    SECRET_KEY: str = os.environ.get("SECRET_KEY", "replace_with_secret_key")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
 
     # Database
     POSTGRES_SERVER: str = "localhost"
     POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = os.environ.get("POSTGRES_PASSWORD", "password")
+    POSTGRES_PASSWORD: str = os.environ.get("POSTGRES_PASSWORD", "replace_with_postgres_password")
     POSTGRES_DB: str = "liquidity_dashboard"
     POSTGRES_PORT: str = "5432"
     DATABASE_URL: Optional[PostgresDsn] = None
@@ -42,7 +42,7 @@ class Settings(BaseSettings):
         return PostgresDsn.build(
             scheme="postgresql",
             username=os.getenv("POSTGRES_USER", "postgres"),
-            password=os.getenv("POSTGRES_PASSWORD", "password"),
+            password=os.getenv("POSTGRES_PASSWORD", "replace_with_postgres_password"),
             host=os.getenv("POSTGRES_SERVER", "localhost"),
             port=int(os.getenv("POSTGRES_PORT", "5432")),
             path=f"/{os.getenv('POSTGRES_DB', 'liquidity_dashboard')}",
@@ -91,7 +91,7 @@ class Settings(BaseSettings):
     PUBLIC_DEFAULT_INSTITUTIONAL_MANAGER: str = os.environ.get("PUBLIC_DEFAULT_INSTITUTIONAL_MANAGER", "berkshire")
     PUBLIC_SEC_USER_AGENT: str = os.environ.get(
         "PUBLIC_SEC_USER_AGENT",
-        f"FundPilot/2.0 ({os.environ.get('SUPPORT_EMAIL', 'techsyncanalytica@gmail.com')})",
+        f"FundPortal/2.0 ({os.environ.get('SUPPORT_EMAIL', 'techsyncanalytica@gmail.com')})",
     )
     LOG_LEVEL: str = "INFO"
 

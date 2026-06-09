@@ -209,12 +209,12 @@ print(history)
 
 ```bash
 # .env dosyası oluştur
-export FRED_API_KEY="629b7edf6527882dd34e63e9d997dbbd"
-export FINNHUB_API_KEY="d4av0chr01qp275hlc1gd4av0chr01qp275hlc20"
-export ALPHA_VANTAGE_KEY="BYBVGOL3FJUY25VJ"
-export FMP_API_KEY="FQKKwmFS2XU4qv2RGnpubSVMFydihGHK"
-export POLYGON_API_KEY="FzBpujruNLMWzu9gkd059VxCpIipt0Ds"
-export TRADINGECONOMICS_KEY="3634da0992cf49f:uvn9offvqlvdtvr"
+export FRED_API_KEY="your_fred_key_here"
+export FINNHUB_API_KEY="your_finnhub_key_here"
+export ALPHA_VANTAGE_KEY="your_alpha_vantage_key_here"
+export FMP_API_KEY="your_fmp_key_here"
+export POLYGON_API_KEY="your_polygon_key_here"
+export TRADINGECONOMICS_KEY="your_tradingeconomics_key_here"
 ```
 
 **NOT:** API key'ler zaten `config/api_keys.json`'da! Environment variables opsiyonel.
@@ -223,8 +223,8 @@ export TRADINGECONOMICS_KEY="3634da0992cf49f:uvn9offvqlvdtvr"
 
 ```bash
 # Heroku'da environment variables set et
-heroku config:set FRED_API_KEY="629b7edf6527882dd34e63e9d997dbbd"
-heroku config:set FINNHUB_API_KEY="d4av0chr01qp275hlc1gd4av0chr01qp275hlc20"
+heroku config:set FRED_API_KEY="your_fred_key_here"
+heroku config:set FINNHUB_API_KEY="your_finnhub_key_here"
 # ... diğerleri
 
 # Deploy
