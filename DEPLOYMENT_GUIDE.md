@@ -3,6 +3,7 @@
 ## Current Production State
 
 - Product name: `FundPilot`
+- Repository slug: `FinanceIQ` (legacy repository name, current public product brand is `FundPilot`)
 - Canonical URL: `https://fundpilot.techsyncanalytica.com`
 - Runtime: `Streamlit`
 - App entrypoint: [`main.py`](/Users/teyfikoz/Projects/saas/financeiq/main.py)

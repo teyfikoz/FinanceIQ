@@ -1,8 +1,8 @@
-# FundPortal Release Update — 2026-06-09
+# FundPilot Release Update — 2026-06-09
 
 ## Scope
 
-This update closes the last production-hardening and operations gaps for FundPortal.
+This update closes the production-hardening, deployment, branding, and navigation gaps for FundPilot.
 
 ## What Changed
 
@@ -39,7 +39,21 @@ This update closes the last production-hardening and operations gaps for FundPor
 ### Runtime config
 
 - Updated `app/core/config.py` defaults to production-safe placeholders
-- Updated packaging metadata and pytest labeling to FundPortal naming
+- Normalized deploy/runtime defaults around the canonical `FundPilot` brand
+
+### Branding correction
+
+- Confirmed the public product name is `FundPilot`
+- Confirmed the canonical public host is `https://fundpilot.techsyncanalytica.com`
+- Confirmed the GitHub repository slug remains `FinanceIQ`
+- Corrected deployment-facing docs and runtime defaults that had temporarily drifted to `FundPortal`
+
+### Navigation repair
+
+- Fixed the Streamlit sidebar navigation state bug
+- `Research` now routes correctly to `?view=stock-research`
+- `Workspace` now routes correctly to `?view=portfolio`
+- Quick routes now force a safe rerun instead of mutating widget state after instantiation
 
 ### Nginx / Hetzner production fix
 
@@ -55,8 +69,11 @@ This update closes the last production-hardening and operations gaps for FundPor
 ## Validation
 
 - `python3 scripts/release_guard.py` passes locally
-- `pytest -q tests/` passes with `123 passed`
+- targeted navigation regression tests pass
 - production smoke passes on Hetzner
+- live browser validation confirms:
+  - `Research` click updates URL to `?view=stock-research`
+  - `Workspace` click updates URL to `?view=portfolio`
 
 ## Remaining Manual Step
 

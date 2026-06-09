@@ -1,4 +1,4 @@
-# FundPortal Secret Rotation Checklist
+# FundPilot Secret Rotation Checklist
 
 ## When To Rotate
 
@@ -11,7 +11,7 @@ Rotate immediately if any secret:
 
 ## Current Secret Inventory
 
-Application and provider keys referenced by the active FundPortal runtime:
+Application and provider keys referenced by the active FundPilot runtime:
 
 - `SECRET_KEY`
 - `FRED_API_KEY`
@@ -113,7 +113,7 @@ After rotating `POSTGRES_PASSWORD`:
 
 - update the database user password first
 - then update `/etc/fundportal/fundportal.env`
-- then restart FundPortal
+- then restart FundPilot
 
 After rotating `SECRET_KEY`:
 

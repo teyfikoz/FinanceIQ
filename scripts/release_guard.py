@@ -93,6 +93,13 @@ ALLOWED_SECRET_MARKERS = (
     "None",
     "null",
 )
+ALLOWED_FINANCEIQ_CONTEXT_MARKERS = (
+    "repository slug",
+    "repo slug",
+    "github.com/teyfikoz/FinanceIQ",
+    "/Projects/saas/financeiq",
+    "financeiq_deployement_guide.md",
+)
 SECRET_PATTERN = re.compile(
     rf"(?:export\s+)?({'|'.join(map(re.escape, SECRET_KEYS))})\s*[:=]\s*[\"']?([A-Za-z0-9:_\-/\.]+)"
 )
@@ -164,6 +171,9 @@ def check_legacy_branding() -> list[CheckFailure]:
         for line_no, line in enumerate(text.splitlines(), start=1):
             for brand in LEGACY_BRANDS:
                 if brand in line:
+                    normalized_line = line.lower()
+                    if brand == "FinanceIQ" and any(marker.lower() in normalized_line for marker in ALLOWED_FINANCEIQ_CONTEXT_MARKERS):
+                        continue
                     failures.append(
                         CheckFailure("branding", f"{path.relative_to(ROOT)}:{line_no}: contains {brand!r}")
                     )

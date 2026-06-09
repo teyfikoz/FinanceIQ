@@ -1,236 +1,47 @@
-# 🌐 Streamlit Cloud Deployment Setup
+# FundPilot Streamlit Cloud Notes
 
-## ✅ GitHub Push Tamamlandı!
+## Status
 
-Tüm güncellemeler GitHub'a push edildi:
-- 🌀 Cycle Intelligence Engine
-- 🔑 Complete API Integration
-- 📊 12+ Data Sources
-- 🇹🇷 TEFAS Integration
+Streamlit Cloud is **not** the current primary production path.
 
-**Commit:** `95ccc57`
-**Repository:** https://github.com/teyfikoz/FundPortal
+Current production:
 
----
+- Product: `FundPilot`
+- Canonical host: `https://fundpilot.techsyncanalytica.com`
+- Infra: `Hetzner + nginx + systemd + Streamlit`
 
-## 🚀 Streamlit Cloud Auto-Deploy
+This file remains only as an optional fallback/reference if you ever want a secondary Streamlit Cloud deployment.
 
-Streamlit Cloud otomatik olarak deploy edecek (2-5 dakika).
+## Repository Naming Note
 
-**App URL:** https://financeiq.streamlit.app
+- Public product brand: `FundPilot`
+- GitHub repo slug: legacy repository name
 
-### Deploy Status Kontrol:
+If you create a Streamlit Cloud app from the current repo, use the current GitHub repository for this project but name the app itself `FundPilot`.
 
-1. Git: https://share.streamlit.io/
-2. Login yap
-3. "FundPortal" app'ine tıkla
-4. "Deploy" tab'ında status gör
+## Minimum Streamlit Cloud Settings
 
----
-
-## 🔑 CRITICAL: API Keys Configuration
-
-**ÖNEMLİ:** Streamlit Cloud'da API key'leri configure etmen gerekiyor!
-
-### Adım 1: Streamlit Cloud Dashboard
-
-1. Git: https://share.streamlit.io/
-2. "FundPortal" app'ine tıkla
-3. ⚙️ "Settings" (sağ üstte)
-4. "Secrets" tab'ını aç
-
-### Adım 2: Secrets Ekle
-
-Aşağıdaki TOML formatında secrets ekle:
+- Main file: `main.py`
+- Python: `3.12` if available, otherwise `3.11`
+- Secrets:
 
 ```toml
-# API Keys for FundPortal
-
-# FRED - Federal Reserve Economic Data
+FINANCEIQ_APP_DISPLAY_NAME = "FundPilot"
+FINANCEIQ_PUBLIC_APP_URL = "https://fundpilot.techsyncanalytica.com"
+FINANCEIQ_PUBLIC_APP_HOST = "fundpilot.techsyncanalytica.com"
+FINANCEIQ_REQUIRE_AUTH = false
+FINANCEIQ_DIRECT_ACCESS = true
 FRED_API_KEY = "your_fred_key_here"
-
-# Finnhub - News & Sentiment
-FINNHUB_API_KEY = "your_finnhub_key_here"
-
-# Alpha Vantage - Stock Data Backup
-ALPHA_VANTAGE_KEY = "your_alpha_vantage_key_here"
-
-# Financial Modeling Prep
-FMP_API_KEY = "your_fmp_key_here"
-
-# Polygon.io
-POLYGON_API_KEY = "your_polygon_key_here"
-
-# TradingEconomics
-TRADINGECONOMICS_KEY = "your_tradingeconomics_key_here"
-
-# Optional: Binance (uncomment if you have keys)
-# BINANCE_API_KEY = "your_binance_key"
-# BINANCE_SECRET_KEY = "your_binance_secret"
-
-# Optional: NewsAPI (uncomment if you have key)
-# NEWSAPI_KEY = "your_newsapi_key"
+TCMB_EVDS_API_KEY = "your_tcmb_evds_key_here"
 ```
 
-### Adım 3: Save & Reboot
+## Important Caveat
 
-1. "Save" butonuna bas
-2. App otomatik restart olacak
-3. 1-2 dakika bekle
+The production fixes validated on Hetzner include:
 
----
+- correct HTTPS termination
+- fixed sidebar navigation state
+- production smoke script
+- env-backed `FundPilot` branding
 
-## ✅ Verification
-
-Deploy tamamlandıktan sonra:
-
-### 1. Check App Status
-
-https://financeiq.streamlit.app açılıyor mu?
-
-### 2. Test API Configuration
-
-1. App'i aç
-2. Settings tab → API Configuration
-3. API Status Dashboard'u kontrol et
-4. ✅ Configured API'leri gör
-
-### 3. Test Cycle Intelligence
-
-1. "🌀 Cycle Intelligence" tab'ına git
-2. Analiz yüklendiğinde başarılı!
-3. FRED data ile gerçek döngü analizi göreceksin
-
-### 4. Test TEFAS
-
-1. Stock Research veya Portfolio tab'ına git
-2. Türk fonu ara (örn: "TCD")
-3. TEFAS data geliyorsa başarılı!
-
----
-
-## 🔧 Alternative: Environment Variables
-
-Eğer secrets yerine environment variables kullanmak istersen:
-
-1. Settings → Advanced settings
-2. "Python version" altında "Environment variables" bul
-3. Her API key için:
-   ```
-   FRED_API_KEY=your_fred_key_here
-   FINNHUB_API_KEY=your_finnhub_key_here
-   ...
-   ```
-
-**NOT:** Secrets yöntemi önerilir (daha güvenli).
-
----
-
-## 🐛 Troubleshooting
-
-### App deploy olmuyor?
-
-**Logs kontrol:**
-1. Streamlit Cloud Dashboard → App → "Logs" tab
-2. Error mesajlarını oku
-
-**Common issues:**
-- `ModuleNotFoundError`: requirements.txt eksik mi?
-- `ImportError`: Python version uyumsuzluğu?
-- API errors: Secrets doğru girilmemiş?
-
-### API'ler çalışmıyor?
-
-**Kontrol:**
-1. Secrets doğru formatta mı? (TOML syntax)
-2. API key'lerde boşluk/quote var mı?
-3. App restart olduktan sonra 2 dakika bekle
-
-**Debug:**
-- Settings → API Configuration → Status Dashboard
-- Hangi API'ler configured?
-
-### TEFAS data gelmiyor?
-
-TEFAS sadece İş günlerinde güncellenir. Hafta sonu/tatil = son iş günü data.
-
----
-
-## 📊 Expected Results
-
-Deploy tamamlandıktan sonra:
-
-```
-✅ App açılıyor: https://financeiq.streamlit.app
-✅ 16 tab görünüyor (🌀 Cycle Intelligence dahil)
-✅ API Status Dashboard: 8+ API configured
-✅ FRED data ile cycle analysis çalışıyor
-✅ TEFAS fonları erişilebilir
-✅ Finnhub news geliyorNewsAPI
-✅ FMP stock/ETF data çalışıyor
-```
-
----
-
-## 🎯 Post-Deploy Checklist
-
-Deployment sonrası kontrol listesi:
-
-```
-☐ App URL açılıyor
-☐ Login çalışıyor (demo/demo123)
-☐ All 16 tabs visible
-☐ Settings → API Configuration açılıyor
-☐ API Status: 6+ configured APIs
-☐ Cycle Intelligence tab yükleniyor
-☐ FRED data ile analiz çalışıyor
-☐ Stock search çalışıyor (AAPL, GOOGL, etc.)
-☐ TEFAS fund search çalışıyor (TCD, AKG)
-☐ News feed geliyor
-☐ No critical errors in logs
-```
-
----
-
-## 🔐 Security Notes
-
-### ✅ Yapılan:
-- API keys GitHub'a commit edilmedi
-- config/api_keys.json gitignore'da
-- Secrets Streamlit Cloud'da güvenli
-
-### ⚠️ Dikkat:
-- Secrets'ı screenshot'ta paylaşma
-- API key'leri public yerlerde gösterme
-- Read-only permissions kullan (trading disable)
-
----
-
-## 📞 Support
-
-**Issues:**
-- GitHub: https://github.com/teyfikoz/FundPortal/issues
-- Streamlit Community: https://discuss.streamlit.io/
-
-**Streamlit Cloud:**
-- Status: https://status.streamlit.io/
-- Docs: https://docs.streamlit.io/streamlit-cloud
-
----
-
-## 🎉 Success!
-
-Eğer yukarıdaki checklist'in tamamı ✅ ise:
-
-**🚀 FundPortal artık production'da!**
-
-```
-🌐 Live URL: https://financeiq.streamlit.app
-📊 12+ data sources
-💰 $0 cost (free tier)
-🇹🇷 Turkish market support
-🌀 Cycle Intelligence
-🔑 Full API integration
-```
-
-**Enjoy!** 🎉
+If a Streamlit Cloud deployment is created later, validate those same behaviors explicitly. Do not assume parity automatically.

@@ -1,287 +1,76 @@
-# 🚀 Quick Start Guide - FundPortal with Full API Integration
+# FundPilot Quick Start
 
-## ✅ API Keys Configured!
+## Current Identity
 
-Tüm API key'lerin başarıyla yapılandırıldı:
+- Product name: `FundPilot`
+- Canonical public host: `https://fundpilot.techsyncanalytica.com`
+- Repository slug: `FinanceIQ`
+- Local repo path: `/Users/teyfikoz/Projects/saas/financeiq`
 
-```
-✅ FRED API: 629b7...dbbd
-✅ Finnhub API: d4av0c...hlc20
-✅ Alpha Vantage: BYBVGO...Y25VJ
-✅ TradingEconomics: 3634da...dtvr
-✅ Polygon.io: FzBpuj...pt0Ds
-✅ FMP (Financial Modeling Prep): FQKKwm...ihGHK
-```
-
----
-
-## 🎯 3 Adımda Başla
-
-### 1️⃣ Uygulamayı Başlat (30 saniye)
+## Local Start
 
 ```bash
-cd /Users/teyfikoz/Downloads/Borsa\ Analiz/global_liquidity_dashboard
+cd /Users/teyfikoz/Projects/saas/financeiq
+python3 scripts/release_guard.py --skip-pytest
 streamlit run main.py
 ```
 
-### 2️⃣ API'leri Test Et (2 dakika)
+Open:
+
+- `http://localhost:8501`
+
+## Local Validation
+
+Fast validation:
 
 ```bash
-python3 test_all_apis.py
+pytest -q tests/test_navigation_state.py
+python3 scripts/release_guard.py --skip-pytest
 ```
 
-Bu script tüm API'leri test edip rapor verecek.
-
-### 3️⃣ Uygulamada Kullan!
-
-API'ler otomatik yüklenecek. Artık:
-
-- 📊 **Cycle Intelligence** → FRED data ile döngü analizi
-- 📰 **News** → Finnhub'dan gerçek haberler
-- 🇹🇷 **TEFAS Fonları** → Türk fonları canlı
-- 💰 **Crypto** → Binance fiyatları
-- 📈 **Stocks** → Yahoo + FMP + Alpha Vantage fallback
-
----
-
-## 💻 Kod Kullanımı
-
-### Basit Kullanım (Tek Satır)
-
-```python
-from utils.market_data_engine import market
-
-# Hisse fiyatı
-apple = market.get_stock('AAPL')
-print(f"Apple: ${apple['price']}")
-
-# Kripto fiyatı
-btc = market.get_crypto('BTC')
-print(f"Bitcoin: ${btc['price']}")
-
-# TEFAS fonu
-tcd = market.get_fund('TCD')
-print(f"TCD Fon: {tcd['current_price']}")
-
-# Makro data
-gdp = market.get_macro('gdp')
-print(f"GDP: {gdp['value']}")
-```
-
-### Gelişmiş Kullanım
-
-```python
-from utils.market_data_engine import market
-
-# Çoklu hisse
-stocks = market.get_multiple_stocks(['AAPL', 'GOOGL', 'MSFT'])
-for symbol, data in stocks.items():
-    print(f"{symbol}: ${data['price']}")
-
-# TEFAS fon geçmişi (pandas DataFrame)
-df = market.get_fund_dataframe('TCD', start_date='2023-01-01')
-print(df.head())
-
-# ETF kompozisyonu
-holdings = market.get_etf_holdings('SPY')
-for holding in holdings[:5]:
-    print(holding)
-
-# Haber + sentiment
-news = market.get_news(symbol='AAPL')
-sentiment = market.get_sentiment('AAPL')
-```
-
-### Direct API Kullanımı
-
-```python
-from utils.unified_api_manager import api_manager
-
-# FRED
-gdp_data = api_manager.get_fred_series('GDP')
-
-# FMP
-quote = api_manager.get_fmp_quote('AAPL')
-profile = api_manager.get_fmp_profile('AAPL')
-
-# TEFAS
-fund_history = api_manager.get_tefas_fund_history('TCD', '2023-01-01')
-
-# Binance
-btc_ticker = api_manager.get_binance_ticker('BTCUSDT')
-
-# Finnhub
-news = api_manager.get_finnhub_news('AAPL')
-sentiment = api_manager.get_finnhub_sentiment('AAPL')
-```
-
----
-
-## 📊 API Status Kontrol
-
-### Python'da:
-
-```python
-from utils.market_data_engine import market
-
-status = market.get_api_status()
-for api, info in status.items():
-    print(f"{api}: {'✅' if info['configured'] else '❌'}")
-```
-
-### Uygulamada:
-
-1. **Settings** tab → **API Configuration**
-2. Status Dashboard'u kontrol et
-3. Tüm API'lerin ✅ olduğunu gör
-
----
-
-## 🔧 Troubleshooting
-
-### API çalışmıyor?
-
-```python
-# Cache temizle
-from utils.market_data_engine import market
-market.clear_cache()
-
-# API status kontrol
-status = market.get_api_status()
-print(status)
-```
-
-### Rate limit hatası?
-
-API'ler otomatik rate limit yönetiyor. Eğer limit aşılırsa:
-
-- ✅ Otomatik cache'den servis eder
-- ✅ Fallback API'ye geçer
-- ⏳ Gerekirse bekler
-
-### TEFAS veri gelmiyor?
-
-```python
-# TEFAS test
-from utils.market_data_engine import market
-
-fund = market.get_fund('TCD')
-print(fund)
-
-# Boş geliyorsa, direkt API test:
-from utils.unified_api_manager import api_manager
-history = api_manager.get_tefas_fund_history('TCD', '2024-01-01')
-print(history)
-```
-
----
-
-## 📈 Özellikler
-
-### ✅ Çalışan API'ler:
-
-| API | Status | Limit | Kullanım |
-|-----|--------|-------|----------|
-| Yahoo Finance | ✅ | Unlimited | Primary stock data |
-| FRED | ✅ | Unlimited | Macro data |
-| FMP | ✅ | 250/day | Stock/ETF/Crypto backup |
-| TEFAS | ✅ | Unlimited | Turkish funds |
-| Finnhub | ✅ | 60/min | News & sentiment |
-| Alpha Vantage | ✅ | 25/day | Stock backup |
-| Polygon | ✅ | 5/min | Stock backup |
-| TradingEconomics | ✅ | 500/month | Economic calendar |
-| Binance | ⚠️  | 1200/min | Crypto (key optional) |
-
-### 🎯 Coverage:
-
-- 📊 **Stocks**: Yahoo (primary) + FMP + Alpha Vantage + Finnhub + Polygon
-- 💰 **Crypto**: Binance + FMP + CoinGecko
-- 🇹🇷 **Funds**: TEFAS (full coverage)
-- 📈 **Macro**: FRED + World Bank + TradingEconomics
-- 📰 **News**: Finnhub + NewsAPI
-- 🎯 **ETFs**: FMP holdings + Yahoo prices
-
----
-
-## 🚀 Production Deployment
-
-### Environment Variables (Opsiyonel)
+Full validation:
 
 ```bash
-# .env dosyası oluştur
-export FRED_API_KEY="your_fred_key_here"
-export FINNHUB_API_KEY="your_finnhub_key_here"
-export ALPHA_VANTAGE_KEY="your_alpha_vantage_key_here"
-export FMP_API_KEY="your_fmp_key_here"
-export POLYGON_API_KEY="your_polygon_key_here"
-export TRADINGECONOMICS_KEY="your_tradingeconomics_key_here"
+pytest -q tests/
+python3 scripts/release_guard.py
 ```
 
-**NOT:** API key'ler zaten `config/api_keys.json`'da! Environment variables opsiyonel.
+## Production Runtime
 
-### Heroku Deployment
+- App dir: `/opt/fundportal/app`
+- Venv: `/opt/fundportal/venv`
+- Env file: `/etc/fundportal/fundportal.env`
+- Service: `fundportal`
+- Reverse proxy: `nginx`
+- Public host: `fundpilot.techsyncanalytica.com`
+
+## Production Smoke
 
 ```bash
-# Heroku'da environment variables set et
-heroku config:set FRED_API_KEY="your_fred_key_here"
-heroku config:set FINNHUB_API_KEY="your_finnhub_key_here"
-# ... diğerleri
-
-# Deploy
-git push heroku main
+ssh -o BatchMode=yes root@46.62.164.198 \
+  "cd /opt/fundportal/app && bash scripts/post_deploy_smoke.sh"
 ```
 
-### Docker
+Expected result:
 
-```dockerfile
-# API keys'i Docker secrets olarak ekle
-docker secret create fred_key /path/to/fred_key.txt
-docker secret create finnhub_key /path/to/finnhub_key.txt
-```
+- `FundPilot post-deploy smoke passed.`
 
----
-
-## 💰 Maliyet
-
-### Şu Anki Durum: **$0/month**
-
-```
-Günlük Kapasite:
-├── Yahoo Finance: Unlimited
-├── FRED: Unlimited
-├── TEFAS: Unlimited
-├── FMP: 250 calls/day
-├── Finnhub: 86,400 calls/day
-├── Binance: 1,728,000 calls/day
-└── TOTAL: 2M+ calls/day
-
-Cache Hit Rate: 80% hedef
-Effective Capacity: 10M+ calls/day
-```
-
-### 100+ User: **Hala $0**
-### 1000+ User: **~$150/month** (opsiyonel upgrades)
-
----
-
-## 📚 Daha Fazla Bilgi
-
-- **API Setup Guide:** `docs/FREE_API_SETUP_GUIDE.md`
-- **API Usage Strategy:** `docs/API_USAGE_STRATEGY.md`
-- **Setup Checklist:** `docs/API_SETUP_CHECKLIST.md`
-
----
-
-## ✅ Hazır!
+## Core Environment Variables
 
 ```bash
-# Test yap
-python3 test_all_apis.py
-
-# Uygulamayı başlat
-streamlit run main.py
-
-# Enjoy! 🎉
+FINANCEIQ_APP_DISPLAY_NAME=FundPilot
+FINANCEIQ_PUBLIC_APP_URL=https://fundpilot.techsyncanalytica.com
+FINANCEIQ_PUBLIC_APP_HOST=fundpilot.techsyncanalytica.com
+FINANCEIQ_REQUIRE_AUTH=false
+FINANCEIQ_DIRECT_ACCESS=true
+FRED_API_KEY=your_fred_key_here
+TCMB_EVDS_API_KEY=your_tcmb_evds_key_here
 ```
 
-**Artık sıfır maliyet ile 2M+ daily request kapasitesine sahipsin!** 🚀
+## Most Important Recent Fix
+
+The public sidebar navigation bug is fixed in production:
+
+- `Research` now routes to `?view=stock-research`
+- `Workspace` now routes to `?view=portfolio`
+- quick routes no longer corrupt Streamlit widget state

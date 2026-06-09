@@ -1,183 +1,86 @@
-# FundPortal Deployment & Product Guide (Production)
+# FundPilot Deployment & Product Guide
 
-## Executive Summary
-FundPortal is a unified Streamlit platform for multi‑market financial analysis, institutional activity insights, technical analysis, strategy backtesting, and macro context. The application runs from a single entrypoint (`main.py`) and is modular, production‑ready, and extensible.
+## Identity
 
-**Live app:**
-```
-https://financeiq.streamlit.app/
-```
+- Public product name: `FundPilot`
+- Canonical host: `https://fundpilot.techsyncanalytica.com`
+- Repository slug: legacy GitHub repo name
+- Runtime: `Streamlit`
+- Current production host: `Hetzner`
 
-## 1) What is FundPortal?
-A professional-grade dashboard that aggregates global markets, ETFs/funds, crypto, Turkish markets, and institutional analytics into one interface.
+## What This File Is
 
-## 2) What does it do?
-- Multi‑market tracking (US, Europe, Turkey)
-- Institutional/whale activity and fund flow analytics
-- Technical analysis + backtesting
-- Strategy lab and quantitative tools
-- Macro context (FRED + Data360)
-- Portfolio, watchlist, alerts
+This file is kept for backward compatibility because older internal notes referenced `financeiq_deployement_guide.md`.  
+The live product is `FundPilot`, not the old internal repo alias and not `FundPortal`.
 
-## 3) Core Features (Summary)
-**Main tabs (main.py):**
-- 🎯 Dashboard
-- 🔍 Stock Research
-- 📡 Screener
-- 🧪 Strategy Lab
-- 📊 ETFs & Funds
-- 🏛️ Institutional
-- 🇹🇷 Turkish Markets
-- 🤖 AI Tools
-- 🎓 Education
-- 🐋 Whale Intelligence
-- 🎲 Entropy Analysis
-- 📊 Crypto Dominance
-- 🌀 Cycle Intelligence
-- 💼 Portfolio
-- 👁️ Watchlist
-- 🔔 Alerts
-- 🔒 Privacy
+## Current Production Topology
 
-**Recent updates (2026‑01‑28):**
-- **Global Macro Snapshot** (FRED + Data360) in Education
-- **News & Sentiment pipeline** (Finnhub → Alpha Vantage → yfinance)
-- **TwelveData fallback** for intraday/FX
-- **English‑only UI** (TR/EN toggle removed)
-- **HF Insights removed** from the app
-
-## 4) Architecture & Entrypoints
-- **Entrypoint:** `main.py`
-- **UI/Analytics:** `app/analytics/*`, `app/ui/*`
-- **Data layer:** `utils/*`, `app/data_collectors/*`, `api/*`
-- **Market data fallback:** `utils/market_data_fetcher.py`
-- **DB/Auth:** `utils/database.py`, `utils/authentication.py`
-
-**Auth control:**
-- Default: direct access (no login)
-- Enable with ENV: `FINANCEIQ_REQUIRE_AUTH=true`
-
-## 5) System Architecture (Mermaid)
-```mermaid
-flowchart TD
-    A[main.py] --> B[UI Tabs]
-    B --> C[Analytics Modules]
-    B --> D[Strategy Lab]
-    B --> E[Whale Intelligence]
-
-    C --> F[Market Data Fetcher]
-    F --> G[yfinance]
-    F --> H[Fallback/Synthetic]
-    F --> I[TradingView Bridge (optional)]
-
-    D --> J[Indicator Lab]
-    J --> K[IMSE Engine]
-    J --> L[Core Indicators]
-
-    E --> M[Fund Flow Radar / TEFAS]
-    E --> N[Institutional Events]
-
-    B --> O[Education]
-    O --> P[FRED]
-    O --> Q[Data360]
+```text
+fundpilot.techsyncanalytica.com
+  -> nginx :80/:443
+  -> proxy_pass 127.0.0.1:8501
+  -> streamlit run /opt/fundportal/app/main.py
 ```
 
-## 6) Repos & References
-**Main repo:**
-```
-https://github.com/teyfikoz/FundPortal
-```
+## Key Paths
 
-**Optional data bridge:**
-```
-https://github.com/Mathieu2301/TradingView-API
-```
+- App: `/opt/fundportal/app`
+- Service: `/etc/systemd/system/fundportal.service`
+- Env: `/etc/fundportal/fundportal.env`
+- Health: `http://127.0.0.1:8501/_stcore/health`
 
-## 7) Data Sources & APIs
-**Primary/free sources:**
-- Yahoo Finance (yfinance)
-- TEFAS (Turkish funds)
-- KAP VYK API (Turkey disclosures)
+## Core Product Surfaces
 
-**Optional / API‑key sources:**
-- FRED (macro data)
-- Alpha Vantage
-- Financial Modeling Prep (FMP)
-- Finnhub
-- TwelveData (intraday/FX)
-- Polygon
-- CoinGecko (Pro optional)
-- Binance
-- NewsAPI
-- World Bank / Data360
-- TradingEconomics
+- `Market Desk`
+- `Research`
+- `Workspace`
+- `Turkish Markets / TEFAS`
+- `Institutional / 13F`
+- `Entropy / cycle / macro layers`
 
-## 8) Local Setup
-```bash
-cd /Users/teyfikoz/github-projects/FundPortal
-pip install -r requirements.txt
-python3 -m streamlit run main.py
-```
+## Important June 2026 Production Notes
 
-App URL: http://localhost:8501
+- product brand corrected back to `FundPilot`
+- canonical host verified as `fundpilot.techsyncanalytica.com`
+- sidebar navigation bug fixed:
+  - `Research` now opens `?view=stock-research`
+  - `Workspace` now opens `?view=portfolio`
+- nginx HTTPS vhost aligned with the correct certificate
+- post-deploy smoke passes on Hetzner
 
-**Note:** `.env` is auto‑loaded if present (local convenience only).
+## Deploy Flow
 
-## 9) Environment Variables / Secrets
-The app runs without keys; these are optional:
+1. Run local guard:
 
 ```bash
-# Macro / markets
-FRED_API_KEY=...
-ALPHA_VANTAGE_API_KEY=...
-FMP_API_KEY=...
-FINNHUB_API_KEY=...
-TWELVEDATA_API_KEY=...
-DATA360_API_BASE=https://extdataportal.worldbank.org/api/data360
-POLYGON_API_KEY=...
-NEWSAPI_KEY=...
-COINGECKO_API_KEY=...
-BINANCE_API_KEY=...
-BINANCE_SECRET_KEY=...
-
-# TradingView bridge
-TRADINGVIEW_SESSION=...
-TRADINGVIEW_SIGNATURE=...
-
-# Auth / env
-FINANCEIQ_ENV=production
-FINANCEIQ_REQUIRE_AUTH=true
-FINANCEIQ_DIRECT_ACCESS=false
+cd /Users/teyfikoz/Projects/saas/financeiq
+python3 scripts/release_guard.py
 ```
 
-## 10) Streamlit Cloud Deploy
-- App URL: https://financeiq.streamlit.app/
-- Main file: `main.py`
-- Python: 3.10 / 3.11 recommended
+2. Sync changed files:
 
-**Streamlit Secrets example:**
-```toml
-[api_keys]
-FRED_API_KEY = "..."
-ALPHA_VANTAGE_API_KEY = "..."
-FMP_API_KEY = "..."
-FINNHUB_API_KEY = "..."
-TWELVEDATA_API_KEY = "..."
-DATA360_API_BASE = "https://extdataportal.worldbank.org/api/data360"
-
-[app]
-FINANCEIQ_ENV = "production"
-FINANCEIQ_REQUIRE_AUTH = false
-FINANCEIQ_DIRECT_ACCESS = true
-FINANCEIQ_CREATE_DEMO_USER = false
+```bash
+rsync -az main.py root@46.62.164.198:/opt/fundportal/app/main.py
+rsync -az utils/ root@46.62.164.198:/opt/fundportal/app/utils/
+rsync -az app root@46.62.164.198:/opt/fundportal/app/
 ```
 
-## 11) Custom Domain + DNS + SSL (Streamlit Cloud)
-1. Streamlit Cloud → App → **Settings** → **Custom Domain**
-2. Enter domain (e.g., `app.financeiq.com`)
-3. DNS records:
-   - CNAME: `app.financeiq.com` → Streamlit target
-4. SSL is automatic after DNS verification
+3. Restart:
 
-## 12) Docker (Optional)
-Repo includes `Dockerfile` and `docker-compose.yml`. Use if you want containerized deployment.
+```bash
+ssh -o BatchMode=yes root@46.62.164.198 "systemctl restart fundportal"
+```
+
+4. Smoke:
+
+```bash
+ssh -o BatchMode=yes root@46.62.164.198 \
+  "cd /opt/fundportal/app && bash scripts/post_deploy_smoke.sh"
+```
+
+## Related Docs
+
+- [DEPLOYMENT_GUIDE.md](/Users/teyfikoz/Projects/saas/financeiq/DEPLOYMENT_GUIDE.md)
+- [DEPLOYMENT_CHECKLIST.md](/Users/teyfikoz/Projects/saas/financeiq/DEPLOYMENT_CHECKLIST.md)
+- [PRODUCTION_RUNBOOK.md](/Users/teyfikoz/Projects/saas/financeiq/docs/PRODUCTION_RUNBOOK.md)
+- [SECRET_ROTATION_CHECKLIST.md](/Users/teyfikoz/Projects/saas/financeiq/docs/SECRET_ROTATION_CHECKLIST.md)
