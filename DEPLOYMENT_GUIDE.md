@@ -1,16 +1,16 @@
-# FundPortal Deployment Guide
+# FundPilot Deployment Guide
 
 ## Current Production State
 
-- Product name: `FundPortal`
+- Product name: `FundPilot`
 - Canonical URL: `https://fundpilot.techsyncanalytica.com`
 - Runtime: `Streamlit`
-- App entrypoint: [`main.py`](/Users/teyfikoz/github-projects/FundPortal/main.py)
+- App entrypoint: [`main.py`](/Users/teyfikoz/Projects/saas/financeiq/main.py)
 - Server: `Hetzner` at `46.62.164.198`
 - Reverse proxy: `nginx`
-- Service unit: [`deployment/fundportal.service`](/Users/teyfikoz/github-projects/FundPortal/deployment/fundportal.service)
-- Nginx site template: [`deployment/fundportal.nginx.conf`](/Users/teyfikoz/github-projects/FundPortal/deployment/fundportal.nginx.conf)
-- Public branding and host config: [`utils/app_config.py`](/Users/teyfikoz/github-projects/FundPortal/utils/app_config.py)
+- Service unit: [`deployment/fundportal.service`](/Users/teyfikoz/Projects/saas/financeiq/deployment/fundportal.service)
+- Nginx site template: [`deployment/fundportal.nginx.conf`](/Users/teyfikoz/Projects/saas/financeiq/deployment/fundportal.nginx.conf)
+- Public branding and host config: [`utils/app_config.py`](/Users/teyfikoz/Projects/saas/financeiq/utils/app_config.py)
 
 ## Current Architecture
 
@@ -109,12 +109,12 @@ Implemented:
 
 Key files:
 
-- [`main.py`](/Users/teyfikoz/github-projects/FundPortal/main.py)
-- [`modules/tefas_portfolio_analysis_ui.py`](/Users/teyfikoz/github-projects/FundPortal/modules/tefas_portfolio_analysis_ui.py)
-- [`modules/cycle_analysis_ui.py`](/Users/teyfikoz/github-projects/FundPortal/modules/cycle_analysis_ui.py)
-- [`modules/portfolio_health_ui.py`](/Users/teyfikoz/github-projects/FundPortal/modules/portfolio_health_ui.py)
-- [`modules/scenario_sandbox_ui.py`](/Users/teyfikoz/github-projects/FundPortal/modules/scenario_sandbox_ui.py)
-- [`modules/etf_weight_tracker_ui.py`](/Users/teyfikoz/github-projects/FundPortal/modules/etf_weight_tracker_ui.py)
+- [`main.py`](/Users/teyfikoz/Projects/saas/financeiq/main.py)
+- [`modules/tefas_portfolio_analysis_ui.py`](/Users/teyfikoz/Projects/saas/financeiq/modules/tefas_portfolio_analysis_ui.py)
+- [`modules/cycle_analysis_ui.py`](/Users/teyfikoz/Projects/saas/financeiq/modules/cycle_analysis_ui.py)
+- [`modules/portfolio_health_ui.py`](/Users/teyfikoz/Projects/saas/financeiq/modules/portfolio_health_ui.py)
+- [`modules/scenario_sandbox_ui.py`](/Users/teyfikoz/Projects/saas/financeiq/modules/scenario_sandbox_ui.py)
+- [`modules/etf_weight_tracker_ui.py`](/Users/teyfikoz/Projects/saas/financeiq/modules/etf_weight_tracker_ui.py)
 
 ## Nginx Setup
 
@@ -142,13 +142,13 @@ server {
 
 Source file:
 
-- [`deployment/fundportal.nginx.conf`](/Users/teyfikoz/github-projects/FundPortal/deployment/fundportal.nginx.conf)
+- [`deployment/fundportal.nginx.conf`](/Users/teyfikoz/Projects/saas/financeiq/deployment/fundportal.nginx.conf)
 
 ## Systemd Setup
 
 Service source:
 
-- [`deployment/fundportal.service`](/Users/teyfikoz/github-projects/FundPortal/deployment/fundportal.service)
+- [`deployment/fundportal.service`](/Users/teyfikoz/Projects/saas/financeiq/deployment/fundportal.service)
 
 Core command:
 
@@ -185,7 +185,7 @@ Current policy:
 
 See:
 
-- [`STREAMLIT_CLOUD_DEPLOYMENT.md`](/Users/teyfikoz/github-projects/FundPortal/STREAMLIT_CLOUD_DEPLOYMENT.md)
+- [`STREAMLIT_CLOUD_DEPLOYMENT.md`](/Users/teyfikoz/Projects/saas/financeiq/STREAMLIT_CLOUD_DEPLOYMENT.md)
 
 ## Release Checklist
 
@@ -198,8 +198,8 @@ See:
 
 ## Operational Docs
 
-- [DEPLOYMENT_CHECKLIST.md](/Users/teyfikoz/github-projects/FundPortal/DEPLOYMENT_CHECKLIST.md)
-- [docs/PRODUCTION_RUNBOOK.md](/Users/teyfikoz/github-projects/FundPortal/docs/PRODUCTION_RUNBOOK.md)
+- [DEPLOYMENT_CHECKLIST.md](/Users/teyfikoz/Projects/saas/financeiq/DEPLOYMENT_CHECKLIST.md)
+- [docs/PRODUCTION_RUNBOOK.md](/Users/teyfikoz/Projects/saas/financeiq/docs/PRODUCTION_RUNBOOK.md)
 
 ## Known Follow-Up Work
 

@@ -13,10 +13,10 @@ except Exception:  # pragma: no cover
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "FundPortal"
+    PROJECT_NAME: str = "FundPilot"
     VERSION: str = "2.0.0"
     API_V1_STR: str = "/api/v1"
-    APP_DISPLAY_NAME: str = "FundPortal"
+    APP_DISPLAY_NAME: str = "FundPilot"
     PUBLIC_SITE_URL: str = os.environ.get("PUBLIC_SITE_URL", "https://fundpilot.techsyncanalytica.com")
     SUPPORT_EMAIL: str = os.environ.get("SUPPORT_EMAIL", "techsyncanalytica@gmail.com")
 
@@ -91,7 +91,7 @@ class Settings(BaseSettings):
     PUBLIC_DEFAULT_INSTITUTIONAL_MANAGER: str = os.environ.get("PUBLIC_DEFAULT_INSTITUTIONAL_MANAGER", "berkshire")
     PUBLIC_SEC_USER_AGENT: str = os.environ.get(
         "PUBLIC_SEC_USER_AGENT",
-        f"FundPortal/2.0 ({os.environ.get('SUPPORT_EMAIL', 'techsyncanalytica@gmail.com')})",
+        f"FundPilot/2.0 ({os.environ.get('SUPPORT_EMAIL', 'techsyncanalytica@gmail.com')})",
     )
     LOG_LEVEL: str = "INFO"
 

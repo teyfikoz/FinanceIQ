@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Repository-level release guard for FundPortal."""
+"""Repository-level release guard for FundPilot."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from typing import Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE_MARKER = "INTENTIONAL CACHE DIVERGENCE"
-LEGACY_BRANDS = ("FinanceIQ", "FundPilot")
+LEGACY_BRANDS = ("FinanceIQ",)
 TEXT_EXTENSIONS = {
     ".py",
     ".md",
@@ -220,7 +220,7 @@ def run_pytest() -> list[CheckFailure]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run FundPortal release guard checks.")
+    parser = argparse.ArgumentParser(description="Run FundPilot release guard checks.")
     parser.add_argument("--skip-pytest", action="store_true", help="Skip pytest execution.")
     args = parser.parse_args()
 
@@ -234,12 +234,12 @@ def main() -> int:
         failures.extend(run_pytest())
 
     if failures:
-        print("FundPortal release guard failed:\n")
+        print("FundPilot release guard failed:\n")
         for failure in failures:
             print(f"[{failure.check}] {failure.detail}")
         return 1
 
-    print("FundPortal release guard passed.")
+    print("FundPilot release guard passed.")
     return 0
 
 

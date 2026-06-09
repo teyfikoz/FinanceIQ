@@ -1,4 +1,4 @@
-# FundPortal Deployment Checklist
+# FundPilot Deployment Checklist
 
 ## Pre-Deploy
 
@@ -21,7 +21,7 @@
 
 - [ ] `bash scripts/post_deploy_smoke.sh` passes
 - [ ] homepage returns `200`
-- [ ] homepage HTML contains `FundPortal`
+- [ ] homepage HTML contains `FundPilot`
 - [ ] internal Streamlit health returns `ok`
 - [ ] `systemctl is-active fundportal` returns `active`
 

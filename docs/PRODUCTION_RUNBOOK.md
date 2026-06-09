@@ -1,4 +1,4 @@
-# FundPortal Production Runbook
+# FundPilot Production Runbook
 
 ## Purpose
 
@@ -80,7 +80,7 @@ bash scripts/post_deploy_smoke.sh
 Manual checks:
 
 - homepage returns `200`
-- homepage HTML contains `FundPortal`
+- homepage HTML contains `FundPilot`
 - Streamlit health endpoint returns `ok`
 - `systemctl is-active fundportal` returns `active`
 - primary workflows open without fallback regressions

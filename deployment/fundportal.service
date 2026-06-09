@@ -1,5 +1,5 @@
 [Unit]
-Description=FundPortal Streamlit Application
+Description=FundPilot Streamlit Application
 After=network.target
 
 [Service]

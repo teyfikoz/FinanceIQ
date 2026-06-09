@@ -19,4 +19,4 @@ if [[ -n "$SSH_TARGET" ]]; then
   ssh -o BatchMode=yes "$SSH_TARGET" "systemctl is-active fundportal" | grep -q "active"
 fi
 
-echo "FundPortal post-deploy smoke passed."
+echo "FundPilot post-deploy smoke passed."

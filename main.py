@@ -154,7 +154,7 @@ def init_ui():
     else:
         print("🚀 Direct access mode - no authentication required")
 
-    # Global FundPortal design system styling
+    # Global FundPilot design system styling
     st.markdown("""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
@@ -1332,7 +1332,7 @@ def get_social_media_sentiment(symbol):
     return social_data.get(symbol, None)
 
 def create_header():
-    """Create editorial-style FundPortal header."""
+    """Create editorial-style FundPilot header."""
     current_time = datetime.now().strftime("%H:%M:%S")
     st.markdown(
         f"""
@@ -1489,17 +1489,27 @@ def _set_workspace_query_param(workspace: str):
 def render_primary_navigation() -> str:
     """Render a grouped navigation shell with query-param deep-link support."""
     query_workspace = _read_workspace_from_query_params()
+    forced_workspace = st.session_state.pop("_force_nav_sync_workspace", None)
+    force_nav_sync = False
+
+    if forced_workspace and forced_workspace in PRIMARY_WORKSPACES:
+        st.session_state.primary_workspace_nav = forced_workspace
+        force_nav_sync = True
+
     if query_workspace and st.session_state.get("primary_workspace_nav") != query_workspace:
         st.session_state.primary_workspace_nav = query_workspace
+        force_nav_sync = True
 
     active_workspace = st.session_state.get("primary_workspace_nav", "🎯 Dashboard")
     if active_workspace not in PRIMARY_WORKSPACES:
         active_workspace = "🎯 Dashboard"
         st.session_state.primary_workspace_nav = active_workspace
+        force_nav_sync = True
 
-    active_group = _workspace_group_for(active_workspace)
-    if st.session_state.get("workspace_group_nav") != active_group:
-        st.session_state.workspace_group_nav = active_group
+    if "workspace_group_nav" not in st.session_state or force_nav_sync:
+        st.session_state.workspace_group_nav = _workspace_group_for(active_workspace)
+    if "workspace_page_nav" not in st.session_state or force_nav_sync:
+        st.session_state.workspace_page_nav = active_workspace
 
     with st.sidebar:
         st.markdown("---")
@@ -1512,11 +1522,8 @@ def render_primary_navigation() -> str:
         )
 
         group_pages = WORKSPACE_GROUPS[selected_group]
-        if active_workspace not in group_pages:
-            active_workspace = group_pages[0]
-
         if st.session_state.get("workspace_page_nav") not in group_pages:
-            st.session_state.workspace_page_nav = active_workspace
+            st.session_state.workspace_page_nav = group_pages[0]
 
         selected_workspace = st.selectbox(
             "Page",
@@ -1535,12 +1542,11 @@ def render_primary_navigation() -> str:
             "🇹🇷 Turkish Markets",
             "🐋 Whale Intelligence",
         ]
+        quick_route_target = None
         for idx, quick_workspace in enumerate(quick_routes):
             with quick_route_cols[idx % 2]:
                 if st.button(quick_workspace, key=f"quick_route_{idx}", use_container_width=True):
-                    selected_workspace = quick_workspace
-                    st.session_state.workspace_group_nav = _workspace_group_for(selected_workspace)
-                    st.session_state.workspace_page_nav = selected_workspace
+                    quick_route_target = quick_workspace
 
         st.markdown("---")
         st.markdown("### Performance")
@@ -1551,6 +1557,12 @@ def render_primary_navigation() -> str:
         )
         if st.session_state.get("fp_performance_mode"):
             st.caption("Streamlined rendering is active for supported views.")
+
+    if quick_route_target:
+        st.session_state.primary_workspace_nav = quick_route_target
+        st.session_state["_force_nav_sync_workspace"] = quick_route_target
+        _set_workspace_query_param(quick_route_target)
+        st.rerun()
 
     st.session_state.primary_workspace_nav = selected_workspace
     _set_workspace_query_param(selected_workspace)
